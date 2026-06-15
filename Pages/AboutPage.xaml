@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page x:Class="RubyDevice.Pages.AboutPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="{StaticResource WindowBackgroundBrush}">
+
+    <ScrollViewer Padding="24,16" VerticalScrollBarVisibility="Auto">
+        <StackPanel MaxWidth="600" Spacing="24" HorizontalAlignment="Center">
+            <!-- Logo -->
+            <Border Width="96" Height="96" CornerRadius="20" Background="{StaticResource PrimaryBrush}"
+                   HorizontalAlignment="Center">
+                <FontIcon Glyph="&#xE96E;" FontSize="48" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+
+            <!-- App Name -->
+            <StackPanel Spacing="8" HorizontalAlignment="Center">
+                <TextBlock Text="RubyDevice" FontSize="28" FontWeight="Bold"
+                          HorizontalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock Text="Version 1.0.0" FontSize="13"
+                          HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+            </StackPanel>
+
+            <!-- Description -->
+            <TextBlock x:Name="AppDescription" TextWrapping="Wrap" TextAlignment="Center"
+                      Foreground="{StaticResource TextSecondaryBrush}" LineHeight="22"/>
+
+            <!-- Features -->
+            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
+                   BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <StackPanel Spacing="12">
+                    <TextBlock x:Name="FeaturesTitle" FontWeight="SemiBold"
+                              Foreground="{StaticResource TextPrimaryBrush}"/>
+
+                    <StackPanel Spacing="10">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Grid.Column="0" Glyph="&#xE73E;" FontSize="14"
+                                     Foreground="{StaticResource SuccessBrush}"/>
+                            <TextBlock x:Name="Feature1" Grid.Column="1" TextWrapping="Wrap"
+                                      Foreground="{StaticResource TextPrimaryBrush}"/>
+                        </Grid>
+
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Grid.Column="0" Glyph="&#xE73E;" FontSize="14"
+                                     Foreground="{StaticResource SuccessBrush}"/>
+                            <TextBlock x:Name="Feature2" Grid.Column="1" TextWrapping="Wrap"
+                                      Foreground="{StaticResource TextPrimaryBrush}"/>
+                        </Grid>
+
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Grid.Column="0" Glyph="&#xE73E;" FontSize="14"
+                                     Foreground="{StaticResource SuccessBrush}"/>
+                            <TextBlock x:Name="Feature3" Grid.Column="1" TextWrapping="Wrap"
+                                      Foreground="{StaticResource TextPrimaryBrush}"/>
+                        </Grid>
+
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <FontIcon Grid.Column="0" Glyph="&#xE73E;" FontSize="14"
+                                     Foreground="{StaticResource SuccessBrush}"/>
+                            <TextBlock x:Name="Feature4" Grid.Column="1" TextWrapping="Wrap"
+                                      Foreground="{StaticResource TextPrimaryBrush}"/>
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

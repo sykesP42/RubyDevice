@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page x:Class="RubyDevice.Pages.DeviceDetailPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:RubyDevice.ViewModels"
+    Background="{StaticResource WindowBackgroundBrush}">
+
+    <ScrollViewer Padding="24,20">
+        <StackPanel Spacing="20" MaxWidth="800">
+            <!-- Back Button at Top -->
+            <Button Content="Back to Devices" Click="Back_Click" HorizontalAlignment="Left"
+                   Background="{StaticResource PrimaryBrush}" Foreground="White" Padding="16,8" CornerRadius="6"/>
+
+            <!-- Header -->
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Width="64" Height="64" CornerRadius="12"
+                       Background="{StaticResource PrimaryLightBrush}">
+                    <TextBlock x:Name="DeviceIcon" FontFamily="Segoe MDL2 Assets" FontSize="28"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Foreground="{StaticResource PrimaryBrush}"/>
+                </Border>
+
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                    <TextBlock x:Name="DeviceNameText" FontSize="24" FontWeight="Bold"
+                              Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock x:Name="DeviceTypeText" FontSize="14"
+                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <Border CornerRadius="6" Padding="12,6" Background="{StaticResource PrimaryLightBrush}">
+                        <TextBlock x:Name="DeviceStatus" FontWeight="SemiBold"
+                                  Foreground="{StaticResource PrimaryBrush}"/>
+                    </Border>
+                    <ToggleSwitch x:Name="DeviceToggle" OnContent="" OffContent="" Width="50"
+                                 Toggled="DeviceToggle_Toggled"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Info Card -->
+            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
+                   BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Device Information" FontSize="16" FontWeight="SemiBold"
+                              Foreground="{StaticResource TextPrimaryBrush}"/>
+
+                    <Grid ColumnSpacing="24" RowSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Spacing="12">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Manufacturer" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"/>
+                                <TextBlock x:Name="InfoManufacturer" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Vendor ID" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"/>
+                                <TextBlock x:Name="InfoVid" FontSize="14" FontFamily="Consolas"
+                                          Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Product ID" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"/>
+                                <TextBlock x:Name="InfoPid" FontSize="14" FontFamily="Consolas"
+                                          Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Spacing="12">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Connection" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"/>
+                                <TextBlock x:Name="InfoConnection" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Device ID" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"/>
+                                <TextBlock x:Name="InfoDeviceId" FontSize="12" FontFamily="Consolas"
+                                          Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Note Card -->
+            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
+                   BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Notes" FontSize="16" FontWeight="SemiBold"
+                              Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBox x:Name="NoteBox" PlaceholderText="Add a note for this device..."
+                            AcceptsReturn="True" Height="80" TextWrapping="Wrap"
+                            LostFocus="NoteBox_LostFocus"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Device-specific features -->
+            <Border x:Name="FeaturesCard" Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
+                   BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Visibility="Collapsed">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Features" FontSize="16" FontWeight="SemiBold"
+                              Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <StackPanel x:Name="FeaturesPanel" Spacing="8"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>
