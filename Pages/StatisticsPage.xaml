@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page x:Class="RubyDevice.Pages.StatisticsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:RubyDevice.ViewModels"
+    Background="{StaticResource WindowBackgroundBrush}">
+
+    <ScrollViewer Padding="24,16">
+        <StackPanel Spacing="20">
+            <!-- Stats Cards -->
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Total Devices -->
+                <Border Grid.Column="0" Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="16"
+                       BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <Border Width="40" Height="40" CornerRadius="8" Background="{StaticResource PrimaryLightBrush}">
+                            <FontIcon Glyph="&#xE765;" FontSize="18" Foreground="{StaticResource PrimaryBrush}"/>
+                        </Border>
+                        <TextBlock x:Name="TextTotal" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBlock x:Name="CountTotal" Text="0" FontSize="28" FontWeight="Bold"
+                                  Foreground="{StaticResource TextPrimaryBrush}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Active Devices -->
+                <Border Grid.Column="1" Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="16"
+                       BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <Border Width="40" Height="40" CornerRadius="8" Background="#D1FAE5">
+                            <FontIcon Glyph="&#xE73E;" FontSize="18" Foreground="{StaticResource SuccessBrush}"/>
+                        </Border>
+                        <TextBlock x:Name="TextActive" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBlock x:Name="CountActive" Text="0" FontSize="28" FontWeight="Bold"
+                                  Foreground="{StaticResource TextPrimaryBrush}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Disabled Devices -->
+                <Border Grid.Column="2" Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="16"
+                       BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <Border Width="40" Height="40" CornerRadius="8" Background="#FEE2E2">
+                            <FontIcon Glyph="&#xE711;" FontSize="18" Foreground="{StaticResource DangerBrush}"/>
+                        </Border>
+                        <TextBlock x:Name="TextDisabled" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBlock x:Name="CountDisabled" Text="0" FontSize="28" FontWeight="Bold"
+                                  Foreground="{StaticResource TextPrimaryBrush}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- External Devices -->
+                <Border Grid.Column="3" Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="16"
+                       BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <Border Width="40" Height="40" CornerRadius="8" Background="#DBEAFE">
+                            <FontIcon Glyph="&#xE80F;" FontSize="18" Foreground="{StaticResource PrimaryBrush}"/>
+                        </Border>
+                        <TextBlock x:Name="TextExternal" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBlock x:Name="CountExternal" Text="0" FontSize="28" FontWeight="Bold"
+                                  Foreground="{StaticResource TextPrimaryBrush}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Device Distribution -->
+            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
+                   BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <StackPanel Spacing="16">
+                    <TextBlock x:Name="TextDistribution" FontSize="18" FontWeight="SemiBold"
+                              Foreground="{StaticResource TextPrimaryBrush}"/>
+
+                    <Grid ColumnSpacing="24">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Distribution Bars -->
+                        <StackPanel Grid.Column="0" Spacing="12">
+                            <!-- Keyboards -->
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" x:Name="TextKeyboard" FontSize="13"
+                                          Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <Border Grid.Column="1" Height="24" CornerRadius="4" Background="{StaticResource DividerBrush}">
+                                    <Border x:Name="BarKeyboard" Height="24" CornerRadius="4"
+                                           Background="{StaticResource KeyboardBrush}" HorizontalAlignment="Left"/>
+                                </Border>
+                                <TextBlock Grid.Column="2" x:Name="CountKeyboard" FontSize="13" Margin="8,0,0,0"
+                                          Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <!-- Mice -->
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" x:Name="TextMouse" FontSize="13"
+                                          Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <Border Grid.Column="1" Height="24" CornerRadius="4" Background="{StaticResource DividerBrush}">
+                                    <Border x:Name="BarMouse" Height="24" CornerRadius="4"
+                                           Background="{StaticResource MouseBrush}" HorizontalAlignment="Left"/>
+                                </Border>
+                                <TextBlock Grid.Column="2" x:Name="CountMouse" FontSize="13" Margin="8,0,0,0"
+                                          Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <!-- Touchpads -->
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" x:Name="TextTouchpad" FontSize="13"
+                                          Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <Border Grid.Column="1" Height="24" CornerRadius="4" Background="{StaticResource DividerBrush}">
+                                    <Border x:Name="BarTouchpad" Height="24" CornerRadius="4"
+                                           Background="{StaticResource TouchpadBrush}" HorizontalAlignment="Left"/>
+                                </Border>
+                                <TextBlock Grid.Column="2" x:Name="CountTouchpad" FontSize="13" Margin="8,0,0,0"
+                                          Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <!-- Other -->
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" x:Name="TextOther" FontSize="13"
+                                          Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <Border Grid.Column="1" Height="24" CornerRadius="4" Background="{StaticResource DividerBrush}">
+                                    <Border x:Name="BarOther" Height="24" CornerRadius="4"
+                                           Background="{StaticResource OtherDeviceBrush}" HorizontalAlignment="Left"/>
+                                </Border>
+                                <TextBlock Grid.Column="2" x:Name="CountOther" FontSize="13" Margin="8,0,0,0"
+                                          Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Legend -->
+                        <StackPanel Grid.Column="1" Spacing="8" Orientation="Horizontal">
+                            <Border Width="16" Height="16" CornerRadius="4" Background="{StaticResource KeyboardBrush}"/>
+                            <Border Width="16" Height="16" CornerRadius="4" Background="{StaticResource MouseBrush}"/>
+                            <Border Width="16" Height="16" CornerRadius="4" Background="{StaticResource TouchpadBrush}"/>
+                            <Border Width="16" Height="16" CornerRadius="4" Background="{StaticResource OtherDeviceBrush}"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Usage List -->
+            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
+                   BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <StackPanel Spacing="16">
+                    <Grid ColumnSpacing="12">
+                        <TextBlock x:Name="TextUsage" FontSize="18" FontWeight="SemiBold"
+                                  Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <Button Grid.Column="1" x:Name="BtnRefresh" HorizontalAlignment="Right"
+                               Background="{StaticResource PrimaryBrush}" Foreground="White"
+                               CornerRadius="6" Padding="12,6" Click="BtnRefresh_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE72C;" FontSize="12"/>
+                                <TextBlock x:Name="TextRefresh" FontSize="12"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <TextBlock x:Name="TextNoDevices" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"
+                              Visibility="Collapsed"/>
+
+                    <ListView x:Name="UsageList" SelectionMode="None" MaxHeight="300">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="vm:DeviceViewModel">
+                                <Grid Padding="12,8" ColumnSpacing="16" Background="{StaticResource DividerBrush}"
+                                     CornerRadius="8" Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Type Icon -->
+                                    <Border Grid.Column="0" Width="32" Height="32" CornerRadius="6"
+                                           Background="{StaticResource CardBackgroundBrush}">
+                                        <TextBlock Text="{x:Bind IconGlyph}" FontFamily="Segoe MDL2 Assets"
+                                                  FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    </Border>
+
+                                    <!-- Device Name -->
+                                    <StackPanel Grid.Column="1" Spacing="2">
+                                        <TextBlock Text="{x:Bind Name}" FontSize="13" FontWeight="Medium"
+                                                  Foreground="{StaticResource TextPrimaryBrush}"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <Border Background="{StaticResource DividerBrush}" CornerRadius="3" Padding="4,1">
+                                                <TextBlock Text="{x:Bind TypeName}" FontSize="10"
+                                                          Foreground="{StaticResource TextSecondaryBrush}"/>
+                                            </Border>
+                                            <Border CornerRadius="3" Padding="4,1"
+                                                   Background="{x:Bind StatusColorBrush}">
+                                                <TextBlock Text="{x:Bind StatusText}" FontSize="10"
+                                                          Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!-- Usage Time -->
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xE823;" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"/>
+                                        <TextBlock Text="{x:Bind UsageTimeText}" FontSize="13"
+                                                  Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+
+                                    <!-- Location -->
+                                    <TextBlock Grid.Column="3" Text="{x:Bind LocationText}" FontSize="11"
+                                              Foreground="{StaticResource TextTertiaryBrush}" VerticalAlignment="Center"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </StackPanel>
+            </Border>
+
+            <!-- Total Usage Summary -->
+            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
+                   BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <Grid ColumnSpacing="20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Width="64" Height="64" CornerRadius="12"
+                           Background="{StaticResource PrimaryLightBrush}">
+                        <FontIcon Glyph="&#xE823;" FontSize="28" Foreground="{StaticResource PrimaryBrush}"/>
+                    </Border>
+
+                    <StackPanel Grid.Column="1" Spacing="8">
+                        <TextBlock x:Name="TextTotalUsage" FontSize="18" FontWeight="SemiBold"
+                                  Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <TextBlock x:Name="TotalUsageTime" Text="0h 0m" FontSize="24" FontWeight="Bold"
+                                  Foreground="{StaticResource PrimaryBrush}"/>
+                        <TextBlock x:Name="TextUsageHint" FontSize="12"
+                                  Foreground="{StaticResource TextTertiaryBrush}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

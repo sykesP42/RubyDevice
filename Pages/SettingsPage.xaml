@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page x:Class="RubyDevice.Pages.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="{StaticResource WindowBackgroundBrush}">
+
+    <ScrollViewer Padding="24,16">
+        <StackPanel Spacing="20">
+            <!-- Language -->
+            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
+                   BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <StackPanel Spacing="16">
+                    <TextBlock x:Name="TextLanguageTitle" FontSize="18" FontWeight="SemiBold"
+                              Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <RadioButtons x:Name="LanguageRadio" SelectionChanged="LanguageRadio_SelectionChanged">
+                        <RadioButton Content="English" Tag="English"/>
+                        <RadioButton Content="中文" Tag="Chinese"/>
+                    </RadioButtons>
+                </StackPanel>
+            </Border>
+
+            <!-- Theme -->
+            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
+                   BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <StackPanel Spacing="16">
+                    <TextBlock x:Name="TextThemeTitle" FontSize="18" FontWeight="SemiBold"
+                              Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <GridView x:Name="ThemeGrid" SelectionMode="Single" SelectionChanged="ThemeGrid_SelectionChanged">
+                        <GridViewItem Tag="Light" Margin="0,0,12,12">
+                            <StackPanel Spacing="8" Width="80">
+                                <Border Width="56" Height="56" CornerRadius="8" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="2"/>
+                                <TextBlock x:Name="TextThemeLight" HorizontalAlignment="Center" FontSize="12"
+                                          Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </GridViewItem>
+                        <GridViewItem Tag="Dark" Margin="0,0,12,12">
+                            <StackPanel Spacing="8" Width="80">
+                                <Border Width="56" Height="56" CornerRadius="8" Background="#0F172A"/>
+                                <TextBlock x:Name="TextThemeDark" HorizontalAlignment="Center" FontSize="12"
+                                          Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </GridViewItem>
+                        <GridViewItem Tag="Ocean" Margin="0,0,12,12">
+                            <StackPanel Spacing="8" Width="80">
+                                <Border Width="56" Height="56" CornerRadius="8" Background="#0891B2"/>
+                                <TextBlock x:Name="TextThemeOcean" HorizontalAlignment="Center" FontSize="12"
+                                          Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </GridViewItem>
+                        <GridViewItem Tag="Forest" Margin="0,0,12,12">
+                            <StackPanel Spacing="8" Width="80">
+                                <Border Width="56" Height="56" CornerRadius="8" Background="#16A34A"/>
+                                <TextBlock x:Name="TextThemeForest" HorizontalAlignment="Center" FontSize="12"
+                                          Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </GridViewItem>
+                        <GridViewItem Tag="Sunset" Margin="0,0,12,12">
+                            <StackPanel Spacing="8" Width="80">
+                                <Border Width="56" Height="56" CornerRadius="8" Background="#EA580C"/>
+                                <TextBlock x:Name="TextThemeSunset" HorizontalAlignment="Center" FontSize="12"
+                                          Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </GridViewItem>
+                    </GridView>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

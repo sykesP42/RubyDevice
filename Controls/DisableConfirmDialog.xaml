@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog x:Class="RubyDevice.Controls.DisableConfirmDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    CloseButtonText="{x:Bind CancelText}"
+    DefaultButton="Close"
+    RequestedTheme="Dark">
+
+    <StackPanel Spacing="16" Padding="8" MaxWidth="360">
+        <!-- Warning Header -->
+        <StackPanel Orientation="Horizontal" Spacing="12">
+            <Border Background="#FFE53E3E" CornerRadius="20" Padding="8">
+                <FontIcon Glyph="&#xE7BA;" FontSize="18" Foreground="White"/>
+            </Border>
+            <TextBlock Text="{x:Bind DialogTitle}" FontSize="18" FontWeight="Bold"
+                      Foreground="White" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- Message -->
+        <TextBlock Text="{x:Bind Message}" TextWrapping="Wrap" FontSize="13"
+                  Foreground="#CCFFFFFF" LineHeight="20"/>
+
+        <!-- Countdown Section -->
+        <Border Background="#3F000000" CornerRadius="8" Padding="12">
+            <StackPanel Spacing="6" HorizontalAlignment="Center">
+                <TextBlock Text="{x:Bind CountdownLabel}" FontSize="11"
+                          Foreground="#FFE53E3E" HorizontalAlignment="Center"/>
+                <TextBlock x:Name="CountdownText" FontSize="32" FontWeight="Bold"
+                          Foreground="White" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Auto-restore hint -->
+        <Border Background="#1A10B981" CornerRadius="6" Padding="10">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <FontIcon Glyph="&#xE823;" FontSize="14" Foreground="#FF10B981"/>
+                <TextBlock Text="{x:Bind AutoRestoreHint}" FontSize="11"
+                          Foreground="#FF10B981" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</ContentDialog>

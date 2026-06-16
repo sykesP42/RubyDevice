@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog x:Class="RubyDevice.Controls.ConfirmDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    PrimaryButtonText="{x:Bind ConfirmText}"
+    CloseButtonText="{x:Bind CancelText}"
+    DefaultButton="Primary">
+
+    <StackPanel Spacing="16">
+        <TextBlock Text="{x:Bind DialogTitle}" FontSize="18" FontWeight="SemiBold"/>
+        <TextBlock Text="{x:Bind Message}" TextWrapping="Wrap"/>
+
+        <!-- Countdown Timer -->
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+            <ProgressRing x:Name="CountdownRing" Width="24" Height="24" IsActive="True"/>
+            <TextBlock x:Name="CountdownText" Foreground="{StaticResource WarningBrush}"/>
+        </StackPanel>
+    </StackPanel>
+</ContentDialog>

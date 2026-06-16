@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ========== Ocean Theme ========== -->
+    <!-- Background -->
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#F0F9FF"/>
+    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="#FFFFFF"/>
+
+    <!-- Primary -->
+    <SolidColorBrush x:Key="PrimaryBrush" Color="#0891B2"/>
+    <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#0E7490"/>
+    <SolidColorBrush x:Key="PrimaryLightBrush" Color="#CFFAFE"/>
+
+    <!-- Text -->
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#164E63"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#0E7490"/>
+    <SolidColorBrush x:Key="TextTertiaryBrush" Color="#67E8F9"/>
+
+    <!-- Borders & Dividers -->
+    <SolidColorBrush x:Key="BorderBrush" Color="#A5F3FC"/>
+    <SolidColorBrush x:Key="DividerBrush" Color="#ECFEFF"/>
+
+    <!-- Status Colors -->
+    <SolidColorBrush x:Key="SuccessBrush" Color="#059669"/>
+    <SolidColorBrush x:Key="SuccessLightBrush" Color="#D1FAE5"/>
+    <SolidColorBrush x:Key="DangerBrush" Color="#DC2626"/>
+    <SolidColorBrush x:Key="DangerLightBrush" Color="#FEE2E2"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="#D97706"/>
+    <SolidColorBrush x:Key="WarningLightBrush" Color="#FEF3C7"/>
+
+    <!-- Device Type Colors -->
+    <SolidColorBrush x:Key="KeyboardBrush" Color="#0891B2"/>
+    <SolidColorBrush x:Key="KeyboardLightBrush" Color="#CFFAFE"/>
+    <SolidColorBrush x:Key="MouseBrush" Color="#0284C7"/>
+    <SolidColorBrush x:Key="MouseLightBrush" Color="#E0F2FE"/>
+    <SolidColorBrush x:Key="TouchpadBrush" Color="#06B6D4"/>
+    <SolidColorBrush x:Key="TouchpadLightBrush" Color="#CFFAFE"/>
+    <SolidColorBrush x:Key="OtherDeviceBrush" Color="#64748B"/>
+    <SolidColorBrush x:Key="OtherDeviceLightBrush" Color="#F1F5F9"/>
+
+</ResourceDictionary>
