@@ -171,7 +171,8 @@ public class MainViewModel : INotifyPropertyChanged
                 VendorId = d.VendorId,
                 ProductId = d.ProductId,
                 UserNote = d.UserNote,
-                TotalUsageSeconds = d.TotalUsageSeconds
+                TotalUsageSeconds = d.TotalUsageSeconds,
+                IsTracking = Services.UsageTrackingService.Instance.IsTracking(d.DeviceId)
             });
         }
         UpdateGroups();
