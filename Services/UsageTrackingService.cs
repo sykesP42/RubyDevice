@@ -18,6 +18,10 @@ public class UsageTrackingService : IDisposable
     private static UsageTrackingService? _instance;
     public static UsageTrackingService Instance => _instance ??= new UsageTrackingService();
 
+    // Constants for timer intervals
+    private const int ENABLED_TIME_UPDATE_INTERVAL_SECONDS = 60;
+    private const int DATA_SAVE_INTERVAL_MINUTES = 5;
+
     private readonly string _dataPath;
     private readonly string _settingsPath;
     private readonly Dictionary<string, Dictionary<string, DeviceUsageRecord>> _records = new();
@@ -27,6 +31,7 @@ public class UsageTrackingService : IDisposable
     private Timer? _enabledTimeTimer;
     private Timer? _saveTimer;
     private DeviceManager? _deviceManager;
+    private bool _disposed;
 
     // Handle to device ID mapping (populated from DeviceManager)
     private readonly Dictionary<IntPtr, string> _handleToDeviceId = new();
@@ -68,7 +73,8 @@ public class UsageTrackingService : IDisposable
         }
         catch
         {
-            // Use defaults on error
+            // Silent fail: use defaults if settings cannot be loaded
+            // This handles corrupted/invalid JSON gracefully
         }
     }
 
@@ -93,29 +99,48 @@ public class UsageTrackingService : IDisposable
         }
         catch
         {
-            // Start fresh on error
+            // Silent fail: start fresh if data cannot be loaded
+            // This handles corrupted/invalid JSON gracefully
         }
     }
 
     private void StartTimers()
     {
-        // Update enabled time every 60 seconds
-        _enabledTimeTimer = new Timer(_ => UpdateEnabledTime(), null, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(60));
+        // Update enabled time periodically
+        _enabledTimeTimer = new Timer(_ =>
+        {
+            try { UpdateEnabledTime(); }
+            catch { /* Timer callbacks must not throw to prevent silent termination */ }
+        }, null, TimeSpan.FromSeconds(ENABLED_TIME_UPDATE_INTERVAL_SECONDS), TimeSpan.FromSeconds(ENABLED_TIME_UPDATE_INTERVAL_SECONDS));
 
-        // Save data every 5 minutes
-        _saveTimer = new Timer(_ => SaveData(), null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
+        // Save data periodically
+        _saveTimer = new Timer(_ =>
+        {
+            try { SaveData(); }
+            catch { /* Timer callbacks must not throw to prevent silent termination */ }
+        }, null, TimeSpan.FromMinutes(DATA_SAVE_INTERVAL_MINUTES), TimeSpan.FromMinutes(DATA_SAVE_INTERVAL_MINUTES));
     }
 
     public bool IsTracking(string deviceId)
     {
         lock (_lock)
         {
-            return _settings.Devices.TryGetValue(deviceId, out var setting) && setting.IsTrackingEnabled;
+            return IsTrackingInternal(deviceId);
         }
+    }
+
+    /// <summary>
+    /// Internal lock-free version for use within locked sections.
+    /// Must only be called when already holding _lock.
+    /// </summary>
+    private bool IsTrackingInternal(string deviceId)
+    {
+        return _settings.Devices.TryGetValue(deviceId, out var setting) && setting.IsTrackingEnabled;
     }
 
     public void SetTracking(string deviceId, bool enabled)
     {
+        TrackingSettingsFile settingsCopy;
         lock (_lock)
         {
             if (!_settings.Devices.ContainsKey(deviceId))
@@ -132,8 +157,15 @@ public class UsageTrackingService : IDisposable
                 setting.FirstTrackedDate = DateTime.Today;
             }
 
-            SaveSettings();
+            // Copy settings for I/O outside lock
+            settingsCopy = new TrackingSettingsFile
+            {
+                Config = _settings.Config,
+                Devices = new Dictionary<string, DeviceTrackingSetting>(_settings.Devices)
+            };
         }
+
+        SaveSettings(settingsCopy);
 
         TrackingChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -150,11 +182,18 @@ public class UsageTrackingService : IDisposable
 
     public void SetRetentionDays(int days)
     {
+        TrackingSettingsFile settingsCopy;
         lock (_lock)
         {
             _settings.Config.RetentionDays = Math.Clamp(days, 7, 365);
-            SaveSettings();
+            // Copy settings for I/O outside lock
+            settingsCopy = new TrackingSettingsFile
+            {
+                Config = _settings.Config,
+                Devices = new Dictionary<string, DeviceTrackingSetting>(_settings.Devices)
+            };
         }
+        SaveSettings(settingsCopy);
     }
 
     public void RegisterDeviceHandle(IntPtr handle, string deviceId)
@@ -209,7 +248,7 @@ public class UsageTrackingService : IDisposable
         {
             foreach (var device in _deviceManager.Devices)
             {
-                if (!IsTracking(device.DeviceId) || !device.IsEnabled)
+                if (!IsTrackingInternal(device.DeviceId) || !device.IsEnabled)
                     continue;
 
                 if (!_records.ContainsKey(device.DeviceId))
@@ -224,7 +263,7 @@ public class UsageTrackingService : IDisposable
                     };
                 }
 
-                _records[device.DeviceId][dateKey].EnabledSeconds += 60;
+                _records[device.DeviceId][dateKey].EnabledSeconds += ENABLED_TIME_UPDATE_INTERVAL_SECONDS;
             }
         }
     }
@@ -251,11 +290,20 @@ public class UsageTrackingService : IDisposable
     {
         lock (_lock)
         {
-            return _settings.Devices
-                .Where(kv => kv.Value.IsTrackingEnabled)
-                .Select(kv => kv.Key)
-                .ToList();
+            return GetAllTrackingDevicesInternal();
         }
+    }
+
+    /// <summary>
+    /// Internal lock-free version for use within locked sections.
+    /// Must only be called when already holding _lock.
+    /// </summary>
+    private List<string> GetAllTrackingDevicesInternal()
+    {
+        return _settings.Devices
+            .Where(kv => kv.Value.IsTrackingEnabled)
+            .Select(kv => kv.Key)
+            .ToList();
     }
 
     public (long ActiveSeconds, long EnabledSeconds) GetTodayTotals()
@@ -266,7 +314,7 @@ public class UsageTrackingService : IDisposable
 
         lock (_lock)
         {
-            foreach (var deviceId in GetAllTrackingDevices())
+            foreach (var deviceId in GetAllTrackingDevicesInternal())
             {
                 if (_records.TryGetValue(deviceId, out var deviceRecords) &&
                     deviceRecords.TryGetValue(today, out var record))
@@ -299,7 +347,7 @@ public class UsageTrackingService : IDisposable
         }
     }
 
-    private void SaveSettings()
+    private void SaveSettings(TrackingSettingsFile settings)
     {
         try
         {
@@ -307,29 +355,32 @@ public class UsageTrackingService : IDisposable
             if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 
-            var json = JsonSerializer.Serialize(_settings, new JsonSerializerOptions { WriteIndented = true });
+            var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(_settingsPath, json);
         }
         catch
         {
-            // Silent fail
+            // Silent fail: settings persistence failure should not crash the application
+            // Settings will be lost for this session but will be recreated next time
         }
     }
 
     public void SaveData()
     {
+        // Copy data inside lock, perform I/O outside lock
+        List<DeviceUsageRecord> allRecords;
+        lock (_lock)
+        {
+            allRecords = new List<DeviceUsageRecord>();
+            foreach (var deviceRecords in _records.Values)
+                allRecords.AddRange(deviceRecords.Values);
+        }
+
         try
         {
             var dir = Path.GetDirectoryName(_dataPath);
             if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
-
-            var allRecords = new List<DeviceUsageRecord>();
-            lock (_lock)
-            {
-                foreach (var deviceRecords in _records.Values)
-                    allRecords.AddRange(deviceRecords.Values);
-            }
 
             var file = new UsageDataFile { Records = allRecords };
             var json = JsonSerializer.Serialize(file, new JsonSerializerOptions { WriteIndented = true });
@@ -337,12 +388,17 @@ public class UsageTrackingService : IDisposable
         }
         catch
         {
-            // Silent fail
+            // Silent fail: data persistence failure should not crash the application
+            // Data will be lost for this session but tracking continues in memory
         }
     }
 
     public void Dispose()
     {
+        if (_disposed)
+            return;
+
+        _disposed = true;
         _enabledTimeTimer?.Dispose();
         _saveTimer?.Dispose();
         SaveData();
