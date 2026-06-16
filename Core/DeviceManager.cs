@@ -248,6 +248,8 @@ public class DeviceManager : IDisposable
                 {
                     RAWINPUT raw = Marshal.PtrToStructure<RAWINPUT>(buffer);
                     _currentInputDevice = raw.header.hDevice;
+                    // Notify tracking service of active input
+                    Services.UsageTrackingService.Instance.ProcessActiveInput(raw.header.hDevice);
                 }
             }
             finally
@@ -290,6 +292,8 @@ public class DeviceManager : IDisposable
                             info.UserNote = cached.UserNote;
                             info.TotalUsageSeconds = cached.TotalUsageSeconds;
                         }
+                        // Register device handle with tracking service
+                        Services.UsageTrackingService.Instance.RegisterDeviceHandle(dev.hDevice, info.DeviceId);
                         Devices.Add(info);
                     }
                 }
