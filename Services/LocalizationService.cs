@@ -159,6 +159,28 @@ public class LocalizationService : INotifyPropertyChanged
         ["Close"] = "Close",
         ["Minimize"] = "Minimize",
         ["Maximize"] = "Maximize",
+
+        // Usage Record Page
+        ["NavUsageRecord"] = "Usage Record",
+        ["HeaderUsageRecord"] = "Usage Record",
+        ["HeaderUsageRecordDesc"] = "Track device usage time",
+        ["TrackingEnabled"] = "Tracking Enabled",
+        ["TrackingDisabled"] = "Tracking Disabled",
+        ["TrackedDevices"] = "Tracked Devices",
+        ["TodayUsage"] = "Today's Usage",
+        ["ActiveTime"] = "Active Time",
+        ["EnabledTime"] = "Enabled Time",
+        ["RetentionDays"] = "Data Retention Days",
+        ["AutoCleanup"] = "Auto Cleanup",
+        ["NoTrackingDevices"] = "No devices are being tracked",
+        ["EnableTrackingHint"] = "Enable tracking on a device to start recording",
+        ["Last7Days"] = "Last 7 Days",
+        ["Last30Days"] = "Last 30 Days",
+        ["AllTime"] = "All Time",
+        ["SelectDevice"] = "Select Device",
+        ["UsageHistory"] = "Usage History",
+        ["Date"] = "Date",
+        ["TrackedSince"] = "Tracked since {0}",
     };
 
     private static readonly Dictionary<string, string> ChineseStrings = new()
@@ -284,6 +306,28 @@ public class LocalizationService : INotifyPropertyChanged
         ["Close"] = "关闭",
         ["Minimize"] = "最小化",
         ["Maximize"] = "最大化",
+
+        // Usage Record Page
+        ["NavUsageRecord"] = "使用记录",
+        ["HeaderUsageRecord"] = "使用记录",
+        ["HeaderUsageRecordDesc"] = "追踪设备使用时间",
+        ["TrackingEnabled"] = "已开启追踪",
+        ["TrackingDisabled"] = "未开启追踪",
+        ["TrackedDevices"] = "追踪中的设备",
+        ["TodayUsage"] = "今日使用",
+        ["ActiveTime"] = "活跃时长",
+        ["EnabledTime"] = "启用时长",
+        ["RetentionDays"] = "数据保留天数",
+        ["AutoCleanup"] = "自动清理",
+        ["NoTrackingDevices"] = "暂无追踪中的设备",
+        ["EnableTrackingHint"] = "开启设备追踪以开始记录",
+        ["Last7Days"] = "最近 7 天",
+        ["Last30Days"] = "最近 30 天",
+        ["AllTime"] = "全部时间",
+        ["SelectDevice"] = "选择设备",
+        ["UsageHistory"] = "使用历史",
+        ["Date"] = "日期",
+        ["TrackedSince"] = "自 {0} 开始追踪",
     };
 
     public string this[string key] => Strings.TryGetValue(key, out var value) ? value : key;
