@@ -33,7 +33,7 @@ public sealed partial class AutoRestoreDialog : ContentDialog
         InitializeComponent();
 
         var loc = LocalizationService.Instance;
-        DialogTitle = loc["DeviceDisabled"];
+        DialogTitle = loc["DeviceDisabledTitle"];
         DeviceName = string.Format(loc["DeviceDisabledMessage"], deviceName);
         CountdownLabel = loc["AutoRestoreCountdown"];
         HintText = loc["AutoRestoreHintDialog"];

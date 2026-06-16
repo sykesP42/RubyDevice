@@ -138,7 +138,7 @@ public class LocalizationService : INotifyPropertyChanged
         ["WaitingForConfirm"] = "Click Confirm to proceed, Cancel to abort",
 
         // Auto Restore Dialog
-        ["DeviceDisabled"] = "Device Disabled",
+        ["DeviceDisabledTitle"] = "Device Disabled",
         ["DeviceDisabledMessage"] = "{0} is now disabled.",
         ["AutoRestoreCountdown"] = "Auto-restore in",
         ["AutoRestoreHintDialog"] = "Click 'Keep Disabled' to stop auto-restore",
@@ -285,7 +285,7 @@ public class LocalizationService : INotifyPropertyChanged
         ["WaitingForConfirm"] = "点击确认继续，取消则放弃操作",
 
         // Auto Restore Dialog
-        ["DeviceDisabled"] = "设备已禁用",
+        ["DeviceDisabledTitle"] = "设备已禁用",
         ["DeviceDisabledMessage"] = "{0} 已被禁用。",
         ["AutoRestoreCountdown"] = "自动恢复倒计时",
         ["AutoRestoreHintDialog"] = "点击'保持禁用'可停止自动恢复",
