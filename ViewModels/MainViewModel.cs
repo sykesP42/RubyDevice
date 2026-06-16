@@ -27,6 +27,13 @@ public class DeviceViewModel : INotifyPropertyChanged
     public string ProductId { get; set; } = "";
     public long TotalUsageSeconds { get; set; }
 
+    private bool _isTracking;
+    public bool IsTracking
+    {
+        get => _isTracking;
+        set { _isTracking = value; OnPropertyChanged(); }
+    }
+
     public string UserNote
     {
         get => _userNote;
