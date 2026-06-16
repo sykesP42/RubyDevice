@@ -34,6 +34,12 @@ public sealed partial class MainWindow : Window
         _deviceManager?.RegisterRawInput(_hwnd);
         WindowSubclassHelper.InstallSubclass(_hwnd, OnRawInput);
 
+        // Initialize usage tracking service
+        if (_deviceManager != null)
+        {
+            Services.UsageTrackingService.Instance.Initialize(_deviceManager);
+        }
+
         // Init
         _viewModel.Initialize();
         _loc.PropertyChanged += (_, _) => UpdateTexts();
@@ -57,6 +63,7 @@ public sealed partial class MainWindow : Window
         _viewModel.SaveDeviceData();
         WindowSubclassHelper.UninstallSubclass(_hwnd);
         _deviceManager?.Dispose();
+        Services.UsageTrackingService.Instance.Dispose();
     }
 
     private void UpdateVisuals()
@@ -67,6 +74,7 @@ public sealed partial class MainWindow : Window
     private void UpdateTexts()
     {
         TextDevices.Text = _loc["NavDevices"];
+        TextUsageRecord.Text = _loc["NavUsageRecord"];
         TextStatistics.Text = _loc["NavStatistics"];
         TextTimer.Text = _loc["NavTimer"];
         TextSettings.Text = _loc["NavSettings"];
@@ -79,6 +87,7 @@ public sealed partial class MainWindow : Window
         var primaryBrush = (SolidColorBrush)App.Current.Resources["PrimaryBrush"];
 
         IconDevices.Foreground = secondaryBrush;
+        IconUsageRecord.Foreground = secondaryBrush;
         IconStatistics.Foreground = secondaryBrush;
         IconTimer.Foreground = secondaryBrush;
         IconSettings.Foreground = secondaryBrush;
@@ -94,6 +103,12 @@ public sealed partial class MainWindow : Window
                 ContentFrame.Navigate(typeof(DevicesPage), _viewModel);
                 HeaderTitle.Text = _loc["HeaderDevices"];
                 HeaderSubtitle.Text = _loc["HeaderDevicesDesc"];
+                break;
+            case "UsageRecord":
+                IconUsageRecord.Foreground = primaryBrush;
+                ContentFrame.Navigate(typeof(Pages.UsageRecordPage), _viewModel);
+                HeaderTitle.Text = _loc["HeaderUsageRecord"];
+                HeaderSubtitle.Text = _loc["HeaderUsageRecordDesc"];
                 break;
             case "Statistics":
                 IconStatistics.Foreground = primaryBrush;

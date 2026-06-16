@@ -88,6 +88,14 @@
                                       Foreground="{StaticResource TextPrimaryBrush}"/>
                         </StackPanel>
                     </ListViewItem>
+                    <ListViewItem x:Name="NavItemUsageRecord" Tag="UsageRecord" Margin="0,2">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <FontIcon x:Name="IconUsageRecord" Glyph="&#xE9D9;" FontSize="16"
+                                     Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBlock x:Name="TextUsageRecord" VerticalAlignment="Center"
+                                      Foreground="{StaticResource TextPrimaryBrush}"/>
+                        </StackPanel>
+                    </ListViewItem>
                     <ListViewItem x:Name="NavItemStatistics" Tag="Statistics" Margin="0,2">
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <FontIcon x:Name="IconStatistics" Glyph="&#xE9D9;" FontSize="16"
