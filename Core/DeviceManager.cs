@@ -264,6 +264,9 @@ public class DeviceManager : IDisposable
         Devices.Clear();
         _devicePathToHandle.Clear();
 
+        // Clear stale handle mappings before re-enumerating devices
+        Services.UsageTrackingService.Instance.ClearDeviceHandles();
+
         try
         {
             uint count = 0;

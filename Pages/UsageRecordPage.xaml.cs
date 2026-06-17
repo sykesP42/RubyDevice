@@ -23,8 +23,13 @@ public sealed partial class UsageRecordPage : Page
     public UsageRecordPage()
     {
         InitializeComponent();
-        _loc.PropertyChanged += (_, _) => UpdateTexts();
+        _loc.PropertyChanged += OnLocalizationChanged;
         UpdateTexts();
+    }
+
+    private void OnLocalizationChanged(object? sender, EventArgs e)
+    {
+        DispatcherQueue.TryEnqueue(UpdateTexts);
     }
 
     private void UpdateTexts()
@@ -61,6 +66,7 @@ public sealed partial class UsageRecordPage : Page
     {
         base.OnNavigatedFrom(e);
         UsageTrackingService.Instance.TrackingChanged -= OnTrackingChanged;
+        _loc.PropertyChanged -= OnLocalizationChanged;
     }
 
     private void OnTrackingChanged(object? sender, EventArgs e)

@@ -30,8 +30,19 @@ public class DeviceViewModel : INotifyPropertyChanged
     private bool _isTracking;
     public bool IsTracking
     {
-        get => _isTracking;
-        set { _isTracking = value; OnPropertyChanged(); }
+        get
+        {
+            // Query the service directly to ensure fresh state
+            return Services.UsageTrackingService.Instance.IsTracking(DeviceId);
+        }
+        set
+        {
+            if (_isTracking != value)
+            {
+                _isTracking = value;
+                OnPropertyChanged();
+            }
+        }
     }
 
     public string UserNote

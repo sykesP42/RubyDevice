@@ -206,21 +206,20 @@ public class UsageTrackingService : IDisposable
 
     public void ProcessActiveInput(IntPtr deviceHandle)
     {
-        string? deviceId;
+        if (_disposed) return;
+
         lock (_lock)
         {
-            if (!_handleToDeviceId.TryGetValue(deviceHandle, out deviceId))
+            if (!_handleToDeviceId.TryGetValue(deviceHandle, out var deviceId))
                 return;
-        }
 
-        if (!IsTracking(deviceId))
-            return;
+            // Use IsTrackingInternal to avoid re-acquiring lock
+            if (!IsTrackingInternal(deviceId))
+                return;
 
-        var today = DateTime.Today;
-        var dateKey = today.ToString("yyyy-MM-dd");
+            var today = DateTime.Today;
+            var dateKey = today.ToString("yyyy-MM-dd");
 
-        lock (_lock)
-        {
             if (!_records.ContainsKey(deviceId))
                 _records[deviceId] = new Dictionary<string, DeviceUsageRecord>();
 
@@ -239,7 +238,8 @@ public class UsageTrackingService : IDisposable
 
     private void UpdateEnabledTime()
     {
-        if (_deviceManager == null) return;
+        // Check disposed flag first to avoid accessing disposed resources
+        if (_disposed || _deviceManager == null) return;
 
         var today = DateTime.Today;
         var dateKey = today.ToString("yyyy-MM-dd");
@@ -330,10 +330,9 @@ public class UsageTrackingService : IDisposable
 
     public void CleanupOldData()
     {
-        var cutoff = DateTime.Today.AddDays(-_settings.Config.RetentionDays);
-
         lock (_lock)
         {
+            var cutoff = DateTime.Today.AddDays(-_settings.Config.RetentionDays);
             var keysToRemove = new List<string>();
             foreach (var deviceRecords in _records.Values)
             {
@@ -399,8 +398,24 @@ public class UsageTrackingService : IDisposable
             return;
 
         _disposed = true;
+
+        // Stop timers first before disposing resources they depend on
         _enabledTimeTimer?.Dispose();
         _saveTimer?.Dispose();
+        _enabledTimeTimer = null;
+        _saveTimer = null;
+
         SaveData();
+    }
+
+    /// <summary>
+    /// Clears all device handle mappings. Should be called before re-enumerating devices.
+    /// </summary>
+    public void ClearDeviceHandles()
+    {
+        lock (_lock)
+        {
+            _handleToDeviceId.Clear();
+        }
     }
 }
