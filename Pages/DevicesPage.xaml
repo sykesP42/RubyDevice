@@ -83,7 +83,7 @@
                                         <DataTemplate x:DataType="vm:DeviceViewModel">
                                             <Border Background="{StaticResource CardBackgroundBrush}"
                                                    CornerRadius="8" Padding="16" Margin="0,0,0,8"
-                                                   BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                                                   BorderBrush="{x:Bind ActiveBrush}" BorderThickness="2"
                                                    PointerPressed="Device_Click" Tag="{x:Bind}">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
@@ -103,8 +103,17 @@
 
                                                     <!-- Info -->
                                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                        <TextBlock Text="{x:Bind Name}" FontWeight="Medium" FontSize="13"
-                                                                  Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                                            <TextBlock Text="{x:Bind Name}" FontWeight="Medium" FontSize="13"
+                                                                      Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                            <Border x:Name="ActiveIndicator"
+                                                                   Background="#3B82F6"
+                                                                   CornerRadius="3"
+                                                                   Padding="5,1"
+                                                                   Visibility="Collapsed">
+                                                                <TextBlock Text="● Active" FontSize="10" Foreground="White"/>
+                                                            </Border>
+                                                        </StackPanel>
                                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                                             <Border Background="{StaticResource DividerBrush}" CornerRadius="3" Padding="5,1">
                                                                 <TextBlock Text="{x:Bind TypeName}" FontSize="10"

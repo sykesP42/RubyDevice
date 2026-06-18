@@ -17,6 +17,7 @@ public class DeviceViewModel : INotifyPropertyChanged
 {
     private bool _isEnabled = true;
     private string _userNote = "";
+    private WeakReference<MainViewModel>? _parentViewModel;
 
     public string DeviceId { get; set; } = "";
     public string Name { get; set; } = "";
@@ -26,6 +27,40 @@ public class DeviceViewModel : INotifyPropertyChanged
     public string VendorId { get; set; } = "";
     public string ProductId { get; set; } = "";
     public long TotalUsageSeconds { get; set; }
+
+    // Reference to parent view model for checking active state
+    internal void SetParentViewModel(MainViewModel parent)
+    {
+        _parentViewModel = new WeakReference<MainViewModel>(parent);
+    }
+
+    internal void OnIsActiveChanged()
+    {
+        OnPropertyChanged(nameof(IsActive));
+        OnPropertyChanged(nameof(ActiveBrush));
+    }
+
+    /// <summary>
+    /// Indicates if this device is currently active (receiving input)
+    /// </summary>
+    public bool IsActive
+    {
+        get
+        {
+            if (_parentViewModel != null && _parentViewModel.TryGetTarget(out var parent))
+            {
+                return parent.ActiveDeviceId == DeviceId;
+            }
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Highlight brush for active device
+    /// </summary>
+    public SolidColorBrush ActiveBrush => IsActive
+        ? new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 59, 130, 246)) // Blue highlight
+        : new SolidColorBrush(Microsoft.UI.Colors.Transparent);
 
     private bool _isTracking;
     public bool IsTracking
@@ -147,6 +182,24 @@ public class MainViewModel : INotifyPropertyChanged
     public ObservableCollection<DeviceViewModel> AllDevices { get; } = new();
     public ObservableCollection<DeviceGroupViewModel> DeviceGroups { get; } = new();
 
+    // Active device tracking for UI highlighting
+    private string? _activeDeviceId;
+    public string? ActiveDeviceId
+    {
+        get => _activeDeviceId;
+        set
+        {
+            if (_activeDeviceId != value)
+            {
+                _activeDeviceId = value;
+                OnPropertyChanged();
+                // Notify all devices to update their active state
+                foreach (var d in AllDevices)
+                    d.OnIsActiveChanged();
+            }
+        }
+    }
+
     public DeviceType? FilterType
     {
         get => _filterType;
@@ -158,6 +211,15 @@ public class MainViewModel : INotifyPropertyChanged
         _dataPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "RubyDevice", "device_data.json");
+
+        // Subscribe to device activity events
+        _deviceManager.DeviceActivity += OnDeviceActivity;
+    }
+
+    private void OnDeviceActivity(object? sender, DeviceManager.DeviceActivityEventArgs e)
+    {
+        // Update active device ID (will trigger UI update via binding)
+        ActiveDeviceId = e.DeviceId;
     }
 
     public void Initialize() => Refresh();
@@ -171,7 +233,7 @@ public class MainViewModel : INotifyPropertyChanged
 
         foreach (var d in _deviceManager.Devices)
         {
-            AllDevices.Add(new DeviceViewModel
+            var vm = new DeviceViewModel
             {
                 DeviceId = d.DeviceId,
                 Name = d.Name,
@@ -184,7 +246,9 @@ public class MainViewModel : INotifyPropertyChanged
                 UserNote = d.UserNote,
                 TotalUsageSeconds = d.TotalUsageSeconds,
                 IsTracking = Services.UsageTrackingService.Instance.IsTracking(d.DeviceId)
-            });
+            };
+            vm.SetParentViewModel(this);
+            AllDevices.Add(vm);
         }
         UpdateGroups();
     }

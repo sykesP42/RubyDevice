@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -33,16 +34,38 @@ public class DeviceManager : IDisposable
     private struct RAWINPUTDEVICELIST { public IntPtr hDevice; public int dwType; }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct RID_DEVICE_INFO
+    private struct RID_DEVICE_INFO_MOUSE
     {
-        public int cbSize, dwType;
-        public RID_DEVICE_INFO_HID hid;
+        public int dwId, dwNumberOfButtons, dwSampleRate;
+        public bool fHasHorizontalWheel;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct RID_DEVICE_INFO_KEYBOARD
+    {
+        public int dwType, dwSubType, dwKeyboardMode, dwNumberOfFunctionKeys, dwNumberOfIndicators, dwNumberOfKeysTotal;
     }
 
     [StructLayout(LayoutKind.Sequential)]
     private struct RID_DEVICE_INFO_HID
     {
-        public int dwVendorId, dwProductId, dwVersionNumber, usUsagePage, usUsage;
+        public int dwVendorId, dwProductId, dwVersionNumber;
+        public ushort usUsagePage, usUsage;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    private struct RID_DEVICE_INFO_UNION
+    {
+        [FieldOffset(0)] public RID_DEVICE_INFO_MOUSE mouse;
+        [FieldOffset(0)] public RID_DEVICE_INFO_KEYBOARD keyboard;
+        [FieldOffset(0)] public RID_DEVICE_INFO_HID hid;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct RID_DEVICE_INFO
+    {
+        public int cbSize, dwType;
+        public RID_DEVICE_INFO_UNION u;
     }
 
     // Low-level hook constants
@@ -179,6 +202,20 @@ public class DeviceManager : IDisposable
     // Device blocking state - stores device handles that should be blocked
     private readonly HashSet<IntPtr> _blockedHandles = new();
     private readonly Dictionary<string, IntPtr> _devicePathToHandle = new();
+    // Store all handles for each physical device (for blocking all interfaces)
+    private readonly Dictionary<string, HashSet<IntPtr>> _deviceIdToHandles = new();
+
+    // Device activity tracking
+    public event EventHandler<DeviceActivityEventArgs>? DeviceActivity;
+    private string? _lastActiveDeviceId;
+    private DateTime _lastActivityTime = DateTime.MinValue;
+
+    public class DeviceActivityEventArgs : EventArgs
+    {
+        public string DeviceId { get; init; } = "";
+        public DeviceType DeviceType { get; init; }
+        public DateTime Timestamp { get; init; }
+    }
     private readonly object _blockLock = new();
 
     // Current input device handle (updated by Raw Input)
@@ -248,8 +285,12 @@ public class DeviceManager : IDisposable
                 {
                     RAWINPUT raw = Marshal.PtrToStructure<RAWINPUT>(buffer);
                     _currentInputDevice = raw.header.hDevice;
+
                     // Notify tracking service of active input
                     Services.UsageTrackingService.Instance.ProcessActiveInput(raw.header.hDevice);
+
+                    // Fire device activity event (throttled to avoid UI flood)
+                    OnDeviceActivity(raw.header.hDevice);
                 }
             }
             finally
@@ -259,10 +300,63 @@ public class DeviceManager : IDisposable
         }
     }
 
+    /// <summary>
+    /// Fire device activity event (throttled to max once per 100ms per device)
+    /// </summary>
+    private void OnDeviceActivity(IntPtr deviceHandle)
+    {
+        // Find the device ID from handle
+        string? deviceId = null;
+        DeviceType deviceType = DeviceType.Unknown;
+
+        foreach (var kvp in _deviceIdToHandles)
+        {
+            if (kvp.Value.Contains(deviceHandle))
+            {
+                deviceId = kvp.Key;
+                var device = Devices.Find(d => d.DeviceId == deviceId);
+                if (device != null)
+                    deviceType = device.Type;
+                break;
+            }
+        }
+
+        if (deviceId == null) return;
+
+        // Throttle: only fire if different device or enough time passed
+        var now = DateTime.Now;
+        if (_lastActiveDeviceId != deviceId || (now - _lastActivityTime).TotalMilliseconds > 100)
+        {
+            _lastActiveDeviceId = deviceId;
+            _lastActivityTime = now;
+
+            DeviceActivity?.Invoke(this, new DeviceActivityEventArgs
+            {
+                DeviceId = deviceId,
+                DeviceType = deviceType,
+                Timestamp = now
+            });
+        }
+    }
+
+    /// <summary>
+    /// Get the device ID from a handle
+    /// </summary>
+    public string? GetDeviceIdFromHandle(IntPtr handle)
+    {
+        foreach (var kvp in _deviceIdToHandles)
+        {
+            if (kvp.Value.Contains(handle))
+                return kvp.Key;
+        }
+        return null;
+    }
+
     public void RefreshDevices()
     {
         Devices.Clear();
         _devicePathToHandle.Clear();
+        _deviceIdToHandles.Clear();
 
         // Clear stale handle mappings before re-enumerating devices
         Services.UsageTrackingService.Instance.ClearDeviceHandles();
@@ -282,22 +376,49 @@ public class DeviceManager : IDisposable
                 for (int i = 0; i < count; i++)
                     list[i] = Marshal.PtrToStructure<RAWINPUTDEVICELIST>(ptr + i * size);
 
+                // Group devices by physical device identity (VID+PID or path prefix)
+                var deviceGroups = new Dictionary<string, List<(DeviceInfo info, IntPtr handle, int dwType)>>();
+
                 foreach (var dev in list)
                 {
                     var info = GetDeviceInfo(dev.hDevice, dev.dwType);
                     if (info != null && !string.IsNullOrEmpty(info.Name))
                     {
-                        // Store device path to handle mapping for blocking
-                        _devicePathToHandle[info.DevicePath] = dev.hDevice;
+                        // Determine the physical device key for grouping
+                        string physicalKey = GetPhysicalDeviceKey(info);
 
-                        if (_cache.TryGetValue(info.DeviceId, out var cached))
+                        if (!deviceGroups.ContainsKey(physicalKey))
+                            deviceGroups[physicalKey] = new List<(DeviceInfo, IntPtr, int)>();
+
+                        deviceGroups[physicalKey].Add((info, dev.hDevice, dev.dwType));
+                    }
+                }
+
+                // Merge grouped devices - select the best representative for each physical device
+                foreach (var group in deviceGroups.Values)
+                {
+                    var best = SelectBestDevice(group);
+                    if (best.info != null)
+                    {
+                        // Store device path to handle mapping for blocking
+                        _devicePathToHandle[best.info.DevicePath] = best.handle;
+
+                        if (_cache.TryGetValue(best.info.DeviceId, out var cached))
                         {
-                            info.UserNote = cached.UserNote;
-                            info.TotalUsageSeconds = cached.TotalUsageSeconds;
+                            best.info.UserNote = cached.UserNote;
+                            best.info.TotalUsageSeconds = cached.TotalUsageSeconds;
                         }
-                        // Register device handle with tracking service
-                        Services.UsageTrackingService.Instance.RegisterDeviceHandle(dev.hDevice, info.DeviceId);
-                        Devices.Add(info);
+
+                        // Store all handles for this physical device (for blocking all interfaces)
+                        var allHandles = new HashSet<IntPtr>();
+                        foreach (var (info, handle, _) in group)
+                        {
+                            allHandles.Add(handle);
+                            Services.UsageTrackingService.Instance.RegisterDeviceHandle(handle, best.info.DeviceId);
+                        }
+                        _deviceIdToHandles[best.info.DeviceId] = allHandles;
+
+                        Devices.Add(best.info);
                     }
                 }
             }
@@ -306,6 +427,105 @@ public class DeviceManager : IDisposable
             if (Devices.Count == 0) AddFallback();
         }
         catch { AddFallback(); }
+    }
+
+    /// <summary>
+    /// Get a unique key for grouping interfaces of the same physical device
+    /// </summary>
+    private static string GetPhysicalDeviceKey(DeviceInfo info)
+    {
+        var path = info.DevicePath.ToUpperInvariant();
+
+        // If device has VID+PID in path, use it as the primary key
+        // This handles composite devices like mice with keyboard interfaces
+        var vidIdx = path.IndexOf("VID_");
+        var pidIdx = path.IndexOf("PID_");
+        if (vidIdx >= 0 && pidIdx >= 0 && pidIdx > vidIdx)
+        {
+            // Extract VID and PID
+            var vid = path.Substring(vidIdx + 4, 4);
+            var pid = path.Substring(pidIdx + 4, 4);
+            return $"VIDPID_{vid}_{pid}";
+        }
+
+        // Handle internal touchpad - both Microsoft HID RID and UNIW0001 are the same device
+        if (path.Contains("MICROSOFT HID RID") || path.Contains("UNIW0001"))
+        {
+            return "INTERNAL_TOUCHPAD";
+        }
+
+        // Handle ACPI built-in devices (keyboard, etc.)
+        if (path.Contains("ACPI#"))
+        {
+            var start = path.IndexOf("ACPI#");
+            // Find the device ID part (between ACPI# and next #)
+            var end = path.IndexOf('#', start + 5);
+            if (end > start + 5)
+                return path.Substring(start, end - start);
+        }
+
+        // Fallback: use path before &Col or last # segment
+        var colIdx = path.IndexOf("&COL");
+        if (colIdx > 0)
+            return path.Substring(0, colIdx);
+
+        return path;
+    }
+
+    /// <summary>
+    /// Select the best device interface from a group of interfaces for the same physical device.
+    /// For composite devices (mouse + keyboard interfaces), choose based on primary function.
+    /// </summary>
+    private static (DeviceInfo? info, IntPtr handle) SelectBestDevice(List<(DeviceInfo info, IntPtr handle, int dwType)> group)
+    {
+        if (group.Count == 0)
+            return (null, IntPtr.Zero);
+
+        if (group.Count == 1)
+            return (group[0].info, group[0].handle);
+
+        // Count types in the group
+        var touchpadCount = group.Count(g => g.info.Type == DeviceType.Touchpad);
+        var keyboardCount = group.Count(g => g.info.Type == DeviceType.Keyboard || g.dwType == RIM_TYPEKEYBOARD);
+        var mouseCount = group.Count(g => g.info.Type == DeviceType.Mouse || g.dwType == RIM_TYPEMOUSE);
+
+        // Determine primary device type based on majority
+        DeviceType primaryType;
+        if (touchpadCount > 0)
+            primaryType = DeviceType.Touchpad;
+        else if (mouseCount >= keyboardCount)
+            primaryType = DeviceType.Mouse;  // For mouse+keyboard combo, prefer mouse
+        else
+            primaryType = DeviceType.Keyboard;
+
+        // Select device with matching type
+        var matching = group.Where(g =>
+            (primaryType == DeviceType.Touchpad && g.info.Type == DeviceType.Touchpad) ||
+            (primaryType == DeviceType.Keyboard && (g.info.Type == DeviceType.Keyboard || g.dwType == RIM_TYPEKEYBOARD)) ||
+            (primaryType == DeviceType.Mouse && (g.info.Type == DeviceType.Mouse || g.dwType == RIM_TYPEMOUSE))
+        ).ToList();
+
+        if (matching.Count > 0)
+        {
+            var best = matching.First();
+            // Update the name based on primary type if needed
+            best.info.Name = GetDeviceName(best.info, primaryType);
+            return (best.info, best.handle);
+        }
+
+        // Fallback to first device
+        return (group[0].info, group[0].handle);
+    }
+
+    private static string GetDeviceName(DeviceInfo info, DeviceType type)
+    {
+        return type switch
+        {
+            DeviceType.Touchpad => !string.IsNullOrEmpty(info.Manufacturer) ? $"{info.Manufacturer} Touchpad" : "Precision Touchpad",
+            DeviceType.Keyboard => !string.IsNullOrEmpty(info.Manufacturer) ? $"{info.Manufacturer} Keyboard" : "Keyboard",
+            DeviceType.Mouse => !string.IsNullOrEmpty(info.Manufacturer) ? $"{info.Manufacturer} Mouse" : "Mouse",
+            _ => info.Name
+        };
     }
 
     private DeviceInfo? GetDeviceInfo(IntPtr hDevice, int dwType)
@@ -322,9 +542,12 @@ public class DeviceManager : IDisposable
             dev.DevicePath = devicePath;
             dev.VendorId = ExtractVidPid(devicePath, "VID_");
             dev.ProductId = ExtractVidPid(devicePath, "PID_");
-            dev.IsExternal = !devicePath.ToUpperInvariant().Contains("ROOT");
 
+            // Determine if device is external
+            // ACPI devices are built-in, HID devices with VID/PID are typically external
             var path = devicePath.ToUpperInvariant();
+            dev.IsExternal = !path.Contains("ACPI#") && !path.Contains("ROOT");
+
             if (path.Contains("PRECISION") || path.Contains("TOUCHPAD") || path.Contains("TRACKPAD") ||
                 path.Contains("DIGITIZER") || path.Contains("SYNAPTICS") || path.Contains("ELAN") ||
                 path.Contains("ALPS") || dev.VendorId == "06CB" || dev.VendorId == "04F3")
@@ -345,9 +568,9 @@ public class DeviceManager : IDisposable
 
                 if (dev.Type == DeviceType.Unknown)
                 {
-                    if (info.hid.usUsagePage == 0x01)
+                    if (info.u.hid.usUsagePage == 0x01)
                     {
-                        dev.Type = info.hid.usUsage switch
+                        dev.Type = info.u.hid.usUsage switch
                         {
                             0x06 => DeviceType.Keyboard,
                             0x02 => DeviceType.Mouse,
@@ -359,7 +582,7 @@ public class DeviceManager : IDisposable
                             }
                         };
                     }
-                    else if (info.hid.usUsagePage == 0x0D)
+                    else if (info.u.hid.usUsagePage == 0x0D)
                     {
                         dev.Type = DeviceType.Touchpad;
                     }
@@ -375,9 +598,9 @@ public class DeviceManager : IDisposable
                 }
 
                 if (string.IsNullOrEmpty(dev.VendorId))
-                    dev.VendorId = info.hid.dwVendorId.ToString("X4");
+                    dev.VendorId = info.u.hid.dwVendorId.ToString("X4");
                 if (string.IsNullOrEmpty(dev.ProductId))
-                    dev.ProductId = info.hid.dwProductId.ToString("X4");
+                    dev.ProductId = info.u.hid.dwProductId.ToString("X4");
             }
         }
         finally { Marshal.FreeHGlobal(pInfo); }
@@ -479,27 +702,31 @@ public class DeviceManager : IDisposable
         var dev = Devices.Find(d => d.DeviceId == deviceId);
         if (dev == null) return false;
 
-        // Get the device handle from path
-        IntPtr deviceHandle = IntPtr.Zero;
-        if (_devicePathToHandle.TryGetValue(dev.DevicePath, out var handle))
+        // Get all handles for this physical device (to block all interfaces)
+        if (!_deviceIdToHandles.TryGetValue(deviceId, out var handles) || handles.Count == 0)
         {
-            deviceHandle = handle;
-        }
-        else
-        {
-            // Try parsing the deviceId as a handle
-            if (long.TryParse(deviceId, out long handleValue))
+            // Fallback: try to get handle from path
+            if (_devicePathToHandle.TryGetValue(dev.DevicePath, out var handle))
             {
-                deviceHandle = new IntPtr(handleValue);
+                handles = new HashSet<IntPtr> { handle };
+            }
+            else if (long.TryParse(deviceId, out long handleValue))
+            {
+                handles = new HashSet<IntPtr> { new IntPtr(handleValue) };
+            }
+            else
+            {
+                return false;
             }
         }
 
         if (enable)
         {
-            // Enable device - remove from blocked list
+            // Enable device - remove all handles from blocked list
             lock (_blockLock)
             {
-                _blockedHandles.Remove(deviceHandle);
+                foreach (var h in handles)
+                    _blockedHandles.Remove(h);
             }
             dev.IsEnabled = true;
 
@@ -511,11 +738,12 @@ public class DeviceManager : IDisposable
         }
         else
         {
-            // Disable device - add to blocked list and install hooks
+            // Disable device - add all handles to blocked list and install hooks
             InstallHooks();
             lock (_blockLock)
             {
-                _blockedHandles.Add(deviceHandle);
+                foreach (var h in handles)
+                    _blockedHandles.Add(h);
             }
             dev.IsEnabled = false;
         }

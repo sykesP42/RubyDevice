@@ -19,6 +19,7 @@ public sealed partial class UsageRecordPage : Page
     private readonly LocalizationService _loc = LocalizationService.Instance;
     private int _selectedDays = 30;
     private string? _selectedDeviceId;
+    private bool _isLoaded;
 
     public UsageRecordPage()
     {
@@ -34,6 +35,8 @@ public sealed partial class UsageRecordPage : Page
 
     private void UpdateTexts()
     {
+        if (!_isLoaded) return;
+
         TextTrackedDevices.Text = _loc["TrackedDevices"];
         TextNoTracking.Text = _loc["EnableTrackingHint"];
         TextTrackedCount.Text = _loc["TrackedDevices"];
@@ -52,6 +55,7 @@ public sealed partial class UsageRecordPage : Page
     {
         base.OnNavigatedTo(e);
         _viewModel = e.Parameter as MainViewModel;
+        _isLoaded = true;
         UpdateDeviceList();
         UpdateStats();
         UpdateHistory();
@@ -64,15 +68,19 @@ public sealed partial class UsageRecordPage : Page
 
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
-        base.OnNavigatedFrom(e);
+        _isLoaded = false;
         UsageTrackingService.Instance.TrackingChanged -= OnTrackingChanged;
         _loc.PropertyChanged -= OnLocalizationChanged;
+        base.OnNavigatedFrom(e);
     }
 
     private void OnTrackingChanged(object? sender, EventArgs e)
     {
+        if (!_isLoaded) return;
+
         DispatcherQueue.TryEnqueue(() =>
         {
+            if (!_isLoaded) return;
             UpdateDeviceList();
             UpdateStats();
         });
@@ -80,7 +88,7 @@ public sealed partial class UsageRecordPage : Page
 
     private void UpdateDeviceList()
     {
-        if (_viewModel == null) return;
+        if (_viewModel == null || !_isLoaded) return;
 
         DeviceList.ItemsSource = _viewModel.AllDevices;
 
@@ -91,7 +99,7 @@ public sealed partial class UsageRecordPage : Page
 
     private void UpdateStats()
     {
-        if (_viewModel == null) return;
+        if (_viewModel == null || !_isLoaded) return;
 
         var trackedCount = _viewModel.AllDevices.Count(d => UsageTrackingService.Instance.IsTracking(d.DeviceId));
         CountTracked.Text = trackedCount.ToString();
@@ -103,7 +111,7 @@ public sealed partial class UsageRecordPage : Page
 
     private void UpdateHistory()
     {
-        if (_viewModel == null) return;
+        if (_viewModel == null || !_isLoaded) return;
 
         // Populate device selector with tracked devices
         var trackedDevices = _viewModel.AllDevices
@@ -127,7 +135,7 @@ public sealed partial class UsageRecordPage : Page
 
     private void LoadHistoryData()
     {
-        if (string.IsNullOrEmpty(_selectedDeviceId)) return;
+        if (string.IsNullOrEmpty(_selectedDeviceId) || !_isLoaded) return;
 
         var days = _selectedDays == 0 ? 365 : _selectedDays;
         var history = UsageTrackingService.Instance.GetUsageHistory(_selectedDeviceId, days);
@@ -148,6 +156,8 @@ public sealed partial class UsageRecordPage : Page
 
     private void DrawChart(List<DeviceUsageRecord> records)
     {
+        if (!_isLoaded) return;
+
         ChartCanvas.Children.Clear();
 
         if (records.Count == 0) return;
