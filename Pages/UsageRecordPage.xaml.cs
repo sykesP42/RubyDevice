@@ -56,6 +56,10 @@ public sealed partial class UsageRecordPage : Page
         base.OnNavigatedTo(e);
         _viewModel = e.Parameter as MainViewModel;
         _isLoaded = true;
+
+        // Subscribe to canvas size changed to redraw chart
+        ChartCanvas.SizeChanged += ChartCanvas_SizeChanged;
+
         UpdateDeviceList();
         UpdateStats();
         UpdateHistory();
@@ -69,9 +73,16 @@ public sealed partial class UsageRecordPage : Page
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
         _isLoaded = false;
+        ChartCanvas.SizeChanged -= ChartCanvas_SizeChanged;
         UsageTrackingService.Instance.TrackingChanged -= OnTrackingChanged;
         _loc.PropertyChanged -= OnLocalizationChanged;
         base.OnNavigatedFrom(e);
+    }
+
+    private void ChartCanvas_SizeChanged(object sender, Microsoft.UI.Xaml.SizeChangedEventArgs e)
+    {
+        if (!_isLoaded) return;
+        LoadHistoryData();
     }
 
     private void OnTrackingChanged(object? sender, EventArgs e)
@@ -162,9 +173,15 @@ public sealed partial class UsageRecordPage : Page
 
         if (records.Count == 0) return;
 
+        // Ensure canvas has valid dimensions
+        var canvasWidth = ChartCanvas.ActualWidth;
+        var canvasHeight = ChartCanvas.ActualHeight;
+
+        if (canvasWidth <= 0 || canvasHeight <= 0) return;
+
         var maxSeconds = records.Max(r => Math.Max(r.ActiveSeconds, 1));
-        var barWidth = Math.Max(10, (ChartCanvas.ActualWidth - 40) / records.Count - 2);
-        var maxBarHeight = ChartCanvas.ActualHeight - 20;
+        var barWidth = Math.Max(10, (canvasWidth - 40) / records.Count - 2);
+        var maxBarHeight = canvasHeight - 20;
 
         for (int i = 0; i < records.Count; i++)
         {

@@ -149,8 +149,8 @@
                     </StackPanel>
 
                     <!-- Chart Area -->
-                    <Border Background="{StaticResource DividerBrush}" CornerRadius="8">
-                        <Canvas x:Name="ChartCanvas" Height="150"/>
+                    <Border Background="{StaticResource DividerBrush}" CornerRadius="8" Padding="8">
+                        <Canvas x:Name="ChartCanvas" Height="150" HorizontalAlignment="Stretch"/>
                     </Border>
 
                     <!-- Data List -->

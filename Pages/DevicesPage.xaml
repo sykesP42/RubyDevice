@@ -83,7 +83,7 @@
                                         <DataTemplate x:DataType="vm:DeviceViewModel">
                                             <Border Background="{StaticResource CardBackgroundBrush}"
                                                    CornerRadius="8" Padding="16" Margin="0,0,0,8"
-                                                   BorderBrush="{x:Bind ActiveBrush}" BorderThickness="2"
+                                                   BorderBrush="{x:Bind ActiveBrush}" BorderThickness="3"
                                                    PointerPressed="Device_Click" Tag="{x:Bind}">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
@@ -93,27 +93,25 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
 
-                                                    <!-- Icon -->
+                                                    <!-- Icon with activity glow -->
                                                     <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
                                                            Background="{StaticResource PrimaryLightBrush}" Margin="0,0,14,0">
-                                                        <TextBlock Text="{x:Bind IconGlyph}" FontFamily="Segoe MDL2 Assets"
-                                                                  FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                  Foreground="{StaticResource PrimaryBrush}"/>
+                                                        <Grid>
+                                                            <TextBlock Text="{x:Bind IconGlyph}" FontFamily="Segoe MDL2 Assets"
+                                                                      FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                      Foreground="{StaticResource PrimaryBrush}"/>
+                                                            <!-- Activity dot overlay -->
+                                                            <Border Width="12" Height="12" CornerRadius="6"
+                                                                   Background="{x:Bind ActiveBrush}"
+                                                                   HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                                   Margin="0,-4,-4,0"/>
+                                                        </Grid>
                                                     </Border>
 
                                                     <!-- Info -->
                                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                                        <StackPanel Orientation="Horizontal" Spacing="6">
-                                                            <TextBlock Text="{x:Bind Name}" FontWeight="Medium" FontSize="13"
-                                                                      Foreground="{StaticResource TextPrimaryBrush}"/>
-                                                            <Border x:Name="ActiveIndicator"
-                                                                   Background="#3B82F6"
-                                                                   CornerRadius="3"
-                                                                   Padding="5,1"
-                                                                   Visibility="Collapsed">
-                                                                <TextBlock Text="● Active" FontSize="10" Foreground="White"/>
-                                                            </Border>
-                                                        </StackPanel>
+                                                        <TextBlock Text="{x:Bind Name}" FontWeight="Medium" FontSize="13"
+                                                                  Foreground="{StaticResource TextPrimaryBrush}"/>
                                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                                             <Border Background="{StaticResource DividerBrush}" CornerRadius="3" Padding="5,1">
                                                                 <TextBlock Text="{x:Bind TypeName}" FontSize="10"
