@@ -36,6 +36,12 @@ public class UsageTrackingService : IDisposable
     // Handle to device ID mapping (populated from DeviceManager)
     private readonly Dictionary<IntPtr, string> _handleToDeviceId = new();
 
+    // Track last active time for each device (for accurate ActiveSeconds calculation)
+    private readonly Dictionary<string, DateTime> _lastActiveTime = new();
+
+    // Active time accumulation threshold (milliseconds) - minimum interval to count
+    private const int ACTIVE_TIME_THRESHOLD_MS = 100;
+
     public TrackingConfig Config => _settings.Config;
     public event EventHandler? TrackingChanged;
 
@@ -217,6 +223,7 @@ public class UsageTrackingService : IDisposable
             if (!IsTrackingInternal(deviceId))
                 return;
 
+            var now = DateTime.Now;
             var today = DateTime.Today;
             var dateKey = today.ToString("yyyy-MM-dd");
 
@@ -232,7 +239,22 @@ public class UsageTrackingService : IDisposable
                 };
             }
 
-            _records[deviceId][dateKey].ActiveSeconds++;
+            // Calculate actual time elapsed since last active input
+            if (_lastActiveTime.TryGetValue(deviceId, out var lastTime))
+            {
+                var elapsedMs = (now - lastTime).TotalMilliseconds;
+
+                // Only count if within reasonable threshold (e.g., less than 1 second gap)
+                // This prevents counting large gaps when user was away
+                if (elapsedMs > 0 && elapsedMs < 1000)
+                {
+                    // Add the elapsed time in seconds (with 0.1s precision)
+                    _records[deviceId][dateKey].ActiveSeconds += elapsedMs / 1000.0;
+                }
+            }
+
+            // Update last active time
+            _lastActiveTime[deviceId] = now;
         }
     }
 
@@ -306,10 +328,10 @@ public class UsageTrackingService : IDisposable
             .ToList();
     }
 
-    public (long ActiveSeconds, long EnabledSeconds) GetTodayTotals()
+    public (double ActiveSeconds, long EnabledSeconds) GetTodayTotals()
     {
         var today = DateTime.Today.ToString("yyyy-MM-dd");
-        long totalActive = 0;
+        double totalActive = 0;
         long totalEnabled = 0;
 
         lock (_lock)

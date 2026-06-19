@@ -9,7 +9,7 @@ public class DeviceUsageRecord
 {
     public string DeviceId { get; set; } = "";
     public DateTime Date { get; set; }
-    public long ActiveSeconds { get; set; }
+    public double ActiveSeconds { get; set; }
     public long EnabledSeconds { get; set; }
 
     /// <summary>

@@ -205,10 +205,11 @@ public sealed partial class UsageRecordPage : Page
         }
     }
 
-    private static string FormatTime(long seconds)
+    private static string FormatTime(double seconds)
     {
-        var hours = seconds / 3600;
-        var mins = (seconds % 3600) / 60;
+        var totalSeconds = (long)seconds;
+        var hours = totalSeconds / 3600;
+        var mins = (totalSeconds % 3600) / 60;
         return hours > 0 ? $"{hours}h {mins}m" : $"{mins}m";
     }
 

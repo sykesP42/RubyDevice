@@ -29,12 +29,20 @@ public sealed partial class DevicesPage : Page
         TextMouse.Text = _loc["Mice"];
         TextTouchpad.Text = _loc["Touchpads"];
         TextRefresh.Text = _loc["Refresh"];
+        TextActivityHighlight.Text = _loc["ActivityHighlight"];
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
         _viewModel = e.Parameter as MainViewModel;
+
+        // Sync toggle state with view model
+        if (_viewModel != null)
+        {
+            ActivityHighlightToggle.IsOn = _viewModel.IsActivityHighlightEnabled;
+        }
+
         Bindings.Update();
     }
 
@@ -53,6 +61,18 @@ public sealed partial class DevicesPage : Page
     private void BtnRefresh_Click(object sender, RoutedEventArgs e)
     {
         _viewModel?.Refresh();
+    }
+
+    private void ActivityHighlight_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel != null)
+        {
+            _viewModel.IsActivityHighlightEnabled = ActivityHighlightToggle.IsOn;
+            if (!ActivityHighlightToggle.IsOn)
+            {
+                _viewModel.ActiveDeviceId = null;
+            }
+        }
     }
 
     private void Device_Click(object sender, PointerRoutedEventArgs e)

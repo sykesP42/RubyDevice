@@ -182,6 +182,25 @@ public class MainViewModel : INotifyPropertyChanged
     public ObservableCollection<DeviceViewModel> AllDevices { get; } = new();
     public ObservableCollection<DeviceGroupViewModel> DeviceGroups { get; } = new();
 
+    // Activity highlight toggle
+    private bool _isActivityHighlightEnabled = true;
+    public bool IsActivityHighlightEnabled
+    {
+        get => _isActivityHighlightEnabled;
+        set
+        {
+            if (_isActivityHighlightEnabled != value)
+            {
+                _isActivityHighlightEnabled = value;
+                OnPropertyChanged();
+                if (!value)
+                {
+                    ActiveDeviceId = null;
+                }
+            }
+        }
+    }
+
     // Active device tracking for UI highlighting
     private string? _activeDeviceId;
     public string? ActiveDeviceId
@@ -189,6 +208,9 @@ public class MainViewModel : INotifyPropertyChanged
         get => _activeDeviceId;
         set
         {
+            // Only update if highlight is enabled
+            if (!_isActivityHighlightEnabled && value != null) return;
+
             if (_activeDeviceId != value)
             {
                 _activeDeviceId = value;

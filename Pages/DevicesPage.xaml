@@ -44,14 +44,23 @@
                     </RadioButton>
                 </StackPanel>
 
-                <Button Grid.Column="2" x:Name="BtnRefresh" Click="BtnRefresh_Click"
-                       Background="{StaticResource PrimaryBrush}" Foreground="White"
-                       CornerRadius="6" Padding="12,6">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <FontIcon Glyph="&#xE72C;" FontSize="12"/>
-                        <TextBlock x:Name="TextRefresh" FontSize="12"/>
-                    </StackPanel>
-                </Button>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12">
+                    <!-- Activity Highlight Toggle -->
+                    <ToggleSwitch x:Name="ActivityHighlightToggle" IsOn="True" OnContent="" OffContent=""
+                                 Toggled="ActivityHighlight_Toggled" Width="44">
+                        <ToolTipService.ToolTip>
+                            <TextBlock x:Name="TextActivityHighlight"/>
+                        </ToolTipService.ToolTip>
+                    </ToggleSwitch>
+                    <Button x:Name="BtnRefresh" Click="BtnRefresh_Click"
+                           Background="{StaticResource PrimaryBrush}" Foreground="White"
+                           CornerRadius="6" Padding="12,6">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE72C;" FontSize="12"/>
+                            <TextBlock x:Name="TextRefresh" FontSize="12"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
             </Grid>
         </Border>
 
