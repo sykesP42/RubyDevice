@@ -24,7 +24,7 @@ public sealed partial class DevicesPage : Page
 
     private void UpdateTexts()
     {
-        FilterAll.Content = _loc["All"];
+        TextFilterAll.Text = _loc["All"];
         TextKeyboard.Text = _loc["Keyboards"];
         TextMouse.Text = _loc["Mice"];
         TextTouchpad.Text = _loc["Touchpads"];
