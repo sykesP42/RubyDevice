@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -13,16 +14,24 @@ public sealed partial class StatisticsPage : Page
     private MainViewModel? _viewModel;
     private readonly LocalizationService _loc = LocalizationService.Instance;
     public MainViewModel? ViewModel => _viewModel;
+    private bool _isLoaded = false;
 
     public StatisticsPage()
     {
         InitializeComponent();
-        _loc.PropertyChanged += (_, _) => UpdateTexts();
+        _loc.PropertyChanged += OnLocalizationChanged;
         UpdateTexts();
+    }
+
+    private void OnLocalizationChanged(object? sender, EventArgs e)
+    {
+        DispatcherQueue.TryEnqueue(UpdateTexts);
     }
 
     private void UpdateTexts()
     {
+        if (!_isLoaded) return;
+
         TextTotal.Text = _loc["TotalDevices"];
         TextActive.Text = _loc["ActiveDevices"];
         TextDisabled.Text = _loc["DisabledDevices"];
@@ -31,26 +40,44 @@ public sealed partial class StatisticsPage : Page
         TextKeyboard.Text = _loc["Keyboard"];
         TextMouse.Text = _loc["Mouse"];
         TextTouchpad.Text = _loc["Touchpad"];
-        TextOther.Text = _loc["Unknown"];
-        TextUsage.Text = _loc["HeaderDevices"];
+        TextTodayUsage.Text = _loc["TodayUsage"];
+        TextActiveTime.Text = _loc["ActiveTime"];
+        TextEnabledTime.Text = _loc["EnabledTime"];
         TextRefresh.Text = _loc["Refresh"];
-        TextTotalUsage.Text = _loc["HeaderStatistics"];
-        TextUsageHint.Text = _loc["AppDescription"];
+        TextDeviceList.Text = _loc["Devices"];
+        TextTrackedCount.Text = _loc["TrackedDevices"] + ":";
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
         _viewModel = e.Parameter as MainViewModel;
+        _isLoaded = true;
         Bindings.Update();
         UpdateStats();
+
         if (_viewModel != null)
             _viewModel.PropertyChanged += (_, _) => UpdateStats();
+
+        UsageTrackingService.Instance.TrackingChanged += OnTrackingChanged;
+    }
+
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    {
+        _isLoaded = false;
+        UsageTrackingService.Instance.TrackingChanged -= OnTrackingChanged;
+        _loc.PropertyChanged -= OnLocalizationChanged;
+        base.OnNavigatedFrom(e);
+    }
+
+    private void OnTrackingChanged(object? sender, EventArgs e)
+    {
+        DispatcherQueue.TryEnqueue(UpdateStats);
     }
 
     private void UpdateStats()
     {
-        if (_viewModel == null) return;
+        if (_viewModel == null || !_isLoaded) return;
         var devices = _viewModel.AllDevices;
 
         // Basic counts
@@ -64,33 +91,36 @@ public sealed partial class StatisticsPage : Page
         var keyboards = devices.Count(d => d.Type == DeviceType.Keyboard);
         var mice = devices.Count(d => d.Type == DeviceType.Mouse);
         var touchpads = devices.Count(d => d.Type == DeviceType.Touchpad);
-        var others = devices.Count(d => d.Type == DeviceType.Unknown);
 
-        // Update bar widths (max width ~300)
-        double maxWidth = 200;
+        double maxWidth = 180;
         BarKeyboard.Width = (keyboards * maxWidth) / total;
         BarMouse.Width = (mice * maxWidth) / total;
         BarTouchpad.Width = (touchpads * maxWidth) / total;
-        BarOther.Width = (others * maxWidth) / total;
 
-        // Update counts
         CountKeyboard.Text = keyboards.ToString();
         CountMouse.Text = mice.ToString();
         CountTouchpad.Text = touchpads.ToString();
-        CountOther.Text = others.ToString();
 
-        // Usage list - sort by usage time descending
-        var sortedDevices = devices.OrderByDescending(d => d.TotalUsageSeconds).ToList();
+        // Today's usage from tracking service
+        var (activeSeconds, enabledSeconds) = UsageTrackingService.Instance.GetTodayTotals();
+        ValueActiveTime.Text = FormatTime(activeSeconds);
+        ValueEnabledTime.Text = FormatTime(enabledSeconds);
+
+        // Tracked devices count
+        var trackedCount = devices.Count(d => UsageTrackingService.Instance.IsTracking(d.DeviceId));
+        CountTracked.Text = trackedCount.ToString();
+
+        // Device list - sort by name
+        var sortedDevices = devices.OrderBy(d => d.Name).ToList();
         UsageList.ItemsSource = sortedDevices;
+    }
 
-        // Show/hide no devices text
-        TextNoDevices.Visibility = devices.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-
-        // Total usage time
-        var totalSeconds = devices.Sum(d => d.TotalUsageSeconds);
+    private static string FormatTime(double seconds)
+    {
+        var totalSeconds = (long)seconds;
         var hours = totalSeconds / 3600;
         var mins = (totalSeconds % 3600) / 60;
-        TotalUsageTime.Text = hours > 0 ? $"{hours}h {mins}m" : $"{mins}m";
+        return hours > 0 ? $"{hours}h {mins}m" : $"{mins}m";
     }
 
     private void BtnRefresh_Click(object sender, RoutedEventArgs e)

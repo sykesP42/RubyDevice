@@ -6,10 +6,14 @@
     Background="{StaticResource WindowBackgroundBrush}">
 
     <ScrollViewer Padding="24,20">
-        <StackPanel Spacing="20" MaxWidth="800">
-            <!-- Back Button at Top -->
-            <Button Content="Back to Devices" Click="Back_Click" HorizontalAlignment="Left"
-                   Background="{StaticResource PrimaryBrush}" Foreground="White" Padding="16,8" CornerRadius="6"/>
+        <StackPanel Spacing="16" MaxWidth="800">
+            <!-- Back Button -->
+            <Button Click="Back_Click" HorizontalAlignment="Left" Padding="12,6">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon Glyph="&#xE72B;" FontSize="12"/>
+                    <TextBlock x:Name="TextBack"/>
+                </StackPanel>
+            </Button>
 
             <!-- Header -->
             <Grid ColumnSpacing="16">
@@ -19,94 +23,145 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Width="64" Height="64" CornerRadius="12"
+                <Border Grid.Column="0" Width="56" Height="56" CornerRadius="12"
                        Background="{StaticResource PrimaryLightBrush}">
-                    <TextBlock x:Name="DeviceIcon" FontFamily="Segoe MDL2 Assets" FontSize="28"
+                    <TextBlock x:Name="DeviceIcon" FontFamily="Segoe MDL2 Assets" FontSize="24"
                               HorizontalAlignment="Center" VerticalAlignment="Center"
                               Foreground="{StaticResource PrimaryBrush}"/>
                 </Border>
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                    <TextBlock x:Name="DeviceNameText" FontSize="24" FontWeight="Bold"
+                    <TextBlock x:Name="DeviceNameText" FontSize="20" FontWeight="Bold"
                               Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <TextBlock x:Name="DeviceTypeText" FontSize="14"
+                    <TextBlock x:Name="DeviceTypeText" FontSize="13"
                               Foreground="{StaticResource TextSecondaryBrush}"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                    <Border CornerRadius="6" Padding="12,6" Background="{StaticResource PrimaryLightBrush}">
-                        <TextBlock x:Name="DeviceStatus" FontWeight="SemiBold"
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Border CornerRadius="6" Padding="8,4" Background="{StaticResource PrimaryLightBrush}">
+                        <TextBlock x:Name="DeviceStatus" FontWeight="Medium"
                                   Foreground="{StaticResource PrimaryBrush}"/>
                     </Border>
-                    <ToggleSwitch x:Name="DeviceToggle" OnContent="" OffContent="" Width="50"
+                    <ToggleSwitch x:Name="DeviceToggle" OnContent="" OffContent=""
                                  Toggled="DeviceToggle_Toggled"/>
                 </StackPanel>
             </Grid>
 
-            <!-- Info Card -->
-            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
+            <!-- Device Info Card -->
+            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="16"
                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
-                <StackPanel Spacing="16">
-                    <TextBlock Text="Device Information" FontSize="16" FontWeight="SemiBold"
+                <StackPanel Spacing="12">
+                    <TextBlock x:Name="TextDeviceInfo" FontSize="14" FontWeight="SemiBold"
                               Foreground="{StaticResource TextPrimaryBrush}"/>
 
-                    <Grid ColumnSpacing="24" RowSpacing="12">
+                    <Grid ColumnSpacing="24" RowSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="0" Spacing="12">
-                            <StackPanel Spacing="4">
-                                <TextBlock Text="Manufacturer" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"/>
-                                <TextBlock x:Name="InfoManufacturer" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <StackPanel Grid.Column="0" Spacing="8">
+                            <StackPanel Spacing="2">
+                                <TextBlock x:Name="TextManufacturer" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"/>
+                                <TextBlock x:Name="InfoManufacturer" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"/>
                             </StackPanel>
-                            <StackPanel Spacing="4">
-                                <TextBlock Text="Vendor ID" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"/>
-                                <TextBlock x:Name="InfoVid" FontSize="14" FontFamily="Consolas"
-                                          Foreground="{StaticResource TextSecondaryBrush}"/>
-                            </StackPanel>
-                            <StackPanel Spacing="4">
-                                <TextBlock Text="Product ID" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"/>
-                                <TextBlock x:Name="InfoPid" FontSize="14" FontFamily="Consolas"
+                            <StackPanel Spacing="2">
+                                <TextBlock x:Name="TextVid" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"/>
+                                <TextBlock x:Name="InfoVid" FontSize="13" FontFamily="Consolas"
                                           Foreground="{StaticResource TextSecondaryBrush}"/>
                             </StackPanel>
                         </StackPanel>
 
-                        <StackPanel Grid.Column="1" Spacing="12">
-                            <StackPanel Spacing="4">
-                                <TextBlock Text="Connection" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"/>
-                                <TextBlock x:Name="InfoConnection" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <StackPanel Grid.Column="1" Spacing="8">
+                            <StackPanel Spacing="2">
+                                <TextBlock x:Name="TextPid" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"/>
+                                <TextBlock x:Name="InfoPid" FontSize="13" FontFamily="Consolas"
+                                          Foreground="{StaticResource TextSecondaryBrush}"/>
                             </StackPanel>
-                            <StackPanel Spacing="4">
-                                <TextBlock Text="Device ID" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"/>
-                                <TextBlock x:Name="InfoDeviceId" FontSize="12" FontFamily="Consolas"
-                                          Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                            <StackPanel Spacing="2">
+                                <TextBlock x:Name="TextConnection" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"/>
+                                <TextBlock x:Name="InfoConnection" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"/>
                             </StackPanel>
                         </StackPanel>
                     </Grid>
+
+                    <StackPanel Spacing="2">
+                        <TextBlock x:Name="TextDeviceId" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"/>
+                        <TextBlock x:Name="InfoDeviceId" FontSize="11" FontFamily="Consolas"
+                                  Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                    </StackPanel>
                 </StackPanel>
             </Border>
 
-            <!-- Note Card -->
-            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
+            <!-- Usage Statistics Card -->
+            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="16"
                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Notes" FontSize="16" FontWeight="SemiBold"
+                    <TextBlock x:Name="TextUsageStats" FontSize="14" FontWeight="SemiBold"
                               Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <TextBox x:Name="NoteBox" PlaceholderText="Add a note for this device..."
-                            AcceptsReturn="True" Height="80" TextWrapping="Wrap"
-                            LostFocus="NoteBox_LostFocus"/>
+
+                    <!-- Today's Stats -->
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Background="{StaticResource DividerBrush}" CornerRadius="8" Padding="12">
+                            <StackPanel Spacing="4">
+                                <TextBlock x:Name="TextActiveTime" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"/>
+                                <TextBlock x:Name="ValueActiveTime" FontSize="18" FontWeight="Bold"
+                                          Foreground="{StaticResource PrimaryBrush}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="1" Background="{StaticResource DividerBrush}" CornerRadius="8" Padding="12">
+                            <StackPanel Spacing="4">
+                                <TextBlock x:Name="TextEnabledTime" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"/>
+                                <TextBlock x:Name="ValueEnabledTime" FontSize="18" FontWeight="Bold"
+                                          Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- Tracking Toggle -->
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock x:Name="TextTracking" VerticalAlignment="Center"
+                                  Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <ToggleSwitch x:Name="TrackingToggle" OnContent="" OffContent=""
+                                      Toggled="TrackingToggle_Toggled"/>
+                    </StackPanel>
                 </StackPanel>
             </Border>
 
-            <!-- Device-specific features -->
-            <Border x:Name="FeaturesCard" Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
-                   BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Visibility="Collapsed">
+            <!-- Usage History Chart -->
+            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="16"
+                   BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Features" FontSize="16" FontWeight="SemiBold"
+                    <Grid>
+                        <TextBlock x:Name="TextHistory" FontSize="14" FontWeight="SemiBold"
+                                  Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right">
+                            <RadioButton x:Name="Range7Days" GroupName="HistoryRange" Tag="7"
+                                        Click="Range_Click" IsChecked="True" Padding="8,4"/>
+                            <RadioButton x:Name="Range30Days" GroupName="HistoryRange" Tag="30"
+                                        Click="Range_Click" Padding="8,4"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Canvas x:Name="ChartCanvas" Height="120" Background="{StaticResource DividerBrush}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Notes Card -->
+            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="16"
+                   BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <StackPanel Spacing="12">
+                    <TextBlock x:Name="TextNotes" FontSize="14" FontWeight="SemiBold"
                               Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <StackPanel x:Name="FeaturesPanel" Spacing="8"/>
+                    <TextBox x:Name="NoteBox" PlaceholderText="..."
+                            AcceptsReturn="True" Height="60" TextWrapping="Wrap"
+                            LostFocus="NoteBox_LostFocus"/>
                 </StackPanel>
             </Border>
         </StackPanel>

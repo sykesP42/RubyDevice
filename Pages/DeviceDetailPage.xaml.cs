@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using Microsoft.UI.Xaml.Shapes;
+using Windows.UI;
 using RubyDevice.Core;
 using RubyDevice.Services;
 using RubyDevice.ViewModels;
@@ -14,10 +18,41 @@ public sealed partial class DeviceDetailPage : Page
     private MainViewModel? _viewModel;
     private readonly LocalizationService _loc = LocalizationService.Instance;
     private bool _isToggling = false;
+    private bool _isLoaded = false;
+    private int _selectedDays = 7;
 
     public DeviceDetailPage()
     {
         InitializeComponent();
+        _loc.PropertyChanged += OnLocalizationChanged;
+        UpdateTexts();
+    }
+
+    private void OnLocalizationChanged(object? sender, EventArgs e)
+    {
+        DispatcherQueue.TryEnqueue(UpdateTexts);
+    }
+
+    private void UpdateTexts()
+    {
+        if (!_isLoaded) return;
+
+        TextBack.Text = _loc["Back"];
+        TextDeviceInfo.Text = _loc["DeviceInfo"];
+        TextManufacturer.Text = _loc["Manufacturer"];
+        TextVid.Text = _loc["VendorId"];
+        TextPid.Text = _loc["ProductId"];
+        TextConnection.Text = _loc["Connection"];
+        TextDeviceId.Text = _loc["DeviceId"];
+        TextUsageStats.Text = _loc["UsageStats"];
+        TextActiveTime.Text = _loc["ActiveTime"];
+        TextEnabledTime.Text = _loc["EnabledTime"];
+        TextTracking.Text = _loc["TrackUsage"];
+        TextHistory.Text = _loc["UsageHistory"];
+        TextNotes.Text = _loc["Notes"];
+        Range7Days.Content = _loc["Last7Days"];
+        Range30Days.Content = _loc["Last30Days"];
+        NoteBox.PlaceholderText = _loc["AddNoteHint"];
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -27,21 +62,37 @@ public sealed partial class DeviceDetailPage : Page
         {
             _device = device;
             _viewModel = vm;
+            _isLoaded = true;
             UpdateUI();
+            LoadUsageData();
         }
+
+        ChartCanvas.SizeChanged += ChartCanvas_SizeChanged;
+    }
+
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    {
+        _isLoaded = false;
+        ChartCanvas.SizeChanged -= ChartCanvas_SizeChanged;
+        _loc.PropertyChanged -= OnLocalizationChanged;
+        base.OnNavigatedFrom(e);
+    }
+
+    private void ChartCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (_isLoaded) DrawChart();
     }
 
     private void UpdateUI()
     {
         if (_device == null) return;
 
-        // Icon
         DeviceIcon.Text = _device.Type switch
         {
             DeviceType.Keyboard => "",
             DeviceType.Mouse => "",
             DeviceType.Touchpad => "",
-            _ => ""  // Question mark device
+            _ => ""
         };
 
         DeviceNameText.Text = _device.Name;
@@ -49,18 +100,73 @@ public sealed partial class DeviceDetailPage : Page
         DeviceStatus.Text = _device.StatusText;
         DeviceToggle.IsOn = _device.IsEnabled;
 
-        // Info
-        InfoManufacturer.Text = string.IsNullOrEmpty(_device.Manufacturer) ? "Unknown" : _device.Manufacturer;
+        InfoManufacturer.Text = string.IsNullOrEmpty(_device.Manufacturer) ? _loc["Unknown"] : _device.Manufacturer;
         InfoVid.Text = string.IsNullOrEmpty(_device.VendorId) ? "N/A" : _device.VendorId;
         InfoPid.Text = string.IsNullOrEmpty(_device.ProductId) ? "N/A" : _device.ProductId;
-        InfoConnection.Text = _device.IsExternal ? "External" : "Built-in";
+        InfoConnection.Text = _device.IsExternal ? _loc["External"] : _loc["BuiltIn"];
         InfoDeviceId.Text = _device.DeviceId;
 
-        // Note
         NoteBox.Text = _device.UserNote;
 
-        // Device-specific features placeholder
-        FeaturesCard.Visibility = Visibility.Collapsed;
+        TrackingToggle.IsOn = UsageTrackingService.Instance.IsTracking(_device.DeviceId);
+    }
+
+    private void LoadUsageData()
+    {
+        if (_device == null) return;
+
+        var (activeSeconds, enabledSeconds) = UsageTrackingService.Instance.GetTodayTotals();
+        ValueActiveTime.Text = FormatTime(activeSeconds);
+        ValueEnabledTime.Text = FormatTime(enabledSeconds);
+
+        DrawChart();
+    }
+
+    private void DrawChart()
+    {
+        if (_device == null || !_isLoaded) return;
+
+        ChartCanvas.Children.Clear();
+
+        var history = UsageTrackingService.Instance.GetUsageHistory(_device.DeviceId, _selectedDays);
+        if (history.Count == 0) return;
+
+        var canvasWidth = ChartCanvas.ActualWidth;
+        var canvasHeight = ChartCanvas.ActualHeight;
+        if (canvasWidth <= 0 || canvasHeight <= 0) return;
+
+        var maxSeconds = history.Max(r => Math.Max(r.ActiveSeconds, 1));
+        var barWidth = Math.Max(8, (canvasWidth - 20) / history.Count - 2);
+        var maxBarHeight = canvasHeight - 10;
+
+        for (int i = 0; i < history.Count; i++)
+        {
+            var record = history[history.Count - 1 - i];
+            var barHeight = (record.ActiveSeconds / (double)maxSeconds) * maxBarHeight;
+            var x = 10 + i * (barWidth + 2);
+            var y = maxBarHeight - barHeight;
+
+            var rect = new Rectangle
+            {
+                Width = barWidth,
+                Height = Math.Max(2, barHeight),
+                Fill = new Microsoft.UI.Xaml.Media.SolidColorBrush(Color.FromArgb(255, 59, 130, 246)),
+                RadiusX = 2,
+                RadiusY = 2
+            };
+
+            Canvas.SetLeft(rect, x);
+            Canvas.SetTop(rect, y + 5);
+            ChartCanvas.Children.Add(rect);
+        }
+    }
+
+    private static string FormatTime(double seconds)
+    {
+        var totalSeconds = (long)seconds;
+        var hours = totalSeconds / 3600;
+        var mins = (totalSeconds % 3600) / 60;
+        return hours > 0 ? $"{hours}h {mins}m" : $"{mins}m";
     }
 
     private async void DeviceToggle_Toggled(object sender, RoutedEventArgs e)
@@ -69,22 +175,19 @@ public sealed partial class DeviceDetailPage : Page
 
         _isToggling = true;
 
-        // 记住当前状态
         bool wasEnabled = _device.IsEnabled;
         bool wantEnable = DeviceToggle.IsOn;
 
         if (wantEnable && !wasEnabled)
         {
-            // 启用设备：简单确认
-            DeviceToggle.IsOn = wasEnabled; // 先恢复
+            DeviceToggle.IsOn = wasEnabled;
             await _viewModel.EnableDeviceWithConfirmAsync(_device, this);
             DeviceToggle.IsOn = _device.IsEnabled;
             DeviceStatus.Text = _device.StatusText;
         }
         else if (!wantEnable && wasEnabled)
         {
-            // 禁用设备：5秒倒计时 + 10秒自动恢复
-            DeviceToggle.IsOn = wasEnabled; // 先恢复
+            DeviceToggle.IsOn = wasEnabled;
             await _viewModel.DisableDeviceWithConfirmAsync(_device, this);
             DeviceToggle.IsOn = _device.IsEnabled;
             DeviceStatus.Text = _device.StatusText;
@@ -93,10 +196,27 @@ public sealed partial class DeviceDetailPage : Page
         _isToggling = false;
     }
 
+    private void TrackingToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (_device == null) return;
+
+        UsageTrackingService.Instance.SetTracking(_device.DeviceId, TrackingToggle.IsOn);
+        _device.IsTracking = TrackingToggle.IsOn;
+    }
+
     private void NoteBox_LostFocus(object sender, RoutedEventArgs e)
     {
         if (_device != null && _viewModel != null)
             _viewModel.SetDeviceNote(_device.DeviceId, NoteBox.Text);
+    }
+
+    private void Range_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton rb && rb.Tag is string tag)
+        {
+            _selectedDays = int.Parse(tag);
+            DrawChart();
+        }
     }
 
     private void Back_Click(object sender, RoutedEventArgs e)

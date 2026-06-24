@@ -183,6 +183,19 @@ public class LocalizationService : INotifyPropertyChanged
         ["UsageHistory"] = "Usage History",
         ["Date"] = "Date",
         ["TrackedSince"] = "Tracked since {0}",
+
+        // Device Detail Page
+        ["Back"] = "Back",
+        ["DeviceInfo"] = "Device Information",
+        ["Manufacturer"] = "Manufacturer",
+        ["VendorId"] = "Vendor ID",
+        ["ProductId"] = "Product ID",
+        ["Connection"] = "Connection",
+        ["DeviceId"] = "Device ID",
+        ["UsageStats"] = "Usage Statistics",
+        ["TrackUsage"] = "Track Usage",
+        ["Notes"] = "Notes",
+        ["AddNoteHint"] = "Add a note for this device...",
     };
 
     private static readonly Dictionary<string, string> ChineseStrings = new()
@@ -332,6 +345,19 @@ public class LocalizationService : INotifyPropertyChanged
         ["UsageHistory"] = "使用历史",
         ["Date"] = "日期",
         ["TrackedSince"] = "自 {0} 开始追踪",
+
+        // Device Detail Page
+        ["Back"] = "返回",
+        ["DeviceInfo"] = "设备信息",
+        ["Manufacturer"] = "制造商",
+        ["VendorId"] = "厂商ID",
+        ["ProductId"] = "产品ID",
+        ["Connection"] = "连接方式",
+        ["DeviceId"] = "设备ID",
+        ["UsageStats"] = "使用统计",
+        ["TrackUsage"] = "追踪使用",
+        ["Notes"] = "备注",
+        ["AddNoteHint"] = "为此设备添加备注...",
     };
 
     public string this[string key] => Strings.TryGetValue(key, out var value) ? value : key;
