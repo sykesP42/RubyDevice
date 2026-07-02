@@ -440,4 +440,153 @@ public class UsageTrackingService : IDisposable
             _handleToDeviceId.Clear();
         }
     }
+
+    /// <summary>
+    /// Get weekly aggregated usage for a device
+    /// </summary>
+    /// <param name="deviceId">Device identifier</param>
+    /// <param name="weeks">Number of weeks to retrieve (default 12)</param>
+    /// <returns>List of weekly summaries, ordered by week start date (oldest first)</returns>
+    public List<WeeklyUsageSummary> GetWeeklyUsage(string deviceId, int weeks = 12)
+    {
+        var result = new List<WeeklyUsageSummary>();
+        var today = DateTime.Today;
+        var cutoff = today.AddDays(-(weeks * 7));
+
+        lock (_lock)
+        {
+            if (!_records.TryGetValue(deviceId, out var deviceRecords))
+                return result;
+
+            // Group records by week
+            var weeklyGroups = deviceRecords.Values
+                .Where(r => r.Date >= cutoff)
+                .GroupBy(r => GetWeekStartDate(r.Date))
+                .OrderBy(g => g.Key);
+
+            foreach (var group in weeklyGroups)
+            {
+                var weekStart = group.Key;
+                var weekEnd = weekStart.AddDays(6);
+                var summary = new WeeklyUsageSummary
+                {
+                    WeekStartDate = weekStart,
+                    WeekEndDate = weekEnd,
+                    DeviceId = deviceId,
+                    TotalActiveSeconds = group.Sum(r => r.ActiveSeconds),
+                    TotalEnabledSeconds = group.Sum(r => r.EnabledSeconds),
+                    DaysWithData = group.Count()
+                };
+                result.Add(summary);
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Get monthly aggregated usage for a device
+    /// </summary>
+    /// <param name="deviceId">Device identifier</param>
+    /// <param name="months">Number of months to retrieve (default 12)</param>
+    /// <returns>List of monthly summaries, ordered by year/month (oldest first)</returns>
+    public List<MonthlyUsageSummary> GetMonthlyUsage(string deviceId, int months = 12)
+    {
+        var result = new List<MonthlyUsageSummary>();
+        var today = DateTime.Today;
+        var cutoff = today.AddMonths(-months);
+
+        lock (_lock)
+        {
+            if (!_records.TryGetValue(deviceId, out var deviceRecords))
+                return result;
+
+            // Group records by month
+            var monthlyGroups = deviceRecords.Values
+                .Where(r => r.Date >= cutoff)
+                .GroupBy(r => new { r.Date.Year, r.Date.Month })
+                .OrderBy(g => g.Key.Year)
+                .ThenBy(g => g.Key.Month);
+
+            foreach (var group in monthlyGroups)
+            {
+                var summary = new MonthlyUsageSummary
+                {
+                    Year = group.Key.Year,
+                    Month = group.Key.Month,
+                    DeviceId = deviceId,
+                    TotalActiveSeconds = group.Sum(r => r.ActiveSeconds),
+                    TotalEnabledSeconds = group.Sum(r => r.EnabledSeconds),
+                    DaysWithData = group.Count()
+                };
+                result.Add(summary);
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Get usage history for multiple devices for comparison
+    /// </summary>
+    /// <param name="deviceIds">List of device identifiers</param>
+    /// <param name="days">Number of days to retrieve</param>
+    /// <returns>Dictionary mapping device ID to its usage records</returns>
+    public Dictionary<string, List<DeviceUsageRecord>> GetMultiDeviceHistory(List<string> deviceIds, int days = 30)
+    {
+        var result = new Dictionary<string, List<DeviceUsageRecord>>();
+        var cutoff = DateTime.Today.AddDays(-days);
+
+        lock (_lock)
+        {
+            foreach (var deviceId in deviceIds)
+            {
+                if (_records.TryGetValue(deviceId, out var deviceRecords))
+                {
+                    result[deviceId] = deviceRecords.Values
+                        .Where(r => r.Date >= cutoff)
+                        .OrderBy(r => r.Date)
+                        .ToList();
+                }
+                else
+                {
+                    result[deviceId] = new List<DeviceUsageRecord>();
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Calculate activity rate (ActiveSeconds / EnabledSeconds) for a device
+    /// </summary>
+    /// <param name="deviceId">Device identifier</param>
+    /// <param name="days">Number of days to analyze (default 7)</param>
+    /// <returns>Activity rate as percentage (0-100), or 0 if no enabled time</returns>
+    public double CalculateActivityRate(string deviceId, int days = 7)
+    {
+        var records = GetUsageHistory(deviceId, days);
+        if (records.Count == 0)
+            return 0;
+
+        var totalActive = records.Sum(r => r.ActiveSeconds);
+        var totalEnabled = records.Sum(r => r.EnabledSeconds);
+
+        if (totalEnabled == 0)
+            return 0;
+
+        return (totalActive / totalEnabled) * 100;
+    }
+
+    /// <summary>
+    /// Get the Monday date for the week containing the given date
+    /// </summary>
+    private static DateTime GetWeekStartDate(DateTime date)
+    {
+        // Monday-based week (ISO 8601)
+        var dayOfWeek = date.DayOfWeek;
+        var daysToSubtract = dayOfWeek == DayOfWeek.Sunday ? 6 : (int)dayOfWeek - 1;
+        return date.AddDays(-daysToSubtract).Date;
+    }
 }

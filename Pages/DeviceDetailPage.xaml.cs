@@ -53,6 +53,8 @@ public sealed partial class DeviceDetailPage : Page
         Range7Days.Content = _loc["Last7Days"];
         Range30Days.Content = _loc["Last30Days"];
         NoteBox.PlaceholderText = _loc["AddNoteHint"];
+        LegendActive.Text = _loc["ActiveTime"];
+        LegendEnabled.Text = _loc["EnabledTime"];
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -127,6 +129,7 @@ public sealed partial class DeviceDetailPage : Page
         if (_device == null || !_isLoaded) return;
 
         ChartCanvas.Children.Clear();
+        XAxisLabels.Children.Clear();
 
         var history = UsageTrackingService.Instance.GetUsageHistory(_device.DeviceId, _selectedDays);
         if (history.Count == 0) return;
@@ -135,30 +138,81 @@ public sealed partial class DeviceDetailPage : Page
         var canvasHeight = ChartCanvas.ActualHeight;
         if (canvasWidth <= 0 || canvasHeight <= 0) return;
 
-        var maxSeconds = history.Max(r => Math.Max(r.ActiveSeconds, 1));
-        var barWidth = Math.Max(8, (canvasWidth - 20) / history.Count - 2);
+        // Calculate max for both active and enabled
+        var maxActive = history.Max(r => Math.Max(r.ActiveSeconds, 1));
+        var maxEnabled = history.Max(r => Math.Max(r.EnabledSeconds, 1));
+        var maxSeconds = Math.Max(maxActive, maxEnabled);
+
+        // Update Y-axis labels
+        UpdateYAxisLabels(maxSeconds);
+
+        var totalBars = history.Count;
+        var groupWidth = Math.Max(14, (canvasWidth - 20) / totalBars);
+        var barWidth = Math.Max(4, groupWidth / 2 - 1);
         var maxBarHeight = canvasHeight - 10;
 
         for (int i = 0; i < history.Count; i++)
         {
             var record = history[history.Count - 1 - i];
-            var barHeight = (record.ActiveSeconds / (double)maxSeconds) * maxBarHeight;
-            var x = 10 + i * (barWidth + 2);
-            var y = maxBarHeight - barHeight;
+            var x = 10 + i * groupWidth;
 
-            var rect = new Rectangle
+            // Active bar (blue)
+            var activeHeight = (record.ActiveSeconds / maxSeconds) * maxBarHeight;
+            var activeBar = new Rectangle
             {
                 Width = barWidth,
-                Height = Math.Max(2, barHeight),
+                Height = Math.Max(2, activeHeight),
                 Fill = new Microsoft.UI.Xaml.Media.SolidColorBrush(Color.FromArgb(255, 59, 130, 246)),
                 RadiusX = 2,
                 RadiusY = 2
             };
+            ToolTipService.SetToolTip(activeBar, $"{record.Date:MM-dd}\n{_loc["ActiveTime"]}: {FormatTime(record.ActiveSeconds)}");
+            Canvas.SetLeft(activeBar, x);
+            Canvas.SetTop(activeBar, maxBarHeight - activeHeight + 5);
+            ChartCanvas.Children.Add(activeBar);
 
-            Canvas.SetLeft(rect, x);
-            Canvas.SetTop(rect, y + 5);
-            ChartCanvas.Children.Add(rect);
+            // Enabled bar (green)
+            var enabledHeight = (record.EnabledSeconds / maxSeconds) * maxBarHeight;
+            var enabledBar = new Rectangle
+            {
+                Width = barWidth,
+                Height = Math.Max(2, enabledHeight),
+                Fill = new Microsoft.UI.Xaml.Media.SolidColorBrush(Color.FromArgb(255, 16, 185, 129)),
+                RadiusX = 2,
+                RadiusY = 2
+            };
+            ToolTipService.SetToolTip(enabledBar, $"{record.Date:MM-dd}\n{_loc["EnabledTime"]}: {FormatTime(record.EnabledSeconds)}");
+            Canvas.SetLeft(enabledBar, x + barWidth + 1);
+            Canvas.SetTop(enabledBar, maxBarHeight - enabledHeight + 5);
+            ChartCanvas.Children.Add(enabledBar);
         }
+
+        // Add X-axis labels
+        var labelInterval = Math.Max(1, totalBars / 6);
+        for (int i = 0; i < totalBars; i += labelInterval)
+        {
+            var record = history[history.Count - 1 - i];
+            var label = new TextBlock
+            {
+                Text = record.Date.ToString("MM-dd"),
+                FontSize = 9,
+                Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                    (Color)Application.Current.Resources["TextTertiaryColor"]),
+                Width = groupWidth * labelInterval,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            XAxisLabels.Children.Add(label);
+        }
+    }
+
+    private void UpdateYAxisLabels(double maxSeconds)
+    {
+        var maxHours = maxSeconds / 3600;
+        var midHours = maxHours / 2;
+
+        YAxisMax.Text = maxHours >= 1 ? $"{Math.Round(maxHours, 1)}h" : $"{Math.Round(maxSeconds / 60)}m";
+        YAxisMid.Text = midHours >= 1 ? $"{Math.Round(midHours, 1)}h" : $"{Math.Round(midHours * 60)}m";
+        YAxisMin.Text = "0";
     }
 
     private static string FormatTime(double seconds)

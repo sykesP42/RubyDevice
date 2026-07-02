@@ -149,7 +149,44 @@
                         </StackPanel>
                     </Grid>
 
-                    <Canvas x:Name="ChartCanvas" Height="120" Background="{StaticResource DividerBrush}"/>
+                    <!-- Chart Legend -->
+                    <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Border Width="12" Height="12" CornerRadius="2" Background="#3B82F6"/>
+                            <TextBlock x:Name="LegendActive" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Border Width="12" Height="12" CornerRadius="2" Background="#10B981"/>
+                            <TextBlock x:Name="LegendEnabled" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Chart Area with Y-Axis -->
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="32"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Y-Axis Labels -->
+                        <StackPanel Grid.Column="0" Orientation="Vertical" Height="120">
+                            <TextBlock x:Name="YAxisMax" FontSize="9" Foreground="{StaticResource TextTertiaryBrush}"
+                                      HorizontalAlignment="Right" VerticalAlignment="Top"/>
+                            <TextBlock x:Name="YAxisMid" FontSize="9" Foreground="{StaticResource TextTertiaryBrush}"
+                                      HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="YAxisMin" FontSize="9" Foreground="{StaticResource TextTertiaryBrush}"
+                                      Text="0" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+                        </StackPanel>
+
+                        <!-- Chart Canvas -->
+                        <Border Grid.Column="1" Background="{StaticResource DividerBrush}" CornerRadius="6" Padding="4">
+                            <Canvas x:Name="ChartCanvas" Height="120" HorizontalAlignment="Stretch"/>
+                        </Border>
+                    </Grid>
+
+                    <!-- X-Axis Labels -->
+                    <StackPanel x:Name="XAxisLabels" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="0"
+                               Margin="40,4,4,0"/>
                 </StackPanel>
             </Border>
 

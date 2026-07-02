@@ -132,12 +132,20 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
                         <TextBlock x:Name="TextUsageHistory" FontSize="18" FontWeight="SemiBold"
                                   Foreground="{StaticResource TextPrimaryBrush}"/>
 
-                        <ComboBox Grid.Column="1" x:Name="DeviceSelector" HorizontalAlignment="Right"
+                        <Button Grid.Column="1" x:Name="BtnExport" Click="BtnExport_Click" Padding="12,6">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE74E;" FontSize="14"/>
+                                <TextBlock x:Name="TextExport"/>
+                            </StackPanel>
+                        </Button>
+
+                        <ComboBox Grid.Column="2" x:Name="DeviceSelector" HorizontalAlignment="Right"
                                  Width="200" SelectionChanged="DeviceSelector_SelectionChanged"/>
                     </Grid>
 
@@ -146,12 +154,48 @@
                         <RadioButton x:Name="Range7Days" Content="7" Tag="7" Checked="Range_Changed"/>
                         <RadioButton x:Name="Range30Days" Content="30" Tag="30" Checked="Range_Changed" IsChecked="True"/>
                         <RadioButton x:Name="RangeAll" Content="All" Tag="0" Checked="Range_Changed"/>
+                        <RadioButton x:Name="RangeWeekly" Content="Week" Tag="week" Checked="Range_Changed"/>
+                        <RadioButton x:Name="RangeMonthly" Content="Month" Tag="month" Checked="Range_Changed"/>
                     </StackPanel>
 
-                    <!-- Chart Area -->
-                    <Border Background="{StaticResource DividerBrush}" CornerRadius="8" Padding="8">
-                        <Canvas x:Name="ChartCanvas" Height="150" HorizontalAlignment="Stretch"/>
-                    </Border>
+                    <!-- Chart Legend -->
+                    <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Border Width="12" Height="12" CornerRadius="2" Background="#3B82F6"/>
+                            <TextBlock x:Name="LegendActive" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Border Width="12" Height="12" CornerRadius="2" Background="#10B981"/>
+                            <TextBlock x:Name="LegendEnabled" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Chart Area with Y-Axis -->
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Y-Axis Labels -->
+                        <StackPanel Grid.Column="0" Orientation="Vertical" Spacing="0" Height="150">
+                            <TextBlock x:Name="YAxisMax" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}"
+                                      HorizontalAlignment="Right" VerticalAlignment="Top"/>
+                            <TextBlock x:Name="YAxisMid" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}"
+                                      HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="YAxisMin" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}"
+                                      Text="0h" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+                        </StackPanel>
+
+                        <!-- Chart Canvas -->
+                        <Border Grid.Column="1" Background="{StaticResource DividerBrush}" CornerRadius="8" Padding="8">
+                            <Canvas x:Name="ChartCanvas" Height="150" HorizontalAlignment="Stretch"/>
+                        </Border>
+                    </Grid>
+
+                    <!-- X-Axis Labels -->
+                    <StackPanel x:Name="XAxisLabels" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="0"
+                               Margin="48,4,16,0"/>
 
                     <!-- Data List -->
                     <ListView x:Name="HistoryList" SelectionMode="None" MaxHeight="200">

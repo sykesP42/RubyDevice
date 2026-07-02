@@ -179,10 +179,15 @@ public class LocalizationService : INotifyPropertyChanged
         ["Last7Days"] = "Last 7 Days",
         ["Last30Days"] = "Last 30 Days",
         ["AllTime"] = "All Time",
+        ["ByWeek"] = "By Week",
+        ["ByMonth"] = "By Month",
         ["SelectDevice"] = "Select Device",
         ["UsageHistory"] = "Usage History",
         ["Date"] = "Date",
         ["TrackedSince"] = "Tracked since {0}",
+        ["ExportData"] = "Export Data",
+        ["ExportSuccess"] = "Data exported successfully",
+        ["ExportFailed"] = "Export failed",
 
         // Device Detail Page
         ["Back"] = "Back",
@@ -345,6 +350,11 @@ public class LocalizationService : INotifyPropertyChanged
         ["UsageHistory"] = "使用历史",
         ["Date"] = "日期",
         ["TrackedSince"] = "自 {0} 开始追踪",
+        ["ByWeek"] = "按周",
+        ["ByMonth"] = "按月",
+        ["ExportData"] = "导出数据",
+        ["ExportSuccess"] = "数据导出成功",
+        ["ExportFailed"] = "导出失败",
 
         // Device Detail Page
         ["Back"] = "返回",
