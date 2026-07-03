@@ -172,6 +172,8 @@ public sealed partial class UsageRecordPage : Page
 
     private void LoadDailyData()
     {
+        if (string.IsNullOrEmpty(_selectedDeviceId)) return;
+
         var days = _selectedDays == 0 ? 365 : _selectedDays;
         var history = UsageTrackingService.Instance.GetUsageHistory(_selectedDeviceId, days);
 
@@ -191,6 +193,8 @@ public sealed partial class UsageRecordPage : Page
 
     private void LoadWeeklyData()
     {
+        if (string.IsNullOrEmpty(_selectedDeviceId)) return;
+
         var weeklyData = UsageTrackingService.Instance.GetWeeklyUsage(_selectedDeviceId, 12);
 
         var displayItems = weeklyData.Select(w => new
@@ -206,6 +210,8 @@ public sealed partial class UsageRecordPage : Page
 
     private void LoadMonthlyData()
     {
+        if (string.IsNullOrEmpty(_selectedDeviceId)) return;
+
         var monthlyData = UsageTrackingService.Instance.GetMonthlyUsage(_selectedDeviceId, 12);
 
         var displayItems = monthlyData.Select(m => new
