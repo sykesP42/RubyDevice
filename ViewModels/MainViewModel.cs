@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -88,6 +89,8 @@ public class DeviceViewModel : INotifyPropertyChanged
 
     public Visibility HasNote => !string.IsNullOrWhiteSpace(_userNote) ? Visibility.Visible : Visibility.Collapsed;
 
+    public Visibility TrackingIconVisibility => IsTracking ? Visibility.Visible : Visibility.Collapsed;
+
     public bool IsEnabled
     {
         get => _isEnabled;
@@ -150,6 +153,7 @@ public class DeviceGroupViewModel
     public DeviceType Type { get; }
     public string Name { get; }
     public string IconGlyph { get; }
+    public string CountText => Devices.Count > 0 ? Devices.Count.ToString() : "0";
     public ObservableCollection<DeviceViewModel> Devices { get; } = new();
 
     public DeviceGroupViewModel(DeviceType type)
@@ -228,6 +232,28 @@ public class MainViewModel : INotifyPropertyChanged
         set { _filterType = value; OnPropertyChanged(); UpdateGroups(); }
     }
 
+    // Search and sort
+    private string _searchText = "";
+    public string SearchText
+    {
+        get => _searchText;
+        set { _searchText = value; OnPropertyChanged(); UpdateGroups(); }
+    }
+
+    private string _statusFilter = "All"; // "All", "Enabled", "Disabled"
+    public string StatusFilter
+    {
+        get => _statusFilter;
+        set { _statusFilter = value; OnPropertyChanged(); UpdateGroups(); }
+    }
+
+    private int _sortMode; // 0=Name, 1=Type, 2=Status
+    public int SortMode
+    {
+        get => _sortMode;
+        set { _sortMode = value; OnPropertyChanged(); UpdateGroups(); }
+    }
+
     public MainViewModel()
     {
         _dataPath = Path.Combine(
@@ -278,7 +304,38 @@ public class MainViewModel : INotifyPropertyChanged
     private void UpdateGroups()
     {
         DeviceGroups.Clear();
-        var filtered = FilterType == null ? AllDevices : AllDevices.Where(d => d.Type == FilterType);
+        IEnumerable<DeviceViewModel> filtered = AllDevices;
+
+        // Apply type filter
+        if (FilterType != null)
+            filtered = filtered.Where(d => d.Type == FilterType);
+
+        // Apply status filter
+        if (StatusFilter == "Enabled")
+            filtered = filtered.Where(d => d.IsEnabled);
+        else if (StatusFilter == "Disabled")
+            filtered = filtered.Where(d => !d.IsEnabled);
+
+        // Apply search
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            var search = SearchText.ToLowerInvariant();
+            filtered = filtered.Where(d =>
+                d.Name.ToLowerInvariant().Contains(search) ||
+                d.Manufacturer.ToLowerInvariant().Contains(search) ||
+                d.DeviceId.ToLowerInvariant().Contains(search));
+        }
+
+        // Apply sorting
+        filtered = SortMode switch
+        {
+            0 => filtered.OrderBy(d => d.Name),       // By name
+            1 => filtered.OrderBy(d => d.Type),         // By type
+            2 => filtered.OrderByDescending(d => d.IsEnabled).ThenBy(d => d.Name), // By status
+            _ => filtered.OrderBy(d => d.Name)
+        };
+
+        // Group and build
         var grouped = filtered.GroupBy(d => d.Type).OrderBy(g => g.Key switch
         {
             DeviceType.Keyboard => 0,

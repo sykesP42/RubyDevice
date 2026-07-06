@@ -30,6 +30,13 @@ public sealed partial class DevicesPage : Page
         TextTouchpad.Text = _loc["Touchpads"];
         TextRefresh.Text = _loc["Refresh"];
         TextActivityHighlight.Text = _loc["ActivityHighlight"];
+        TextStatusAll.Text = _loc["All"];
+        TextStatusEnabled.Text = _loc["Enabled"];
+        TextStatusDisabled.Text = _loc["Disabled"];
+        SortByName.Text = _loc["SortByName"];
+        SortByType.Text = _loc["SortByType"];
+        SortByStatus.Text = _loc["SortByStatus"];
+        SearchBox.PlaceholderText = _loc["SearchPlaceholder"];
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -44,6 +51,15 @@ public sealed partial class DevicesPage : Page
         }
 
         Bindings.Update();
+        UpdateDeviceCount();
+    }
+
+    private void UpdateDeviceCount()
+    {
+        if (_viewModel == null) return;
+        var count = _viewModel.AllDevices.Count;
+        TextDeviceCount.Text = string.Format(_loc["DeviceCount"], count);
+        TextDeviceCount.Visibility = Visibility.Visible;
     }
 
     private void Filter_Click(object sender, RoutedEventArgs e)
@@ -58,9 +74,34 @@ public sealed partial class DevicesPage : Page
         };
     }
 
+    private void StatusFilter_Click(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel == null || sender is not RadioButton rb) return;
+        _viewModel.StatusFilter = rb.Tag as string ?? "All";
+    }
+
+    private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    {
+        if (_viewModel != null)
+            _viewModel.SearchText = args.QueryText ?? "";
+    }
+
+    private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    {
+        if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput && _viewModel != null)
+            _viewModel.SearchText = sender.Text ?? "";
+    }
+
+    private void SortCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_viewModel != null)
+            _viewModel.SortMode = SortCombo.SelectedIndex;
+    }
+
     private void BtnRefresh_Click(object sender, RoutedEventArgs e)
     {
         _viewModel?.Refresh();
+        UpdateDeviceCount();
     }
 
     private void ActivityHighlight_Toggled(object sender, RoutedEventArgs e)

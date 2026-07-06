@@ -14,85 +14,179 @@
         <!-- Toolbar -->
         <Border Grid.Row="0" Padding="16,10" Background="{StaticResource HeaderBackgroundBrush}"
                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
-            <StackPanel Orientation="Horizontal" Spacing="12">
-                <!-- Filters -->
-                <RadioButton x:Name="FilterAll" GroupName="Filter" IsChecked="True"
-                            Click="Filter_Click" Tag="All">
-                    <TextBlock x:Name="TextFilterAll"/>
-                </RadioButton>
-                <RadioButton x:Name="FilterKeyboard" GroupName="Filter" Click="Filter_Click" Tag="Keyboard">
-                    <TextBlock x:Name="TextKeyboard"/>
-                </RadioButton>
-                <RadioButton x:Name="FilterMouse" GroupName="Filter" Click="Filter_Click" Tag="Mouse">
-                    <TextBlock x:Name="TextMouse"/>
-                </RadioButton>
-                <RadioButton x:Name="FilterTouchpad" GroupName="Filter" Click="Filter_Click" Tag="Touchpad">
-                    <TextBlock x:Name="TextTouchpad"/>
-                </RadioButton>
+            <StackPanel Spacing="10">
+                <!-- First row: Filters -->
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <RadioButton x:Name="FilterAll" GroupName="Filter" IsChecked="True"
+                                Click="Filter_Click" Tag="All">
+                        <TextBlock x:Name="TextFilterAll"/>
+                    </RadioButton>
+                    <RadioButton x:Name="FilterKeyboard" GroupName="Filter" Click="Filter_Click" Tag="Keyboard">
+                        <TextBlock x:Name="TextKeyboard"/>
+                    </RadioButton>
+                    <RadioButton x:Name="FilterMouse" GroupName="Filter" Click="Filter_Click" Tag="Mouse">
+                        <TextBlock x:Name="TextMouse"/>
+                    </RadioButton>
+                    <RadioButton x:Name="FilterTouchpad" GroupName="Filter" Click="Filter_Click" Tag="Touchpad">
+                        <TextBlock x:Name="TextTouchpad"/>
+                    </RadioButton>
 
-                <Border Width="1" Height="20" Background="{StaticResource DividerBrush}" Margin="8,0"/>
+                    <Border Width="1" Height="20" Background="{StaticResource DividerBrush}" Margin="8,0"/>
 
-                <!-- Activity Toggle -->
-                <ToggleSwitch x:Name="ActivityHighlightToggle" IsOn="True"
-                             Toggled="ActivityHighlight_Toggled" OnContent="" OffContent="">
-                    <TextBlock x:Name="TextActivityHighlight"/>
-                </ToggleSwitch>
+                    <!-- Status Filter -->
+                    <RadioButton x:Name="StatusAll" GroupName="Status" IsChecked="True"
+                                Click="StatusFilter_Click" Tag="All">
+                        <TextBlock x:Name="TextStatusAll"/>
+                    </RadioButton>
+                    <RadioButton x:Name="StatusEnabled" GroupName="Status"
+                                Click="StatusFilter_Click" Tag="Enabled">
+                        <TextBlock x:Name="TextStatusEnabled"/>
+                    </RadioButton>
+                    <RadioButton x:Name="StatusDisabled" GroupName="Status"
+                                Click="StatusFilter_Click" Tag="Disabled">
+                        <TextBlock x:Name="TextStatusDisabled"/>
+                    </RadioButton>
+                </StackPanel>
 
-                <!-- Refresh -->
-                <Button x:Name="BtnRefresh" Click="BtnRefresh_Click">
-                    <TextBlock x:Name="TextRefresh"/>
-                </Button>
+                <!-- Second row: Search + Actions -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Search Box -->
+                    <AutoSuggestBox Grid.Column="0" x:Name="SearchBox"
+                                    PlaceholderText="Search..."
+                                    QuerySubmitted="SearchBox_QuerySubmitted"
+                                    TextChanged="SearchBox_TextChanged"
+                                    Height="32"/>
+
+                    <!-- Sort -->
+                    <ComboBox Grid.Column="1" x:Name="SortCombo" SelectedIndex="0"
+                              SelectionChanged="SortCombo_SelectionChanged"
+                              Height="32" MinWidth="120">
+                        <ComboBoxItem><TextBlock x:Name="SortByName"/></ComboBoxItem>
+                        <ComboBoxItem><TextBlock x:Name="SortByType"/></ComboBoxItem>
+                        <ComboBoxItem><TextBlock x:Name="SortByStatus"/></ComboBoxItem>
+                    </ComboBox>
+
+                    <!-- Activity Highlight Toggle -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4"
+                                VerticalAlignment="Center">
+                        <TextBlock x:Name="TextActivityHighlight" FontSize="12"
+                                  Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                        <ToggleSwitch x:Name="ActivityHighlightToggle" IsOn="True"
+                                     Toggled="ActivityHighlight_Toggled" OnContent="" OffContent=""/>
+                    </StackPanel>
+
+                    <!-- Refresh -->
+                    <Button Grid.Column="3" x:Name="BtnRefresh" Click="BtnRefresh_Click">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE72C;" FontSize="14"/>
+                            <TextBlock x:Name="TextRefresh"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
             </StackPanel>
         </Border>
 
         <!-- Devices List -->
         <ScrollViewer Grid.Row="1" Padding="16,12">
-            <ItemsControl ItemsSource="{x:Bind ViewModel.DeviceGroups}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:DeviceGroupViewModel">
-                        <StackPanel Spacing="8" Margin="0,0,0,12">
-                            <!-- Group Header -->
-                            <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold"
-                                      Foreground="{StaticResource TextSecondaryBrush}"/>
+            <StackPanel Spacing="12">
+                <!-- Device count -->
+                <TextBlock x:Name="TextDeviceCount" FontSize="12"
+                          Foreground="{StaticResource TextSecondaryBrush}" Visibility="Collapsed"/>
 
-                            <!-- Devices -->
-                            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="8"
-                                   Padding="12" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
-                                <ItemsControl ItemsSource="{x:Bind Devices}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="vm:DeviceViewModel">
-                                            <Border PointerPressed="Device_Click" Tag="{x:Bind}"
-                                                   Padding="0,8">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
+                <ItemsControl ItemsSource="{x:Bind ViewModel.DeviceGroups}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:DeviceGroupViewModel">
+                            <StackPanel Spacing="8" Margin="0,0,0,12">
+                                <!-- Group Header -->
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{x:Bind IconGlyph}" FontFamily="Segoe MDL2 Assets"
+                                              FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+                                              VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{x:Bind Name}" FontWeight="SemiBold"
+                                              Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="2" Background="{StaticResource DividerBrush}"
+                                            CornerRadius="10" Padding="8,2" MinWidth="24">
+                                        <TextBlock Text="{x:Bind CountText}" FontSize="11"
+                                                  Foreground="{StaticResource TextSecondaryBrush}"
+                                                  HorizontalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
 
-                                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                                        <TextBlock Text="{x:Bind Name}" FontWeight="Medium"/>
-                                                        <TextBlock Text="{x:Bind LocationText}" FontSize="12"
-                                                                  Foreground="{StaticResource TextSecondaryBrush}"/>
-                                                    </StackPanel>
+                                <!-- Devices -->
+                                <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="8"
+                                       Padding="12" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                                    <ItemsControl ItemsSource="{x:Bind Devices}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:DeviceViewModel">
+                                                <Border PointerPressed="Device_Click" Tag="{x:Bind}"
+                                                       Padding="0,8">
+                                                    <Grid ColumnSpacing="10">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
 
-                                                    <TextBlock Grid.Column="1" Text="{x:Bind StatusText}"
-                                                              VerticalAlignment="Center" Margin="12,0"
-                                                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                        <!-- Device Info -->
+                                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                                <TextBlock Text="{x:Bind Name}" FontWeight="Medium"/>
+                                                                <!-- Note indicator -->
+                                                                <TextBlock Text="&#xE768;" FontFamily="Segoe MDL2 Assets"
+                                                                          FontSize="10" Foreground="{StaticResource TextTertiaryBrush}"
+                                                                          Visibility="{x:Bind HasNote}"
+                                                                          ToolTipService.ToolTip="Has note"/>
+                                                            </StackPanel>
+                                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                                <TextBlock Text="{x:Bind LocationText}" FontSize="12"
+                                                                          Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                                <TextBlock Text="{x:Bind UsageTimeText}" FontSize="12"
+                                                                          Foreground="{StaticResource TextTertiaryBrush}"/>
+                                                            </StackPanel>
+                                                        </StackPanel>
 
-                                                    <ToggleSwitch Grid.Column="2" IsOn="{x:Bind IsEnabled, Mode=TwoWay}"
-                                                                OnContent="" OffContent=""
-                                                                Toggled="ToggleSwitch_Toggled"/>
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </Border>
-                        </StackPanel>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                                                        <!-- Tracking indicator -->
+                                                        <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                                                    VerticalAlignment="Center" Spacing="4"
+                                                                    Visibility="{x:Bind TrackingIconVisibility}">
+                                                            <TextBlock Text="&#xE9D9;" FontFamily="Segoe MDL2 Assets"
+                                                                      FontSize="12" Foreground="{StaticResource PrimaryBrush}"/>
+                                                        </StackPanel>
+
+                                                        <!-- Status -->
+                                                        <TextBlock Grid.Column="2" Text="{x:Bind StatusText}"
+                                                                  VerticalAlignment="Center" Margin="4,0"
+                                                                  Foreground="{StaticResource TextSecondaryBrush}"
+                                                                  FontSize="13"/>
+
+                                                        <!-- Toggle -->
+                                                        <ToggleSwitch Grid.Column="3" IsOn="{x:Bind IsEnabled, Mode=TwoWay}"
+                                                                    OnContent="" OffContent=""
+                                                                    Toggled="ToggleSwitch_Toggled"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
         </ScrollViewer>
     </Grid>
 </Page>

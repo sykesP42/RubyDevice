@@ -27,4 +27,10 @@
   <ItemGroup>
     <Manifest Include="app.manifest" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="tests\**\*" />
+    <Content Remove="tests\**\*" />
+    <EmbeddedResource Remove="tests\**\*" />
+  </ItemGroup>
 </Project>

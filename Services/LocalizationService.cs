@@ -73,6 +73,14 @@ public class LocalizationService : INotifyPropertyChanged
         ["Disabled"] = "Disabled",
         ["CollapseOthers"] = "Hide Other Devices",
 
+        // Device List
+        ["SearchPlaceholder"] = "Search devices...",
+        ["DeviceCount"] = "Total: {0} devices",
+        ["SortByName"] = "Name",
+        ["SortByType"] = "Type",
+        ["SortByStatus"] = "Status",
+        ["HasNote"] = "Has note",
+
         // Statistics
         ["HeaderStatistics"] = "Statistics",
         ["HeaderStatisticsDesc"] = "Device usage overview",
@@ -239,6 +247,14 @@ public class LocalizationService : INotifyPropertyChanged
         ["Enabled"] = "已启用",
         ["Disabled"] = "已禁用",
         ["CollapseOthers"] = "折叠其他设备",
+
+        // Device List
+        ["SearchPlaceholder"] = "搜索设备...",
+        ["DeviceCount"] = "共 {0} 台设备",
+        ["SortByName"] = "名称",
+        ["SortByType"] = "类型",
+        ["SortByStatus"] = "状态",
+        ["HasNote"] = "有备注",
 
         // Statistics
         ["HeaderStatistics"] = "统计",
