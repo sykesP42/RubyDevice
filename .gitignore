@@ -101,3 +101,25 @@ orleans.codegen.cs
 
 # Build logs
 *.binlog
+*.etl
+*.etw
+
+# Benchmark / profiling
+[Bb]enchmark[Dd]otnet/
+[Bb]enchmark[Rr]esults/
+[Bp]rofiling/
+
+# OS files
+.DS_Store
+*.swp
+*.swo
+*~
+
+# dotnet tools
+.dotnet/
+tools/
+*.log
+
+# Test results
+[Rr]eports/
+[Tt]est[Rr]esults/
