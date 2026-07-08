@@ -74,8 +74,12 @@
                                 <Border x:Name="BarKeyboard" Height="20" CornerRadius="4"
                                        Background="{StaticResource PrimaryBrush}" HorizontalAlignment="Left"/>
                             </Border>
-                            <TextBlock Grid.Column="2" x:Name="CountKeyboard" FontSize="12" Margin="4,0,0,0"
-                                      Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock x:Name="CountKeyboard" FontSize="12" FontWeight="Medium"
+                                          Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock x:Name="PctKeyboard" FontSize="11"
+                                          Foreground="{StaticResource TextTertiaryBrush}"/>
+                            </StackPanel>
                         </Grid>
 
                         <!-- Mice -->
@@ -91,8 +95,12 @@
                                 <Border x:Name="BarMouse" Height="20" CornerRadius="4"
                                        Background="#10B981" HorizontalAlignment="Left"/>
                             </Border>
-                            <TextBlock Grid.Column="2" x:Name="CountMouse" FontSize="12" Margin="4,0,0,0"
-                                      Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock x:Name="CountMouse" FontSize="12" FontWeight="Medium"
+                                          Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock x:Name="PctMouse" FontSize="11"
+                                          Foreground="{StaticResource TextTertiaryBrush}"/>
+                            </StackPanel>
                         </Grid>
 
                         <!-- Touchpads -->
@@ -108,8 +116,12 @@
                                 <Border x:Name="BarTouchpad" Height="20" CornerRadius="4"
                                        Background="#F59E0B" HorizontalAlignment="Left"/>
                             </Border>
-                            <TextBlock Grid.Column="2" x:Name="CountTouchpad" FontSize="12" Margin="4,0,0,0"
-                                      Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock x:Name="CountTouchpad" FontSize="12" FontWeight="Medium"
+                                          Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock x:Name="PctTouchpad" FontSize="11"
+                                          Foreground="{StaticResource TextTertiaryBrush}"/>
+                            </StackPanel>
                         </Grid>
                     </StackPanel>
                 </StackPanel>
@@ -131,12 +143,13 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
                         <Border Grid.Column="0" Background="{StaticResource DividerBrush}" CornerRadius="6" Padding="12">
                             <StackPanel Spacing="4">
                                 <TextBlock x:Name="TextActiveTime" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"/>
-                                <TextBlock x:Name="ValueActiveTime" FontSize="20" FontWeight="Bold"
+                                <TextBlock x:Name="ValueActiveTime" FontSize="18" FontWeight="Bold"
                                           Foreground="{StaticResource PrimaryBrush}"/>
                             </StackPanel>
                         </Border>
@@ -144,8 +157,16 @@
                         <Border Grid.Column="1" Background="{StaticResource DividerBrush}" CornerRadius="6" Padding="12">
                             <StackPanel Spacing="4">
                                 <TextBlock x:Name="TextEnabledTime" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"/>
-                                <TextBlock x:Name="ValueEnabledTime" FontSize="20" FontWeight="Bold"
+                                <TextBlock x:Name="ValueEnabledTime" FontSize="18" FontWeight="Bold"
                                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="2" Background="{StaticResource DividerBrush}" CornerRadius="6" Padding="12">
+                            <StackPanel Spacing="4">
+                                <TextBlock x:Name="TextActivityRate" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"/>
+                                <TextBlock x:Name="ValueActivityRate" FontSize="18" FontWeight="Bold"
+                                          Foreground="{StaticResource SuccessBrush}"/>
                             </StackPanel>
                         </Border>
                     </Grid>
@@ -169,26 +190,36 @@
                     <ListView x:Name="UsageList" SelectionMode="None" MaxHeight="250">
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="vm:DeviceViewModel">
-                                <Grid Padding="8,6" ColumnSpacing="12">
+                                <Grid Padding="8,6" ColumnSpacing="10">
                                     <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <StackPanel Grid.Column="0" Spacing="2">
+                                    <!-- Icon -->
+                                    <Border Grid.Column="0" Width="26" Height="26" CornerRadius="6"
+                                           Background="{StaticResource DividerBrush}">
+                                        <TextBlock Text="{x:Bind IconGlyph}" FontFamily="Segoe MDL2 Assets"
+                                                  FontSize="12" HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    </Border>
+
+                                    <StackPanel Grid.Column="1" Spacing="1">
                                         <TextBlock Text="{x:Bind Name}" FontSize="13" FontWeight="Medium"
                                                   Foreground="{StaticResource TextPrimaryBrush}"/>
                                         <TextBlock Text="{x:Bind TypeName}" FontSize="11"
                                                   Foreground="{StaticResource TextSecondaryBrush}"/>
                                     </StackPanel>
 
-                                    <TextBlock Grid.Column="1" Text="{x:Bind StatusText}" FontSize="12"
-                                              VerticalAlignment="Center"
+                                    <TextBlock Grid.Column="2" Text="{x:Bind StatusText}" FontSize="12"
+                                              VerticalAlignment="Center" Margin="4,0"
                                               Foreground="{StaticResource TextSecondaryBrush}"/>
 
-                                    <TextBlock Grid.Column="2" Text="{x:Bind UsageTimeText}" FontSize="12"
-                                              VerticalAlignment="Center"
+                                    <TextBlock Grid.Column="3" Text="{x:Bind UsageTimeText}" FontSize="12"
+                                              VerticalAlignment="Center" FontWeight="Medium"
                                               Foreground="{StaticResource TextPrimaryBrush}"/>
                                 </Grid>
                             </DataTemplate>

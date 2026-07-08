@@ -43,6 +43,7 @@ public sealed partial class StatisticsPage : Page
         TextTodayUsage.Text = _loc["TodayUsage"];
         TextActiveTime.Text = _loc["ActiveTime"];
         TextEnabledTime.Text = _loc["EnabledTime"];
+        TextActivityRate.Text = _loc["ActivityRate"];
         TextRefresh.Text = _loc["Refresh"];
         TextDeviceList.Text = _loc["Devices"];
         TextTrackedCount.Text = _loc["TrackedDevices"] + ":";
@@ -101,10 +102,18 @@ public sealed partial class StatisticsPage : Page
         CountMouse.Text = mice.ToString();
         CountTouchpad.Text = touchpads.ToString();
 
+        PctKeyboard.Text = $"({keyboards * 100 / total}%)";
+        PctMouse.Text = $"({mice * 100 / total}%)";
+        PctTouchpad.Text = $"({touchpads * 100 / total}%)";
+
         // Today's usage from tracking service
         var (activeSeconds, enabledSeconds) = UsageTrackingService.Instance.GetTodayTotals();
         ValueActiveTime.Text = FormatTime(activeSeconds);
         ValueEnabledTime.Text = FormatTime(enabledSeconds);
+
+        // Activity rate (Active / Enabled)
+        var rate = enabledSeconds > 0 ? (activeSeconds / enabledSeconds) * 100 : 0;
+        ValueActivityRate.Text = $"{Math.Round(rate)}%";
 
         // Tracked devices count
         var trackedCount = devices.Count(d => UsageTrackingService.Instance.IsTracking(d.DeviceId));
