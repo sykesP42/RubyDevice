@@ -38,7 +38,8 @@
                                   Foreground="{StaticResource TextPrimaryBrush}"/>
                         <GridView x:Name="ThemeGrid" SelectionMode="Single"
                                  SelectionChanged="ThemeGrid_SelectionChanged">
-                            <GridViewItem Tag="Light" Margin="0,0,12,0">
+                            <GridViewItem Tag="Light" Margin="0,0,12,0"
+                                     ToolTipService.ToolTip="Light">
                                 <StackPanel Spacing="8" Width="72">
                                     <Border Width="48" Height="48" CornerRadius="8"
                                            Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="2"/>
@@ -46,28 +47,32 @@
                                               Foreground="{StaticResource TextSecondaryBrush}"/>
                                 </StackPanel>
                             </GridViewItem>
-                            <GridViewItem Tag="Dark" Margin="0,0,12,0">
+                            <GridViewItem Tag="Dark" Margin="0,0,12,0"
+                                     ToolTipService.ToolTip="Dark">
                                 <StackPanel Spacing="8" Width="72">
                                     <Border Width="48" Height="48" CornerRadius="8" Background="#0F172A"/>
                                     <TextBlock x:Name="TextThemeDark" HorizontalAlignment="Center" FontSize="11"
                                               Foreground="{StaticResource TextSecondaryBrush}"/>
                                 </StackPanel>
                             </GridViewItem>
-                            <GridViewItem Tag="Ocean" Margin="0,0,12,0">
+                            <GridViewItem Tag="Ocean" Margin="0,0,12,0"
+                                     ToolTipService.ToolTip="Ocean">
                                 <StackPanel Spacing="8" Width="72">
                                     <Border Width="48" Height="48" CornerRadius="8" Background="#0891B2"/>
                                     <TextBlock x:Name="TextThemeOcean" HorizontalAlignment="Center" FontSize="11"
                                               Foreground="{StaticResource TextSecondaryBrush}"/>
                                 </StackPanel>
                             </GridViewItem>
-                            <GridViewItem Tag="Forest" Margin="0,0,12,0">
+                            <GridViewItem Tag="Forest" Margin="0,0,12,0"
+                                     ToolTipService.ToolTip="Forest">
                                 <StackPanel Spacing="8" Width="72">
                                     <Border Width="48" Height="48" CornerRadius="8" Background="#16A34A"/>
                                     <TextBlock x:Name="TextThemeForest" HorizontalAlignment="Center" FontSize="11"
                                               Foreground="{StaticResource TextSecondaryBrush}"/>
                                 </StackPanel>
                             </GridViewItem>
-                            <GridViewItem Tag="Sunset" Margin="0,0,12,0">
+                            <GridViewItem Tag="Sunset" Margin="0,0,12,0"
+                                     ToolTipService.ToolTip="Sunset">
                                 <StackPanel Spacing="8" Width="72">
                                     <Border Width="48" Height="48" CornerRadius="8" Background="#EA580C"/>
                                     <TextBlock x:Name="TextThemeSunset" HorizontalAlignment="Center" FontSize="11"
