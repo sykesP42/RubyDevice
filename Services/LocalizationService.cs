@@ -122,6 +122,16 @@ public class LocalizationService : INotifyPropertyChanged
         ["ShowDeviceCount"] = "Show device count in tray",
         ["CloseToTray"] = "Close to tray",
 
+        // Data Management
+        ["DataManagement"] = "Data Management",
+        ["ClearUsageData"] = "Clear Usage Data",
+        ["ClearDataConfirm"] = "This will delete all tracked usage data. Continue?",
+        ["DataCleared"] = "Usage data cleared",
+
+        // About section
+        ["Version"] = "Version",
+        ["AppVersion"] = "1.0.0",
+
         // About
         ["HeaderAbout"] = "About",
         ["HeaderAboutDesc"] = "Learn more about RubyDevice",
@@ -296,6 +306,15 @@ public class LocalizationService : INotifyPropertyChanged
         ["MinimizeToTray"] = "最小化到系统托盘",
         ["ShowDeviceCount"] = "在托盘显示设备数量",
         ["CloseToTray"] = "关闭到托盘",
+
+        // Data Management
+        ["DataManagement"] = "数据管理",
+        ["ClearUsageData"] = "清除使用数据",
+        ["ClearDataConfirm"] = "这将删除所有追踪的使用数据，确定继续吗？",
+        ["DataCleared"] = "使用数据已清除",
+
+        // About section
+        ["AppVersion"] = "1.0.0",
 
         // About
         ["HeaderAbout"] = "关于",
