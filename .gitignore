@@ -98,3 +98,6 @@ $RECYCLE.BIN/
 *.pfx
 *.publishsettings
 orleans.codegen.cs
+
+# Build logs
+*.binlog
