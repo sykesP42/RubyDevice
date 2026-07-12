@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using RubyDevice.Core;
+using RubyDevice.Models;
 using RubyDevice.Services;
 
 namespace RubyDevice.ViewModels;
@@ -262,6 +263,9 @@ public class MainViewModel : INotifyPropertyChanged
 
         // Subscribe to device activity events
         _deviceManager.DeviceActivity += OnDeviceActivity;
+
+        // Subscribe to device change events (hotplug)
+        DeviceWatcherService.Instance.DevicesChanged += OnDevicesChanged;
     }
 
     private void OnDeviceActivity(object? sender, DeviceManager.DeviceActivityEventArgs e)
@@ -270,7 +274,26 @@ public class MainViewModel : INotifyPropertyChanged
         ActiveDeviceId = e.DeviceId;
     }
 
-    public void Initialize() => Refresh();
+    private void OnDevicesChanged(object? sender, EventArgs e)
+    {
+        var settings = AppSettings.Load();
+        if (!settings.AutoRefresh) return;
+
+        // Refresh on UI thread
+        Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread()?.TryEnqueue(() =>
+        {
+            Refresh();
+            var loc = LocalizationService.Instance;
+            NotificationService.Instance.ShowToast(loc["DevicesChanged"], loc["DeviceListRefreshed"]);
+        });
+    }
+
+    public void Initialize()
+    {
+        Refresh();
+        // Start hotplug detection
+        DeviceWatcherService.Instance.Start();
+    }
 
     public DeviceManager GetDeviceManager() => _deviceManager;
 

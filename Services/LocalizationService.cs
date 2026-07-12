@@ -173,6 +173,10 @@ public class LocalizationService : INotifyPropertyChanged
         ["DeviceRestoredMessage"] = "{0} has been automatically re-enabled",
         ["NotificationsEnabled"] = "Notifications",
 
+        // Device Watcher
+        ["DevicesChanged"] = "Devices Changed",
+        ["DeviceListRefreshed"] = "Device list has been refreshed",
+
         // Actions
         ["Save"] = "Save",
         ["Cancel"] = "Cancel",
@@ -362,6 +366,10 @@ public class LocalizationService : INotifyPropertyChanged
         ["DeviceRestored"] = "设备已恢复",
         ["DeviceRestoredMessage"] = "{0} 已自动重新启用",
         ["NotificationsEnabled"] = "显示通知",
+
+        // Device Watcher
+        ["DevicesChanged"] = "设备变更",
+        ["DeviceListRefreshed"] = "设备列表已自动刷新",
 
         // Actions
         ["Save"] = "保存",

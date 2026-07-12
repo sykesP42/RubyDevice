@@ -5,6 +5,7 @@ using System.Text.Json;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using RubyDevice.Models;
 using RubyDevice.Services;
 using RubyDevice.ViewModels;
 
@@ -106,25 +107,8 @@ public sealed partial class SettingsPage : Page
 
     private void SaveSetting<T>(string key, T value)
     {
-        try
-        {
-            var settings = new AppSettings();
-            if (File.Exists(SettingsFilePath))
-            {
-                var json = File.ReadAllText(SettingsFilePath);
-                settings = JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
-            }
-
-            // Update the specific setting
-            typeof(AppSettings).GetProperty(key)?.SetValue(settings, value);
-
-            var dir = Path.GetDirectoryName(SettingsFilePath);
-            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
-
-            File.WriteAllText(SettingsFilePath, JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
-        }
-        catch { }
+        var settings = AppSettings.Load();
+        settings.Set(key, value);
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -261,17 +245,4 @@ public sealed partial class SettingsPage : Page
             NotificationService.Instance.ShowToast(_loc["DataCleared"], "");
         }
     }
-}
-
-/// <summary>
-/// Application settings model
-/// </summary>
-public class AppSettings
-{
-    public bool AutoStart { get; set; } = false;
-    public bool AutoRefresh { get; set; } = true;
-    public bool ShowNotifications { get; set; } = true;
-    public bool MinimizeToTray { get; set; } = true;
-    public bool ShowDeviceCount { get; set; } = true;
-    public bool CloseToTray { get; set; } = false;
 }
