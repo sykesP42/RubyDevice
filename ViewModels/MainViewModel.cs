@@ -117,10 +117,10 @@ public class DeviceViewModel : INotifyPropertyChanged
 
     public string IconGlyph => Type switch
     {
-        DeviceType.Keyboard => "",
-        DeviceType.Mouse => "",
-        DeviceType.Touchpad => "",
-        _ => ""  // Question mark icon
+        DeviceType.Keyboard => "",
+        DeviceType.Mouse => "",
+        DeviceType.Touchpad => "",
+        _ => ""  // Question mark
     };
 
     public string StatusText => IsEnabled
@@ -170,9 +170,9 @@ public class DeviceGroupViewModel
         };
         IconGlyph = type switch
         {
-            DeviceType.Keyboard => "",
-            DeviceType.Mouse => "",
-            DeviceType.Touchpad => "",
+            DeviceType.Keyboard => "",
+            DeviceType.Mouse => "",
+            DeviceType.Touchpad => "",
             _ => ""
         };
     }

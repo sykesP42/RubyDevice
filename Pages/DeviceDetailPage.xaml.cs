@@ -91,9 +91,9 @@ public sealed partial class DeviceDetailPage : Page
 
         DeviceIcon.Text = _device.Type switch
         {
-            DeviceType.Keyboard => "",
-            DeviceType.Mouse => "",
-            DeviceType.Touchpad => "",
+            DeviceType.Keyboard => "",
+            DeviceType.Mouse => "",
+            DeviceType.Touchpad => "",
             _ => ""
         };
 
