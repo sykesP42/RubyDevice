@@ -179,6 +179,12 @@ public class LocalizationService : INotifyPropertyChanged
         ["Close"] = "Close",
         ["Minimize"] = "Minimize",
         ["Maximize"] = "Maximize",
+        ["Start"] = "Start",
+        ["Stop"] = "Stop",
+        ["RestoreAll"] = "Restore All",
+        ["Minutes"] = "minutes",
+        ["TimerRunning"] = "Running...",
+        ["TimerIdle"] = "Idle",
 
         // Usage Record Page
         ["NavUsageRecord"] = "Usage Record",
@@ -363,6 +369,12 @@ public class LocalizationService : INotifyPropertyChanged
         ["Close"] = "关闭",
         ["Minimize"] = "最小化",
         ["Maximize"] = "最大化",
+        ["Start"] = "开始",
+        ["Stop"] = "停止",
+        ["RestoreAll"] = "全部恢复",
+        ["Minutes"] = "分钟",
+        ["TimerRunning"] = "运行中...",
+        ["TimerIdle"] = "空闲",
 
         // Usage Record Page
         ["NavUsageRecord"] = "使用记录",
