@@ -6,78 +6,100 @@
 
     <ScrollViewer Padding="24,16" VerticalScrollBarVisibility="Auto">
         <StackPanel MaxWidth="600" Spacing="24" HorizontalAlignment="Center">
-            <!-- Logo -->
-            <Border Width="96" Height="96" CornerRadius="20" Background="{StaticResource PrimaryBrush}"
-                   HorizontalAlignment="Center">
-                <FontIcon Glyph="&#xE96E;" FontSize="48" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
-
-            <!-- App Name -->
-            <StackPanel Spacing="8" HorizontalAlignment="Center">
-                <TextBlock Text="RubyDevice" FontSize="28" FontWeight="Bold"
-                          HorizontalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}"/>
-                <TextBlock Text="Version 1.0.0" FontSize="13"
-                          HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+            <!-- Logo + App Info -->
+            <StackPanel Spacing="12" HorizontalAlignment="Center">
+                <Border Width="80" Height="80" CornerRadius="16" Background="{StaticResource PrimaryBrush}"
+                       HorizontalAlignment="Center">
+                    <TextBlock Text="RD" FontSize="28" FontWeight="Bold"
+                              Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                    <TextBlock Text="RubyDevice" FontSize="26" FontWeight="Bold"
+                              HorizontalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock x:Name="VersionText" FontSize="12"
+                              HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+                </StackPanel>
             </StackPanel>
 
             <!-- Description -->
-            <TextBlock x:Name="AppDescription" TextWrapping="Wrap" TextAlignment="Center"
+            <TextBlock x:Name="AppDesc" TextWrapping="Wrap" TextAlignment="Center"
                       Foreground="{StaticResource TextSecondaryBrush}" LineHeight="22"/>
 
             <!-- Features -->
             <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
                 <StackPanel Spacing="12">
-                    <TextBlock x:Name="FeaturesTitle" FontWeight="SemiBold"
+                    <TextBlock x:Name="FeaturesTitle" FontSize="16" FontWeight="SemiBold"
                               Foreground="{StaticResource TextPrimaryBrush}"/>
 
-                    <StackPanel Spacing="10">
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <FontIcon Grid.Column="0" Glyph="&#xE73E;" FontSize="14"
-                                     Foreground="{StaticResource SuccessBrush}"/>
-                            <TextBlock x:Name="Feature1" Grid.Column="1" TextWrapping="Wrap"
-                                      Foreground="{StaticResource TextPrimaryBrush}"/>
-                        </Grid>
-
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <FontIcon Grid.Column="0" Glyph="&#xE73E;" FontSize="14"
-                                     Foreground="{StaticResource SuccessBrush}"/>
-                            <TextBlock x:Name="Feature2" Grid.Column="1" TextWrapping="Wrap"
-                                      Foreground="{StaticResource TextPrimaryBrush}"/>
-                        </Grid>
-
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <FontIcon Grid.Column="0" Glyph="&#xE73E;" FontSize="14"
-                                     Foreground="{StaticResource SuccessBrush}"/>
-                            <TextBlock x:Name="Feature3" Grid.Column="1" TextWrapping="Wrap"
-                                      Foreground="{StaticResource TextPrimaryBrush}"/>
-                        </Grid>
-
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <FontIcon Grid.Column="0" Glyph="&#xE73E;" FontSize="14"
-                                     Foreground="{StaticResource SuccessBrush}"/>
-                            <TextBlock x:Name="Feature4" Grid.Column="1" TextWrapping="Wrap"
-                                      Foreground="{StaticResource TextPrimaryBrush}"/>
-                        </Grid>
-                    </StackPanel>
+                    <StackPanel x:Name="FeaturesList" Spacing="8"/>
                 </StackPanel>
             </Border>
+
+            <!-- Tech Info -->
+            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
+                   BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <StackPanel Spacing="12">
+                    <TextBlock x:Name="TechInfoTitle" FontSize="16" FontWeight="SemiBold"
+                              Foreground="{StaticResource TextPrimaryBrush}"/>
+
+                    <Grid ColumnSpacing="12" RowSpacing="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" x:Name="TechFramework"
+                                  FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="WinUI 3 / .NET 9"
+                                  FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" x:Name="TechPlatform"
+                                  FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="Windows 10+ (x64)"
+                                  FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" x:Name="TechSdk"
+                                  FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="Windows App SDK 1.5"
+                                  FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"/>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" x:Name="TechLicense"
+                                  FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="MIT License"
+                                  FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Links -->
+            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
+                   BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <StackPanel Spacing="12">
+                    <TextBlock x:Name="LinksTitle" FontSize="16" FontWeight="SemiBold"
+                              Foreground="{StaticResource TextPrimaryBrush}"/>
+
+                    <HyperlinkButton x:Name="GithubLink" NavigateUri="https://github.com/sykesP42/RubyDevice"
+                                    Padding="0">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE775;" FontSize="14"
+                                     Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <TextBlock x:Name="GithubText" FontSize="13"
+                                      Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                    </HyperlinkButton>
+                </StackPanel>
+            </Border>
+
+            <!-- Copyright -->
+            <TextBlock x:Name="CopyrightText" FontSize="11"
+                      Foreground="{StaticResource TextTertiaryBrush}" HorizontalAlignment="Center"/>
         </StackPanel>
     </ScrollViewer>
 </Page>

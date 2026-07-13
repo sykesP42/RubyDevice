@@ -140,6 +140,20 @@ public class LocalizationService : INotifyPropertyChanged
         ["Feature2"] = "Enable/disable individual devices",
         ["Feature3"] = "Timer-based auto-restore",
         ["Feature4"] = "Modern WinUI 3 interface",
+        ["Feature5"] = "Usage time tracking with charts",
+        ["Feature6"] = "Device activity highlight",
+        ["Feature7"] = "Hotplug auto-refresh",
+        ["Feature8"] = "Data export to CSV",
+
+        // About - Tech Info
+        ["TechInfo"] = "Tech Info",
+        ["Framework"] = "Framework",
+        ["Platform"] = "Platform",
+        ["SDK"] = "SDK",
+        ["License"] = "License",
+        ["Links"] = "Links",
+        ["GithubRepo"] = "View on GitHub",
+        ["Copyright"] = "Copyright © {0} RubyDevice. All rights reserved.",
 
         // Confirmation Dialog
         ["ConfirmTitle"] = "Confirm Device Disable",
@@ -334,6 +348,20 @@ public class LocalizationService : INotifyPropertyChanged
         ["Feature2"] = "启用/禁用单个设备",
         ["Feature3"] = "定时自动恢复",
         ["Feature4"] = "现代 WinUI 3 界面",
+        ["Feature5"] = "使用时间追踪与图表",
+        ["Feature6"] = "设备活动高亮显示",
+        ["Feature7"] = "热插拔自动刷新",
+        ["Feature8"] = "CSV 数据导出",
+
+        // About - Tech Info
+        ["TechInfo"] = "技术信息",
+        ["Framework"] = "框架",
+        ["Platform"] = "平台",
+        ["SDK"] = "SDK",
+        ["License"] = "许可证",
+        ["Links"] = "链接",
+        ["GithubRepo"] = "在 GitHub 上查看",
+        ["Copyright"] = "版权所有 © {0} RubyDevice。保留所有权利。",
 
         // Confirmation Dialog
         ["ConfirmTitle"] = "确认禁用设备",
