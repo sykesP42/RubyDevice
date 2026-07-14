@@ -80,6 +80,9 @@ public class LocalizationService : INotifyPropertyChanged
         ["SortByType"] = "Type",
         ["SortByStatus"] = "Status",
         ["HasNote"] = "Has note",
+        ["DeviceDetails"] = "Device Details",
+        ["CopyDeviceId"] = "Copy Device ID",
+        ["ToggleDevice"] = "Toggle Device",
 
         // Statistics
         ["HeaderStatistics"] = "Statistics",
@@ -289,6 +292,9 @@ public class LocalizationService : INotifyPropertyChanged
         ["SortByType"] = "类型",
         ["SortByStatus"] = "状态",
         ["HasNote"] = "有备注",
+        ["DeviceDetails"] = "设备详情",
+        ["CopyDeviceId"] = "复制设备 ID",
+        ["ToggleDevice"] = "切换设备",
 
         // Statistics
         ["HeaderStatistics"] = "统计",

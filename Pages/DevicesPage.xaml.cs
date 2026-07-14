@@ -1,8 +1,10 @@
+using System;
 using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
+using Windows.ApplicationModel.DataTransfer;
 using RubyDevice.Core;
 using RubyDevice.Services;
 using RubyDevice.ViewModels;
@@ -146,5 +148,44 @@ public sealed partial class DevicesPage : Page
             await _viewModel.DisableDeviceWithConfirmAsync(device, this);
             toggle.IsOn = device.IsEnabled;
         }
+    }
+
+    private void Device_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        if (sender is not Border border || border.DataContext is not DeviceViewModel device) return;
+        if (_viewModel == null) return;
+
+        var flyout = new MenuFlyout();
+
+        var detailsItem = new MenuFlyoutItem { Text = _loc["DeviceDetails"] };
+        detailsItem.Click += (_, _) =>
+        {
+            Frame.Navigate(typeof(DeviceDetailPage), (device, _viewModel));
+        };
+
+        var copyIdItem = new MenuFlyoutItem { Text = _loc["CopyDeviceId"] };
+        copyIdItem.Click += (_, _) =>
+        {
+            var pkg = new DataPackage();
+            pkg.SetText(device.DeviceId);
+            Clipboard.SetContent(pkg);
+        };
+
+        var toggleText = device.IsEnabled ? _loc["Disabled"] : _loc["Enabled"];
+        var toggleItem = new MenuFlyoutItem { Text = toggleText };
+        toggleItem.Click += async (_, _) =>
+        {
+            if (device.IsEnabled)
+                await _viewModel.DisableDeviceWithConfirmAsync(device, this);
+            else
+                await _viewModel.EnableDeviceWithConfirmAsync(device, this);
+        };
+
+        flyout.Items.Add(detailsItem);
+        flyout.Items.Add(copyIdItem);
+        flyout.Items.Add(new MenuFlyoutSeparator());
+        flyout.Items.Add(toggleItem);
+
+        flyout.ShowAt(border, e.GetPosition(border));
     }
 }

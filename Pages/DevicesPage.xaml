@@ -131,6 +131,7 @@
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate x:DataType="vm:DeviceViewModel">
                                                 <Border PointerPressed="Device_Click" Tag="{x:Bind}"
+                                                       RightTapped="Device_RightTapped"
                                                        Padding="0,8">
                                                     <Grid ColumnSpacing="10">
                                                         <Grid.ColumnDefinitions>
