@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
 using Windows.UI;
 using RubyDevice.Core;
+using static RubyDevice.Helpers.TimeHelper;
 using RubyDevice.Services;
 using RubyDevice.ViewModels;
 
@@ -213,14 +214,6 @@ public sealed partial class DeviceDetailPage : Page
         YAxisMax.Text = maxHours >= 1 ? $"{Math.Round(maxHours, 1)}h" : $"{Math.Round(maxSeconds / 60)}m";
         YAxisMid.Text = midHours >= 1 ? $"{Math.Round(midHours, 1)}h" : $"{Math.Round(midHours * 60)}m";
         YAxisMin.Text = "0";
-    }
-
-    private static string FormatTime(double seconds)
-    {
-        var totalSeconds = (long)seconds;
-        var hours = totalSeconds / 3600;
-        var mins = (totalSeconds % 3600) / 60;
-        return hours > 0 ? $"{hours}h {mins}m" : $"{mins}m";
     }
 
     private async void DeviceToggle_Toggled(object sender, RoutedEventArgs e)

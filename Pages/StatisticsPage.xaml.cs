@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using static RubyDevice.Helpers.TimeHelper;
 using RubyDevice.Core;
 using RubyDevice.Services;
 using RubyDevice.ViewModels;
@@ -122,14 +123,6 @@ public sealed partial class StatisticsPage : Page
         // Device list - sort by name
         var sortedDevices = devices.OrderBy(d => d.Name).ToList();
         UsageList.ItemsSource = sortedDevices;
-    }
-
-    private static string FormatTime(double seconds)
-    {
-        var totalSeconds = (long)seconds;
-        var hours = totalSeconds / 3600;
-        var mins = (totalSeconds % 3600) / 60;
-        return hours > 0 ? $"{hours}h {mins}m" : $"{mins}m";
     }
 
     private void BtnRefresh_Click(object sender, RoutedEventArgs e)
