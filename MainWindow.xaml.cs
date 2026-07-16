@@ -16,6 +16,7 @@ public sealed partial class MainWindow : Window
     private bool _isMaximized;
     private DeviceManager? _deviceManager;
     private IntPtr _hwnd;
+    private string? _currentPageTag;
 
     public MainWindow()
     {
@@ -79,6 +80,12 @@ public sealed partial class MainWindow : Window
         TextTimer.Text = _loc["NavTimer"];
         TextSettings.Text = _loc["NavSettings"];
         TextAbout.Text = _loc["NavAbout"];
+
+        // Refresh header and current page when language changes
+        if (!string.IsNullOrEmpty(_currentPageTag))
+        {
+            RefreshCurrentPage();
+        }
     }
 
     private void NavList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -95,7 +102,14 @@ public sealed partial class MainWindow : Window
 
         if (NavList.SelectedItem is not ListViewItem item) return;
 
-        var tag = item.Tag?.ToString();
+        _currentPageTag = item.Tag?.ToString();
+        NavigateToPage(_currentPageTag);
+    }
+
+    private void NavigateToPage(string? tag)
+    {
+        var primaryBrush = (SolidColorBrush)App.Current.Resources["PrimaryBrush"];
+
         switch (tag)
         {
             case "Devices":
@@ -135,6 +149,11 @@ public sealed partial class MainWindow : Window
                 HeaderSubtitle.Text = _loc["HeaderAboutDesc"];
                 break;
         }
+    }
+
+    private void RefreshCurrentPage()
+    {
+        NavigateToPage(_currentPageTag);
     }
 
     private void BtnMinimize_Click(object sender, RoutedEventArgs e)
