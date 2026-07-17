@@ -271,4 +271,19 @@ public sealed partial class DeviceDetailPage : Page
         if (Frame.CanGoBack)
             Frame.GoBack();
     }
+
+    private void BtnClearNote_Click(object sender, RoutedEventArgs e)
+    {
+        NoteBox.Text = "";
+        if (_device != null && _viewModel != null)
+            _viewModel.SetDeviceNote(_device.DeviceId, "");
+        BtnClearNote.Visibility = Visibility.Collapsed;
+    }
+
+    private void NoteBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        BtnClearNote.Visibility = string.IsNullOrEmpty(NoteBox.Text)
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+    }
 }

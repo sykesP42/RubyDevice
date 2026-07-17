@@ -194,11 +194,21 @@
             <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="16"
                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
                 <StackPanel Spacing="12">
-                    <TextBlock x:Name="TextNotes" FontSize="14" FontWeight="SemiBold"
-                              Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" x:Name="TextNotes" FontSize="14" FontWeight="SemiBold"
+                                  Foreground="{StaticResource TextPrimaryBrush}"/>
+                        <Button Grid.Column="1" x:Name="BtnClearNote" Content="Clear"
+                               Click="BtnClearNote_Click" Padding="8,2" FontSize="11"
+                               Visibility="Collapsed" Background="Transparent"
+                               BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
+                    </Grid>
                     <TextBox x:Name="NoteBox" PlaceholderText="..."
                             AcceptsReturn="True" Height="60" TextWrapping="Wrap"
-                            LostFocus="NoteBox_LostFocus"/>
+                            LostFocus="NoteBox_LostFocus" TextChanged="NoteBox_TextChanged"/>
                 </StackPanel>
             </Border>
         </StackPanel>
