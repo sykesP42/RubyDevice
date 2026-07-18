@@ -188,4 +188,41 @@ public sealed partial class DevicesPage : Page
 
         flyout.ShowAt(border, e.GetPosition(border));
     }
+
+    private async void BtnEnableAll_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement element || element.Tag is not DeviceType type) return;
+        if (_viewModel == null) return;
+
+        var batch = _viewModel.AllDevices.Where(d => d.Type == type && !d.IsEnabled).ToList();
+        if (batch.Count == 0) return;
+
+        for (int i = 0; i < batch.Count; i++)
+        {
+            var device = batch[i];
+            if (i == batch.Count - 1)
+                await _viewModel.EnableDeviceWithConfirmAsync(device, this);
+            else if (_viewModel.ToggleDevice(device.DeviceId, true))
+                device.IsEnabled = true;
+        }
+    }
+
+    private async void BtnDisableAll_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement element || element.Tag is not DeviceType type) return;
+        if (_viewModel == null) return;
+
+        var batch = _viewModel.AllDevices.Where(d => d.Type == type && d.IsEnabled).ToList();
+        if (batch.Count == 0) return;
+
+        var first = batch.First();
+        await _viewModel.DisableDeviceWithConfirmAsync(first, this);
+        if (first.IsEnabled) return;
+
+        for (int i = 1; i < batch.Count; i++)
+        {
+            if (_viewModel.ToggleDevice(batch[i].DeviceId, false))
+                batch[i].IsEnabled = false;
+        }
+    }
 }

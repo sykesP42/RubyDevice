@@ -155,6 +155,8 @@ public class DeviceGroupViewModel
     public string Name { get; }
     public string IconGlyph { get; }
     public string CountText => Devices.Count > 0 ? Devices.Count.ToString() : "0";
+    public Visibility HasEnabled => Devices.Any(d => d.IsEnabled) ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility HasDisabled => Devices.Any(d => !d.IsEnabled) ? Visibility.Visible : Visibility.Collapsed;
     public ObservableCollection<DeviceViewModel> Devices { get; } = new();
 
     public DeviceGroupViewModel(DeviceType type)

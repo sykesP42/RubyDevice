@@ -110,18 +110,21 @@
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="{x:Bind IconGlyph}" FontFamily="Segoe MDL2 Assets"
                                               FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
                                               VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="1" Text="{x:Bind Name}" FontWeight="SemiBold"
                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                    <Border Grid.Column="2" Background="{StaticResource DividerBrush}"
-                                            CornerRadius="10" Padding="8,2" MinWidth="24">
-                                        <TextBlock Text="{x:Bind CountText}" FontSize="11"
-                                                  Foreground="{StaticResource TextSecondaryBrush}"
-                                                  HorizontalAlignment="Center"/>
-                                    </Border>
+                                    <Button Grid.Column="2" x:Name="BtnEnableAll" Content="Enable All"
+                                           Click="BtnEnableAll_Click" Tag="{x:Bind Type}"
+                                           Padding="8,4" FontSize="11" MinWidth="0"
+                                           Visibility="{x:Bind HasDisabled}"/>
+                                    <Button Grid.Column="3" x:Name="BtnDisableAll" Content="Disable All"
+                                           Click="BtnDisableAll_Click" Tag="{x:Bind Type}"
+                                           Padding="8,4" FontSize="11" MinWidth="0"
+                                           Visibility="{x:Bind HasEnabled}"/>
                                 </Grid>
 
                                 <!-- Devices -->

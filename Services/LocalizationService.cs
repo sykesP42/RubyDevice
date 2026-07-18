@@ -83,6 +83,8 @@ public class LocalizationService : INotifyPropertyChanged
         ["DeviceDetails"] = "Device Details",
         ["CopyDeviceId"] = "Copy Device ID",
         ["ToggleDevice"] = "Toggle Device",
+        ["EnableAll"] = "Enable All",
+        ["DisableAll"] = "Disable All",
 
         // Statistics
         ["HeaderStatistics"] = "Statistics",
@@ -295,6 +297,8 @@ public class LocalizationService : INotifyPropertyChanged
         ["DeviceDetails"] = "设备详情",
         ["CopyDeviceId"] = "复制设备 ID",
         ["ToggleDevice"] = "切换设备",
+        ["EnableAll"] = "全部启用",
+        ["DisableAll"] = "全部禁用",
 
         // Statistics
         ["HeaderStatistics"] = "统计",
