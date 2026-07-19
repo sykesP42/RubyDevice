@@ -30,7 +30,11 @@ public class DeviceWatcherService : IDisposable
     /// </summary>
     public void Start()
     {
-        if (_watcher != null) return;
+        if (_watcher != null)
+        {
+            // Already running - restart to ensure fresh monitoring
+            Stop();
+        }
 
         try
         {
