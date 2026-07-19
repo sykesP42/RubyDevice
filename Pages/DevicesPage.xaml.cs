@@ -197,14 +197,24 @@ public sealed partial class DevicesPage : Page
         var batch = _viewModel.AllDevices.Where(d => d.Type == type && !d.IsEnabled).ToList();
         if (batch.Count == 0) return;
 
+        var enabledCount = 0;
         for (int i = 0; i < batch.Count; i++)
         {
             var device = batch[i];
             if (i == batch.Count - 1)
+            {
                 await _viewModel.EnableDeviceWithConfirmAsync(device, this);
+                if (device.IsEnabled) enabledCount++;
+            }
             else if (_viewModel.ToggleDevice(device.DeviceId, true))
+            {
                 device.IsEnabled = true;
+                enabledCount++;
+            }
         }
+
+        if (enabledCount > 0)
+            NotificationService.Instance.ShowToast(_loc["DeviceEnabled"], $"{enabledCount} device(s) enabled");
     }
 
     private async void BtnDisableAll_Click(object sender, RoutedEventArgs e)
