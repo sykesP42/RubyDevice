@@ -128,8 +128,8 @@ public sealed partial class TimerPage : Page
             var dialog = new ContentDialog
             {
                 Title = _loc["AutoRestoreTimer"],
-                Content = "No disabled devices to restore.",
-                CloseButtonText = "OK",
+                Content = _loc["NoDevicesToRestore"],
+                CloseButtonText = _loc["OK"],
                 XamlRoot = this.XamlRoot
             };
             _ = dialog.ShowAsync();

@@ -208,6 +208,8 @@ public class LocalizationService : INotifyPropertyChanged
         ["Minutes"] = "minutes",
         ["TimerRunning"] = "Running...",
         ["TimerIdle"] = "Idle",
+        ["OK"] = "OK",
+        ["NoDevicesToRestore"] = "No disabled devices to restore.",
 
         // Usage Record Page
         ["NavUsageRecord"] = "Usage Record",
@@ -421,6 +423,8 @@ public class LocalizationService : INotifyPropertyChanged
         ["Minutes"] = "分钟",
         ["TimerRunning"] = "运行中...",
         ["TimerIdle"] = "空闲",
+        ["OK"] = "确定",
+        ["NoDevicesToRestore"] = "没有已禁用的设备需要恢复。",
 
         // Usage Record Page
         ["NavUsageRecord"] = "使用记录",
