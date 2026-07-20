@@ -53,7 +53,7 @@ public sealed partial class StatisticsPage : Page
         base.OnNavigatedTo(e);
         _viewModel = e.Parameter as MainViewModel;
         _isLoaded = true;
-        Bindings.Update();
+        Bindings?.Update();
         UpdateStats();
 
         if (_viewModel != null)
