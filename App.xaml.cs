@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using Microsoft.UI.Xaml;
 using RubyDevice.Services;
 
@@ -11,6 +13,15 @@ public partial class App : Application
     public App()
     {
         InitializeComponent();
+        UnhandledException += (sender, e) =>
+        {
+            System.IO.File.AppendAllText(
+                System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "RubyDevice", "crash.log"),
+                $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {e.Exception}\n");
+            e.Handled = true;
+        };
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
