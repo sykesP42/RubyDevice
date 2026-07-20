@@ -12,6 +12,10 @@ namespace RubyDevice.Services;
 public class NotificationService : INotifyPropertyChanged
 {
     private static NotificationService? _instance;
+
+    /// <summary>
+    /// 获取通知服务的单例实例
+    /// </summary>
     public static NotificationService Instance => _instance ??= new NotificationService();
 
     private bool _enableNotifications = true;
@@ -92,6 +96,9 @@ public class NotificationService : INotifyPropertyChanged
         ShowToast(loc["DeviceEnabled"], deviceName);
     }
 
+    /// <summary>
+    /// 转义 XML 特殊字符，防止 Toast 通知内容破坏 XML 结构
+    /// </summary>
     private static string EscapeXml(string text)
     {
         return text
