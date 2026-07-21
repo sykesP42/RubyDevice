@@ -3,6 +3,9 @@ using System.Runtime.CompilerServices;
 
 namespace RubyDevice.Services;
 
+/// <summary>
+/// Application theme variants available in RubyDevice
+/// </summary>
 public enum AppTheme
 {
     Light,
@@ -12,13 +15,24 @@ public enum AppTheme
     Sunset
 }
 
+/// <summary>
+/// Manages the active application theme and notifies UI when it changes.
+/// The current theme is applied via ThemeService in App.xaml.cs.
+/// </summary>
 public class ThemeService : INotifyPropertyChanged
 {
     private static ThemeService? _instance;
+
+    /// <summary>
+    /// Gets the singleton ThemeService instance
+    /// </summary>
     public static ThemeService Instance => _instance ??= new ThemeService();
 
     private AppTheme _currentTheme = AppTheme.Light;
 
+    /// <summary>
+    /// Gets or sets the currently active theme
+    /// </summary>
     public AppTheme CurrentTheme
     {
         get => _currentTheme;
@@ -32,6 +46,9 @@ public class ThemeService : INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Resource file path for the active theme
+    /// </summary>
     public string ThemeResourcePath => CurrentTheme switch
     {
         AppTheme.Dark => "Themes/DarkTheme.xaml",
