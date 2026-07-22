@@ -127,6 +127,9 @@ public class UsageTrackingService : IDisposable
         }, null, TimeSpan.FromMinutes(DATA_SAVE_INTERVAL_MINUTES), TimeSpan.FromMinutes(DATA_SAVE_INTERVAL_MINUTES));
     }
 
+    /// <summary>
+    /// Checks whether usage tracking is enabled for a device
+    /// </summary>
     public bool IsTracking(string deviceId)
     {
         lock (_lock)
@@ -144,6 +147,9 @@ public class UsageTrackingService : IDisposable
         return _settings.Devices.TryGetValue(deviceId, out var setting) && setting.IsTrackingEnabled;
     }
 
+    /// <summary>
+    /// Enables or disables usage tracking for a device and persists the setting
+    /// </summary>
     public void SetTracking(string deviceId, bool enabled)
     {
         TrackingSettingsFile settingsCopy;
