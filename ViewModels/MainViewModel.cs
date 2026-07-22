@@ -186,10 +186,15 @@ public class MainViewModel : INotifyPropertyChanged
     private DeviceType? _filterType;
     private readonly string _dataPath;
 
+    #region Collections
+
     public ObservableCollection<DeviceViewModel> AllDevices { get; } = new();
     public ObservableCollection<DeviceGroupViewModel> DeviceGroups { get; } = new();
 
-    // Activity highlight toggle
+    #endregion
+
+    #region Activity Highlight
+
     private bool _isActivityHighlightEnabled = true;
     public bool IsActivityHighlightEnabled
     {
@@ -200,34 +205,31 @@ public class MainViewModel : INotifyPropertyChanged
             {
                 _isActivityHighlightEnabled = value;
                 OnPropertyChanged();
-                if (!value)
-                {
-                    ActiveDeviceId = null;
-                }
+                if (!value) ActiveDeviceId = null;
             }
         }
     }
 
-    // Active device tracking for UI highlighting
     private string? _activeDeviceId;
     public string? ActiveDeviceId
     {
         get => _activeDeviceId;
         set
         {
-            // Only update if highlight is enabled
             if (!_isActivityHighlightEnabled && value != null) return;
-
             if (_activeDeviceId != value)
             {
                 _activeDeviceId = value;
                 OnPropertyChanged();
-                // Notify all devices to update their active state
                 foreach (var d in AllDevices)
                     d.OnIsActiveChanged();
             }
         }
     }
+
+    #endregion
+
+    #region Filter & Sort
 
     public DeviceType? FilterType
     {
@@ -235,7 +237,6 @@ public class MainViewModel : INotifyPropertyChanged
         set { _filterType = value; OnPropertyChanged(); UpdateGroups(); }
     }
 
-    // Search and sort
     private string _searchText = "";
     public string SearchText
     {
@@ -243,19 +244,21 @@ public class MainViewModel : INotifyPropertyChanged
         set { _searchText = value; OnPropertyChanged(); UpdateGroups(); }
     }
 
-    private string _statusFilter = "All"; // "All", "Enabled", "Disabled"
+    private string _statusFilter = "All";
     public string StatusFilter
     {
         get => _statusFilter;
         set { _statusFilter = value; OnPropertyChanged(); UpdateGroups(); }
     }
 
-    private int _sortMode; // 0=Name, 1=Type, 2=Status
+    private int _sortMode;
     public int SortMode
     {
         get => _sortMode;
         set { _sortMode = value; OnPropertyChanged(); UpdateGroups(); }
     }
+
+    #endregion
 
     public MainViewModel()
     {
@@ -269,6 +272,8 @@ public class MainViewModel : INotifyPropertyChanged
         // Subscribe to device change events (hotplug)
         DeviceWatcherService.Instance.DevicesChanged += OnDevicesChanged;
     }
+
+    #region Event Handlers
 
     private void OnDeviceActivity(object? sender, DeviceManager.DeviceActivityEventArgs e)
     {
@@ -290,12 +295,19 @@ public class MainViewModel : INotifyPropertyChanged
         });
     }
 
+    #endregion
+
+    #region Initialization
+
     public void Initialize()
     {
         Refresh();
-        // Start hotplug detection
         DeviceWatcherService.Instance.Start();
     }
+
+    #endregion
+
+    #region Device Management
 
     public DeviceManager GetDeviceManager() => _deviceManager;
 
@@ -497,7 +509,13 @@ public class MainViewModel : INotifyPropertyChanged
         await DisableDeviceWithConfirmAsync(device, root);
     }
 
+    #endregion
+
+    #region INotifyPropertyChanged
+
     public event PropertyChangedEventHandler? PropertyChanged;
     public void OnPropertyChanged([CallerMemberName] string? name = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+    #endregion
 }
