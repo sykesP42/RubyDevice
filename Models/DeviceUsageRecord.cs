@@ -7,9 +7,13 @@ namespace RubyDevice.Models;
 /// </summary>
 public class DeviceUsageRecord
 {
+    /// <summary>Device identifier the record belongs to</summary>
     public string DeviceId { get; set; } = "";
+    /// <summary>Date of the usage record (date only, no time component)</summary>
     public DateTime Date { get; set; }
+    /// <summary>Total active (in-use) seconds on this date</summary>
     public double ActiveSeconds { get; set; }
+    /// <summary>Total enabled seconds on this date</summary>
     public long EnabledSeconds { get; set; }
 
     /// <summary>
