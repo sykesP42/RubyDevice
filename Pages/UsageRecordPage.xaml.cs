@@ -48,6 +48,9 @@ public sealed partial class UsageRecordPage : Page
         TextSettings.Text = _loc["Behavior"];
         TextRetentionDays.Text = _loc["RetentionDays"];
         TextUsageHistory.Text = _loc["UsageHistory"];
+        TextDateHeader.Text = _loc["Date"];
+        TextActiveHeader.Text = _loc["ActiveTime"];
+        TextEnabledHeader.Text = _loc["EnabledTime"];
 
         Range7Days.Content = _loc["Last7Days"];
         Range30Days.Content = _loc["Last30Days"];

@@ -197,6 +197,21 @@
                     <StackPanel x:Name="XAxisLabels" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="0"
                                Margin="48,4,16,0"/>
 
+                    <!-- Data List Headers -->
+                    <Grid Padding="12,4,12,0" ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" x:Name="TextDateHeader" FontSize="11" FontWeight="SemiBold"
+                                  Foreground="{StaticResource TextTertiaryBrush}"/>
+                        <TextBlock Grid.Column="1" x:Name="TextActiveHeader" FontSize="11" FontWeight="SemiBold"
+                                  Foreground="{StaticResource TextTertiaryBrush}" Margin="0,0,12,0"/>
+                        <TextBlock Grid.Column="2" x:Name="TextEnabledHeader" FontSize="11" FontWeight="SemiBold"
+                                  Foreground="{StaticResource TextTertiaryBrush}"/>
+                    </Grid>
+
                     <!-- Data List -->
                     <ListView x:Name="HistoryList" SelectionMode="None" MaxHeight="200">
                         <ListView.ItemTemplate>
