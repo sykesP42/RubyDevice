@@ -190,6 +190,9 @@ public class DeviceManager : IDisposable
         ["1EA7"] = "Redragon", ["04CA"] = "Lite-On"
     };
 
+    /// <summary>
+    /// Currently enumerated devices, grouped by physical device identity
+    /// </summary>
     public List<DeviceInfo> Devices { get; } = new();
     private readonly Dictionary<string, DeviceInfo> _cache = new();
     private readonly string _dataPath;

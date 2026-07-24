@@ -15,19 +15,30 @@ using RubyDevice.Services;
 
 namespace RubyDevice.ViewModels;
 
+/// <summary>
+/// ViewModel representing a single device in the UI
+/// </summary>
 public class DeviceViewModel : INotifyPropertyChanged
 {
     private bool _isEnabled = true;
     private string _userNote = "";
     private WeakReference<MainViewModel>? _parentViewModel;
 
+    /// <summary>Raw input device handle string, unique per physical device</summary>
     public string DeviceId { get; set; } = "";
+    /// <summary>Display name of the device</summary>
     public string Name { get; set; } = "";
+    /// <summary>Device manufacturer (from known vendor list or VID)</summary>
     public string Manufacturer { get; set; } = "";
+    /// <summary>Device type (Keyboard/Mouse/Touchpad)</summary>
     public DeviceType Type { get; set; }
+    /// <summary>True for external (non-built-in) devices</summary>
     public bool IsExternal { get; set; }
+    /// <summary>USB vendor ID as hex string</summary>
     public string VendorId { get; set; } = "";
+    /// <summary>USB product ID as hex string</summary>
     public string ProductId { get; set; } = "";
+    /// <summary>Total usage time in seconds</summary>
     public long TotalUsageSeconds { get; set; }
 
     // Reference to parent view model for checking active state
@@ -152,11 +163,17 @@ public class DeviceViewModel : INotifyPropertyChanged
 public class DeviceGroupViewModel
 {
     public DeviceType Type { get; }
+    /// <summary>Localized group name (e.g. "Keyboards")</summary>
     public string Name { get; }
+    /// <summary>MDL2 icon glyph for the group</summary>
     public string IconGlyph { get; }
+    /// <summary>Number of devices in this group</summary>
     public string CountText => Devices.Count > 0 ? Devices.Count.ToString() : "0";
+    /// <summary>Visible when at least one device is enabled</summary>
     public Visibility HasEnabled => Devices.Any(d => d.IsEnabled) ? Visibility.Visible : Visibility.Collapsed;
+    /// <summary>Visible when at least one device is disabled</summary>
     public Visibility HasDisabled => Devices.Any(d => !d.IsEnabled) ? Visibility.Visible : Visibility.Collapsed;
+    /// <summary>Devices belonging to this group</summary>
     public ObservableCollection<DeviceViewModel> Devices { get; } = new();
 
     public DeviceGroupViewModel(DeviceType type)
