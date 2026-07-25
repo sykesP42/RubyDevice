@@ -1,12 +1,11 @@
 using System;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using RubyDevice.Core;
+using RubyDevice.Models;
 using RubyDevice.Services;
 using RubyDevice.ViewModels;
 
@@ -25,9 +24,6 @@ public sealed partial class TimerPage : Page
     private bool _isRunning;
 
     // Timer settings persistence
-    private static readonly string TimerFilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "RubyDevice", "timer_settings.json");
 
     public TimerPage()
     {
@@ -75,35 +71,15 @@ public sealed partial class TimerPage : Page
 
     private void LoadTimerSettings()
     {
-        try
-        {
-            if (File.Exists(TimerFilePath))
-            {
-                var json = File.ReadAllText(TimerFilePath);
-                var settings = JsonSerializer.Deserialize<TimerConfig>(json);
-                if (settings != null)
-                {
-                    TimeoutBox.Value = settings.TimeoutMinutes;
-                    _totalMinutes = settings.TimeoutMinutes;
-                    UpdateTimerDisplay(settings.TimeoutMinutes * 60);
-                }
-            }
-        }
-        catch { }
+        var settings = TimerConfig.Load();
+        TimeoutBox.Value = settings.TimeoutMinutes;
+        _totalMinutes = settings.TimeoutMinutes;
+        UpdateTimerDisplay(settings.TimeoutMinutes * 60);
     }
 
     private void SaveTimerSettings()
     {
-        try
-        {
-            var dir = Path.GetDirectoryName(TimerFilePath);
-            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
-
-            var settings = new TimerConfig { TimeoutMinutes = _totalMinutes };
-            File.WriteAllText(TimerFilePath, JsonSerializer.Serialize(settings));
-        }
-        catch { }
+        new TimerConfig { TimeoutMinutes = _totalMinutes }.Save();
     }
 
     private void UpdateDisabledList()
@@ -311,12 +287,4 @@ public sealed partial class TimerPage : Page
     }
 
     #endregion
-}
-
-/// <summary>
-/// Timer settings model for persistence
-/// </summary>
-public class TimerConfig
-{
-    public int TimeoutMinutes { get; set; } = 30;
 }

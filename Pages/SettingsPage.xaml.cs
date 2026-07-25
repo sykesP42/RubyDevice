@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -16,11 +15,6 @@ public sealed partial class SettingsPage : Page
     private MainViewModel? _viewModel;
     private readonly LocalizationService _loc = LocalizationService.Instance;
     private bool _initialized;
-
-    // Settings file path
-    private static readonly string SettingsFilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "RubyDevice", "app_settings.json");
 
     public SettingsPage()
     {
@@ -75,24 +69,9 @@ public sealed partial class SettingsPage : Page
 
     private AppSettings LoadSettings()
     {
-        try
-        {
-            if (File.Exists(SettingsFilePath))
-            {
-                var json = File.ReadAllText(SettingsFilePath);
-                var settings = JsonSerializer.Deserialize<AppSettings>(json);
-                if (settings != null)
-                {
-                    ApplySettings(settings);
-                    return settings;
-                }
-            }
-        }
-        catch { }
-
-        var defaults = new AppSettings();
-        ApplySettings(defaults);
-        return defaults;
+        var settings = AppSettings.Load();
+        ApplySettings(settings);
+        return settings;
     }
 
     private void ApplySettings(AppSettings settings)
