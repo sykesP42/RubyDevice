@@ -406,6 +406,9 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Persist device notes and usage totals to disk
+    /// </summary>
     public void SaveDeviceData()
     {
         try
@@ -420,6 +423,9 @@ public class MainViewModel : INotifyPropertyChanged
         catch { }
     }
 
+    /// <summary>
+    /// Set a user note for a device and persist it
+    /// </summary>
     public void SetDeviceNote(string deviceId, string note)
     {
         var device = AllDevices.FirstOrDefault(d => d.DeviceId == deviceId);
