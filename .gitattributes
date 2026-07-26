@@ -1,0 +1,18 @@
+# Normalize line endings for all text files
+* text=auto
+
+# Source files
+*.cs text eol=crlf
+*.xaml text eol=crlf
+*.xml text eol=crlf
+*.json text eol=crlf
+*.csproj text eol=crlf
+*.md text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.ico binary
+*.dll binary
+*.exe binary
+*.pdb binary
