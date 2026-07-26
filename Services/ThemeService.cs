@@ -8,10 +8,15 @@ namespace RubyDevice.Services;
 /// </summary>
 public enum AppTheme
 {
+    /// <summary>Default light theme</summary>
     Light,
+    /// <summary>Dark theme</summary>
     Dark,
+    /// <summary>Ocean blue accent theme</summary>
     Ocean,
+    /// <summary>Forest green accent theme</summary>
     Forest,
+    /// <summary>Sunset orange accent theme</summary>
     Sunset
 }
 
