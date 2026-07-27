@@ -5,6 +5,9 @@ using RubyDevice.Services;
 
 namespace RubyDevice;
 
+/// <summary>
+/// Application entry point. Creates the main window and handles unhandled exceptions.
+/// </summary>
 public partial class App : Application
 {
     public static App? CurrentApp => (App?)Application.Current;
