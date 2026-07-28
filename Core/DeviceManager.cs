@@ -10,18 +10,32 @@ namespace RubyDevice.Core;
 
 public enum DeviceType { Unknown, Keyboard, Mouse, Touchpad }
 
+/// <summary>
+/// Core device descriptor returned by DeviceManager
+/// </summary>
 public class DeviceInfo
 {
+    /// <summary>Raw input handle string, unique per physical device</summary>
     public string DeviceId { get; set; } = "";
+    /// <summary>Display name of the device</summary>
     public string Name { get; set; } = "";
+    /// <summary>Manufacturer name (resolved from known vendor list)</summary>
     public string Manufacturer { get; set; } = "";
+    /// <summary>Device type classification</summary>
     public DeviceType Type { get; set; }
+    /// <summary>Whether the device is currently enabled</summary>
     public bool IsEnabled { get; set; } = true;
+    /// <summary>True for external (non-built-in) devices</summary>
     public bool IsExternal { get; set; }
+    /// <summary>USB vendor ID as hex string</summary>
     public string VendorId { get; set; } = "";
+    /// <summary>USB product ID as hex string</summary>
     public string ProductId { get; set; } = "";
+    /// <summary>Raw input device path for handle lookup</summary>
     public string DevicePath { get; set; } = "";
+    /// <summary>User-entered note for this device</summary>
     public string UserNote { get; set; } = "";
+    /// <summary>Total usage time in seconds</summary>
     public long TotalUsageSeconds { get; set; }
 }
 
