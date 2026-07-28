@@ -4,19 +4,33 @@ using System.Runtime.CompilerServices;
 
 namespace RubyDevice.Services;
 
+/// <summary>
+/// Supported application languages
+/// </summary>
 public enum AppLanguage
 {
     English,
     Chinese
 }
 
+/// <summary>
+/// Manages English/Chinese strings and notifies listeners when the language changes.
+/// Access strings via the indexer: LocalizationService.Instance["Key"].
+/// </summary>
 public class LocalizationService : INotifyPropertyChanged
 {
     private static LocalizationService? _instance;
+
+    /// <summary>
+    /// Gets the singleton LocalizationService instance
+    /// </summary>
     public static LocalizationService Instance => _instance ??= new LocalizationService();
 
     private AppLanguage _currentLanguage = AppLanguage.English;
 
+    /// <summary>
+    /// Gets or sets the active language. Fires PropertyChanged on change.
+    /// </summary>
     public AppLanguage CurrentLanguage
     {
         get => _currentLanguage;
