@@ -5,6 +5,10 @@ using RubyDevice.Services;
 
 namespace RubyDevice.Pages;
 
+/// <summary>
+/// Displays app information, feature list, tech details, and links.
+/// Strings are localized and refreshed on language change.
+/// </summary>
 public sealed partial class AboutPage : Page
 {
     private readonly LocalizationService _loc = LocalizationService.Instance;
