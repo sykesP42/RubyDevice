@@ -252,6 +252,7 @@ public class LocalizationService : INotifyPropertyChanged
         ["ExportData"] = "Export Data",
         ["ExportSuccess"] = "Data exported successfully",
         ["ExportFailed"] = "Export failed",
+        ["NoUsageData"] = "No usage data available",
 
         // Device Detail Page
         ["Back"] = "Back",
@@ -468,6 +469,7 @@ public class LocalizationService : INotifyPropertyChanged
         ["ExportData"] = "导出数据",
         ["ExportSuccess"] = "数据导出成功",
         ["ExportFailed"] = "导出失败",
+        ["NoUsageData"] = "暂无使用数据",
 
         // Device Detail Page
         ["Back"] = "返回",

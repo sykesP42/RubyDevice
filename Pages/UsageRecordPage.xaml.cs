@@ -51,6 +51,7 @@ public sealed partial class UsageRecordPage : Page
         TextDateHeader.Text = _loc["Date"];
         TextActiveHeader.Text = _loc["ActiveTime"];
         TextEnabledHeader.Text = _loc["EnabledTime"];
+        ChartEmpty.Text = _loc["NoUsageData"];
 
         Range7Days.Content = _loc["Last7Days"];
         Range30Days.Content = _loc["Last30Days"];
@@ -236,7 +237,13 @@ public sealed partial class UsageRecordPage : Page
         ChartCanvas.Children.Clear();
         XAxisLabels.Children.Clear();
 
-        if (records.Count == 0) return;
+        if (records.Count == 0)
+        {
+            ChartEmpty.Visibility = Visibility.Visible;
+            return;
+        }
+
+        ChartEmpty.Visibility = Visibility.Collapsed;
 
         var canvasWidth = ChartCanvas.ActualWidth;
         var canvasHeight = ChartCanvas.ActualHeight;
@@ -314,10 +321,18 @@ public sealed partial class UsageRecordPage : Page
 
     private void DrawWeeklyChart(List<WeeklyUsageSummary> weeklyData)
     {
-        if (!_isLoaded || weeklyData.Count == 0) return;
+        if (!_isLoaded) return;
 
         ChartCanvas.Children.Clear();
         XAxisLabels.Children.Clear();
+
+        if (weeklyData.Count == 0)
+        {
+            ChartEmpty.Visibility = Visibility.Visible;
+            return;
+        }
+
+        ChartEmpty.Visibility = Visibility.Collapsed;
 
         var canvasWidth = ChartCanvas.ActualWidth;
         var canvasHeight = ChartCanvas.ActualHeight;
@@ -386,10 +401,18 @@ public sealed partial class UsageRecordPage : Page
 
     private void DrawMonthlyChart(List<MonthlyUsageSummary> monthlyData)
     {
-        if (!_isLoaded || monthlyData.Count == 0) return;
+        if (!_isLoaded) return;
 
         ChartCanvas.Children.Clear();
         XAxisLabels.Children.Clear();
+
+        if (monthlyData.Count == 0)
+        {
+            ChartEmpty.Visibility = Visibility.Visible;
+            return;
+        }
+
+        ChartEmpty.Visibility = Visibility.Collapsed;
 
         var canvasWidth = ChartCanvas.ActualWidth;
         var canvasHeight = ChartCanvas.ActualHeight;

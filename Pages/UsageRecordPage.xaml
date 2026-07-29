@@ -189,7 +189,13 @@
 
                         <!-- Chart Canvas -->
                         <Border Grid.Column="1" Background="{StaticResource DividerBrush}" CornerRadius="8" Padding="8">
-                            <Canvas x:Name="ChartCanvas" Height="150" HorizontalAlignment="Stretch"/>
+                            <Grid>
+                                <Canvas x:Name="ChartCanvas" Height="150" HorizontalAlignment="Stretch"/>
+                                <TextBlock x:Name="ChartEmpty"
+                                          FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Visibility="Collapsed"/>
+                            </Grid>
                         </Border>
                     </Grid>
 
