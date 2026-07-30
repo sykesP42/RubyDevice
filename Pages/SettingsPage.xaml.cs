@@ -10,6 +10,10 @@ using RubyDevice.ViewModels;
 
 namespace RubyDevice.Pages;
 
+/// <summary>
+/// Application settings page: appearance, behavior, system tray, data management, about.
+/// Settings persist to %AppData%\RubyDevice\app_settings.json via AppSettings model.
+/// </summary>
 public sealed partial class SettingsPage : Page
 {
     private MainViewModel? _viewModel;
