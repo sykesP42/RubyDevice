@@ -116,6 +116,9 @@ public sealed partial class StatisticsPage : Page
         var rate = enabledSeconds > 0 ? (activeSeconds / enabledSeconds) * 100 : 0;
         ValueActivityRate.Text = $"{Math.Round(rate)}%";
 
+        // Last updated timestamp
+        TextLastUpdated.Text = $"{_loc["LastUpdated"]}: {DateTime.Now:HH:mm:ss}";
+
         // Tracked devices count
         var trackedCount = devices.Count(d => UsageTrackingService.Instance.IsTracking(d.DeviceId));
         CountTracked.Text = trackedCount.ToString();

@@ -134,9 +134,14 @@
                     <Grid>
                         <TextBlock x:Name="TextTodayUsage" FontSize="14" FontWeight="SemiBold"
                                   Foreground="{StaticResource TextPrimaryBrush}"/>
-                        <Button HorizontalAlignment="Right" Click="BtnRefresh_Click" Padding="8,4">
-                            <TextBlock x:Name="TextRefresh"/>
-                        </Button>
+                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right"
+                                    VerticalAlignment="Center">
+                            <TextBlock x:Name="TextLastUpdated" FontSize="11"
+                                      Foreground="{StaticResource TextTertiaryBrush}"/>
+                            <Button Click="BtnRefresh_Click" Padding="8,4">
+                                <TextBlock x:Name="TextRefresh"/>
+                            </Button>
+                        </StackPanel>
                     </Grid>
 
                     <Grid ColumnSpacing="12">
