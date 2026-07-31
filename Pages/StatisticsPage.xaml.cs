@@ -10,6 +10,10 @@ using RubyDevice.ViewModels;
 
 namespace RubyDevice.Pages;
 
+/// <summary>
+/// Statistics overview page: device counts, type distribution,
+/// today's usage, activity rate, and per-device usage list.
+/// </summary>
 public sealed partial class StatisticsPage : Page
 {
     private MainViewModel? _viewModel;
