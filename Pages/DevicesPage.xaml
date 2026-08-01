@@ -147,7 +147,8 @@
                                                         <!-- Device Info -->
                                                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                                                <TextBlock Text="{x:Bind Name}" FontWeight="Medium"/>
+                                                                <TextBlock Text="{x:Bind Name}" FontWeight="Medium"
+                                                                          TextTrimming="CharacterEllipsis" MaxLines="1"/>
                                                                 <!-- Note indicator -->
                                                                 <TextBlock Text="&#xE768;" FontFamily="Segoe MDL2 Assets"
                                                                           FontSize="10" Foreground="{StaticResource TextTertiaryBrush}"
