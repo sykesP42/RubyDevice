@@ -11,6 +11,10 @@ using RubyDevice.ViewModels;
 
 namespace RubyDevice.Pages;
 
+/// <summary>
+/// Auto-restore timer page. Counts down and re-enables all disabled devices
+/// when the timeout expires. Uses a System.Threading.Timer with 1s ticks.
+/// </summary>
 public sealed partial class TimerPage : Page
 {
     private MainViewModel? _viewModel;
