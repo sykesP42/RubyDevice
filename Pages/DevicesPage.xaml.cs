@@ -31,6 +31,7 @@ public sealed partial class DevicesPage : Page
         TextMouse.Text = _loc["Mice"];
         TextTouchpad.Text = _loc["Touchpads"];
         TextRefresh.Text = _loc["Refresh"];
+        ToolTipService.SetToolTip(BtnRefresh, _loc["RefreshHint"]);
         TextActivityHighlight.Text = _loc["ActivityHighlight"];
         TextStatusAll.Text = _loc["All"];
         TextStatusEnabled.Text = _loc["Enabled"];
