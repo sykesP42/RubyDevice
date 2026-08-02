@@ -11,6 +11,10 @@ using RubyDevice.ViewModels;
 
 namespace RubyDevice.Pages;
 
+/// <summary>
+/// Main device list page with type/status filters, search, sort,
+/// batch enable/disable, and per-device right-click context menu.
+/// </summary>
 public sealed partial class DevicesPage : Page
 {
     private MainViewModel? _viewModel;
