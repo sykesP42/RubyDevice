@@ -15,6 +15,10 @@ using RubyDevice.ViewModels;
 
 namespace RubyDevice.Pages;
 
+/// <summary>
+/// Usage record page: device tracking toggles, today's totals,
+/// daily/weekly/monthly usage charts, and CSV export.
+/// </summary>
 public sealed partial class UsageRecordPage : Page
 {
     private MainViewModel? _viewModel;
