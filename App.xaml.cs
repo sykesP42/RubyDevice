@@ -33,6 +33,9 @@ public partial class App : Application
         MainWindow.Activate();
     }
 
+    /// <summary>
+    /// Apply a theme by swapping the active resource dictionary
+    /// </summary>
     public static void ChangeTheme(AppTheme theme)
     {
         var themeService = ThemeService.Instance;
