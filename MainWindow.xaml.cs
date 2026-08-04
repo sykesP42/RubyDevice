@@ -9,6 +9,10 @@ using RubyDevice.ViewModels;
 
 namespace RubyDevice;
 
+/// <summary>
+/// Main application window hosting the navigation frame and header.
+/// Handles raw input registration and device manager lifecycle.
+/// </summary>
 public sealed partial class MainWindow : Window
 {
     private readonly MainViewModel _viewModel = new();
