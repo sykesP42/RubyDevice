@@ -37,6 +37,9 @@ public sealed partial class AboutPage : Page
         BuildFeaturesList();
     }
 
+    /// <summary>
+    /// Builds the feature list dynamically, skipping keys without localization
+    /// </summary>
     private void BuildFeaturesList()
     {
         FeaturesList.Children.Clear();
