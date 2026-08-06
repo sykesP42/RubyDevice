@@ -712,8 +712,12 @@ public class DeviceManager : IDisposable
     }
 
     /// <summary>
-    /// Toggle device enabled state using low-level hooks (no admin required)
+    /// Toggle device enabled state using low-level hooks (no admin required).
+    /// When disabling, adds all interfaces of the device to the blocked set.
     /// </summary>
+    /// <param name="deviceId">Physical device identifier</param>
+    /// <param name="enable">True to enable, false to disable</param>
+    /// <returns>True if the device was found and toggled</returns>
     public bool ToggleDevice(string deviceId, bool enable)
     {
         var dev = Devices.Find(d => d.DeviceId == deviceId);
