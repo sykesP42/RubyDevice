@@ -168,7 +168,8 @@
                                                                     VerticalAlignment="Center" Spacing="4"
                                                                     Visibility="{x:Bind TrackingIconVisibility}">
                                                             <TextBlock Text="&#xE9D9;" FontFamily="Segoe MDL2 Assets"
-                                                                      FontSize="12" Foreground="{StaticResource PrimaryBrush}"/>
+                                                                      FontSize="12" Foreground="{StaticResource PrimaryBrush}"
+                                                                      ToolTipService.ToolTip="Tracking enabled"/>
                                                         </StackPanel>
 
                                                         <!-- Status -->
