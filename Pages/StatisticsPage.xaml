@@ -225,7 +225,8 @@
 
                                     <TextBlock Grid.Column="3" Text="{x:Bind UsageTimeText}" FontSize="12"
                                               VerticalAlignment="Center" FontWeight="Medium"
-                                              Foreground="{StaticResource TextPrimaryBrush}"/>
+                                              Foreground="{StaticResource TextPrimaryBrush}"
+                                              ToolTipService.ToolTip="Total usage time"/>
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
