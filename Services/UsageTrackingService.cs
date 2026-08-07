@@ -11,11 +11,18 @@ using RubyDevice.Models;
 namespace RubyDevice.Services;
 
 /// <summary>
-/// Service for tracking device usage time (enabled and active duration)
+/// Service for tracking device usage time (enabled and active duration).
+/// Records daily usage per device, persists to %AppData%\RubyDevice\,
+/// and exposes aggregation (weekly/monthly) and activity-rate queries.
+/// Thread-safe: all state is guarded by a lock.
 /// </summary>
 public class UsageTrackingService : IDisposable
 {
     private static UsageTrackingService? _instance;
+
+    /// <summary>
+    /// Gets the singleton UsageTrackingService instance
+    /// </summary>
     public static UsageTrackingService Instance => _instance ??= new UsageTrackingService();
 
     // Constants for timer intervals
