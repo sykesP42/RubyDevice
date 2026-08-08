@@ -8,12 +8,13 @@ using RubyDevice.ViewModels;
 namespace RubyDevice.Services;
 
 /// <summary>
-/// Service for exporting usage data to various formats
+/// Service for exporting usage data to CSV format.
+/// Supports daily records, weekly summaries, and monthly summaries.
 /// </summary>
 public static class DataExportService
 {
     /// <summary>
-    /// Generate CSV content from usage records
+    /// Generate CSV content from daily usage records
     /// </summary>
     /// <param name="records">List of usage records</param>
     /// <param name="devices">List of devices for name lookup</param>
