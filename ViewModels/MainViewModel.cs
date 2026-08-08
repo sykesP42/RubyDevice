@@ -197,6 +197,10 @@ public class DeviceGroupViewModel
     }
 }
 
+/// <summary>
+/// Main application view model. Manages the device collection, filtering/sorting,
+/// activity highlighting, and device enable/disable operations.
+/// </summary>
 public class MainViewModel : INotifyPropertyChanged
 {
     private readonly DeviceManager _deviceManager = new();
