@@ -44,6 +44,7 @@ public sealed partial class DevicesPage : Page
         SortByType.Text = _loc["SortByType"];
         SortByStatus.Text = _loc["SortByStatus"];
         SearchBox.PlaceholderText = _loc["SearchPlaceholder"];
+        TextNoDevices.Text = _loc["NoDevicesFound"];
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -67,6 +68,9 @@ public sealed partial class DevicesPage : Page
         var count = _viewModel.AllDevices.Count;
         TextDeviceCount.Text = string.Format(_loc["DeviceCount"], count);
         TextDeviceCount.Visibility = Visibility.Visible;
+        TextNoDevices.Visibility = _viewModel.DeviceGroups.Count == 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 
     private void Filter_Click(object sender, RoutedEventArgs e)

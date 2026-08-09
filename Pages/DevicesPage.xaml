@@ -100,6 +100,12 @@
                 <TextBlock x:Name="TextDeviceCount" FontSize="12"
                           Foreground="{StaticResource TextSecondaryBrush}" Visibility="Collapsed"/>
 
+                <!-- Empty state -->
+                <TextBlock x:Name="TextNoDevices" FontSize="13"
+                          Foreground="{StaticResource TextTertiaryBrush}"
+                          HorizontalAlignment="Center" Margin="0,40"
+                          Visibility="Collapsed"/>
+
                 <ItemsControl ItemsSource="{x:Bind ViewModel.DeviceGroups}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:DeviceGroupViewModel">
