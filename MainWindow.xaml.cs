@@ -50,7 +50,7 @@ public sealed partial class MainWindow : Window
         _loc.PropertyChanged += (_, _) => UpdateTexts();
         UpdateTexts();
 
-        ThemeService.Instance.PropertyChanged += (_, _) => UpdateVisuals();
+        ThemeService.Instance.PropertyChanged += (_, _) => UpdateTexts();
 
         NavList.SelectedIndex = 0;
 
@@ -69,11 +69,6 @@ public sealed partial class MainWindow : Window
         WindowSubclassHelper.UninstallSubclass(_hwnd);
         _deviceManager?.Dispose();
         Services.UsageTrackingService.Instance.Dispose();
-    }
-
-    private void UpdateVisuals()
-    {
-        UpdateTexts();
     }
 
     private void UpdateTexts()
