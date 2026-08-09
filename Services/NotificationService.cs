@@ -42,6 +42,9 @@ public class NotificationService : INotifyPropertyChanged
     /// <param name="title">标题</param>
     /// <param name="message">消息内容</param>
     /// <param name="duration">显示时长（秒）</param>
+    /// <remarks>
+    /// 通知失败时静默处理，不抛出异常，避免影响主流程。
+    /// </remarks>
     public void ShowToast(string title, string message, int duration = 5)
     {
         if (!EnableNotifications) return;
