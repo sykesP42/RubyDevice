@@ -91,6 +91,7 @@ public class LocalizationService : INotifyPropertyChanged
         // Device List
         ["SearchPlaceholder"] = "Search devices...",
         ["DeviceCount"] = "Total: {0} devices",
+        ["NoDevicesFound"] = "No devices match the current filters",
         ["SortByName"] = "Name",
         ["SortByType"] = "Type",
         ["SortByStatus"] = "Status",
@@ -311,6 +312,7 @@ public class LocalizationService : INotifyPropertyChanged
         // Device List
         ["SearchPlaceholder"] = "搜索设备...",
         ["DeviceCount"] = "共 {0} 台设备",
+        ["NoDevicesFound"] = "没有符合当前筛选条件的设备",
         ["SortByName"] = "名称",
         ["SortByType"] = "类型",
         ["SortByStatus"] = "状态",
