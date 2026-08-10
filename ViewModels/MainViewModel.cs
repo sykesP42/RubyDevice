@@ -359,6 +359,10 @@ public class MainViewModel : INotifyPropertyChanged
         UpdateGroups();
     }
 
+    /// <summary>
+    /// Rebuilds DeviceGroups applying the current type filter, status filter,
+    /// search text, and sort mode
+    /// </summary>
     private void UpdateGroups()
     {
         DeviceGroups.Clear();
