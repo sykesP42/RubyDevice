@@ -772,6 +772,9 @@ public class DeviceManager : IDisposable
         return true;
     }
 
+    /// <summary>
+    /// Releases unmanaged resources: unhooks the low-level keyboard/mouse hooks
+    /// </summary>
     public void Dispose()
     {
         UninstallHooks();
