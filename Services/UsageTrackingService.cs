@@ -341,6 +341,9 @@ public class UsageTrackingService : IDisposable
             .ToList();
     }
 
+    /// <summary>
+    /// Gets the combined active/enabled seconds for today across all tracked devices
+    /// </summary>
     public (double ActiveSeconds, long EnabledSeconds) GetTodayTotals()
     {
         var today = DateTime.Today.ToString("yyyy-MM-dd");
