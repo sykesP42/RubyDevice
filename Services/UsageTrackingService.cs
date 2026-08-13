@@ -223,6 +223,10 @@ public class UsageTrackingService : IDisposable
         }
     }
 
+    /// <summary>
+    /// Records active input for a device handle, accumulating active seconds
+    /// based on time elapsed since the last input on the same device
+    /// </summary>
     public void ProcessActiveInput(IntPtr deviceHandle)
     {
         if (_disposed) return;
