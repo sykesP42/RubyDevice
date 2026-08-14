@@ -275,6 +275,9 @@ public class UsageTrackingService : IDisposable
         }
     }
 
+    /// <summary>
+    /// Periodically accumulates enabled seconds for all tracked, enabled devices
+    /// </summary>
     private void UpdateEnabledTime()
     {
         // Check disposed flag first to avoid accessing disposed resources
@@ -307,6 +310,10 @@ public class UsageTrackingService : IDisposable
         }
     }
 
+    /// <summary>
+    /// Gets usage history for a device within the given number of days,
+    /// ordered most-recent-first
+    /// </summary>
     public List<DeviceUsageRecord> GetUsageHistory(string deviceId, int days = 30)
     {
         var result = new List<DeviceUsageRecord>();
