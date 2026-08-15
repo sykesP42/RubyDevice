@@ -369,6 +369,10 @@ public class DeviceManager : IDisposable
         return null;
     }
 
+    /// <summary>
+    /// Re-enumerates input devices via Raw Input, merging interfaces of the same
+    /// physical device and restoring cached notes/usage totals
+    /// </summary>
     public void RefreshDevices()
     {
         Devices.Clear();
