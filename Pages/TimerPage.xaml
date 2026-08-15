@@ -46,7 +46,8 @@
                                           ValueChanged="TimeoutBox_ValueChanged"/>
 
                                 <Button Grid.Column="1" x:Name="BtnStart" Click="BtnStart_Click"
-                                       Padding="16,10" MinWidth="80">
+                                       Padding="16,10" MinWidth="80"
+                                       ToolTipService.ToolTip="Start countdown">
                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                         <FontIcon Glyph="&#xE768;" FontSize="14"/>
                                         <TextBlock x:Name="TextStart"/>
@@ -55,7 +56,8 @@
 
                                 <Button Grid.Column="2" x:Name="BtnStop" Click="BtnStop_Click"
                                        Padding="16,10" MinWidth="80" IsEnabled="False"
-                                       Background="#FEE2E2" Foreground="#DC2626">
+                                       Background="#FEE2E2" Foreground="#DC2626"
+                                       ToolTipService.ToolTip="Stop countdown">
                                     <StackPanel Orientation="Horizontal" Spacing="6">
                                         <FontIcon Glyph="&#xE711;" FontSize="14"/>
                                         <TextBlock x:Name="TextStop"/>
