@@ -161,6 +161,9 @@ public sealed partial class UsageRecordPage : Page
         LoadHistoryData();
     }
 
+    /// <summary>
+    /// Loads history data and redraws the chart/list based on the selected range mode
+    /// </summary>
     private void LoadHistoryData()
     {
         if (string.IsNullOrEmpty(_selectedDeviceId) || !_isLoaded) return;
