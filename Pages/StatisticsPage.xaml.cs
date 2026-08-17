@@ -81,6 +81,10 @@ public sealed partial class StatisticsPage : Page
         DispatcherQueue.TryEnqueue(UpdateStats);
     }
 
+    /// <summary>
+    /// Recomputes all statistics cards, distribution bars, today's usage,
+    /// activity rate, and the device list
+    /// </summary>
     private void UpdateStats()
     {
         if (_viewModel == null || !_isLoaded) return;
