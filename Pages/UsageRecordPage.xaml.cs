@@ -114,6 +114,9 @@ public sealed partial class UsageRecordPage : Page
         });
     }
 
+    /// <summary>
+    /// Refreshes the tracked-device list and toggles the empty hint
+    /// </summary>
     private void UpdateDeviceList()
     {
         if (_viewModel == null || !_isLoaded) return;
