@@ -534,7 +534,9 @@ public class MainViewModel : INotifyPropertyChanged
         await dialog.ShowAndConfirmAsync();
     }
 
-    // 保留旧方法以兼容现有代码
+    /// <summary>
+    /// Legacy alias for DisableDeviceWithConfirmAsync, kept for API compatibility
+    /// </summary>
     public async Task ToggleDeviceWithConfirmAsync(DeviceViewModel device, UIElement root)
     {
         await DisableDeviceWithConfirmAsync(device, root);
