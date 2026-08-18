@@ -126,11 +126,13 @@
                                     <Button Grid.Column="2" x:Name="BtnEnableAll" Content="Enable All"
                                            Click="BtnEnableAll_Click" Tag="{x:Bind Type}"
                                            Padding="8,4" FontSize="11" MinWidth="0"
-                                           Visibility="{x:Bind HasDisabled}"/>
+                                           Visibility="{x:Bind HasDisabled}"
+                                           ToolTipService.ToolTip="Enable all devices in this group"/>
                                     <Button Grid.Column="3" x:Name="BtnDisableAll" Content="Disable All"
                                            Click="BtnDisableAll_Click" Tag="{x:Bind Type}"
                                            Padding="8,4" FontSize="11" MinWidth="0"
-                                           Visibility="{x:Bind HasEnabled}"/>
+                                           Visibility="{x:Bind HasEnabled}"
+                                           ToolTipService.ToolTip="Disable all devices in this group"/>
                                 </Grid>
 
                                 <!-- Devices -->
