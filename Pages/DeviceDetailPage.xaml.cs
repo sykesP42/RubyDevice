@@ -85,6 +85,9 @@ public sealed partial class DeviceDetailPage : Page
         if (_isLoaded) DrawChart();
     }
 
+    /// <summary>
+    /// Populates device info fields, toggle states, note, and tracking switch
+    /// </summary>
     private void UpdateUI()
     {
         if (_device == null) return;
