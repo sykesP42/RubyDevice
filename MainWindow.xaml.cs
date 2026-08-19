@@ -63,6 +63,9 @@ public sealed partial class MainWindow : Window
         _deviceManager?.ProcessRawInput(lParam);
     }
 
+    /// <summary>
+    /// Cleans up on window close: saves device data and disposes services
+    /// </summary>
     private void OnClosed(object sender, WindowEventArgs args)
     {
         _viewModel.SaveDeviceData();
