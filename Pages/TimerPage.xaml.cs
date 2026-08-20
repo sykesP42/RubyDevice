@@ -175,6 +175,9 @@ public sealed partial class TimerPage : Page
         });
     }
 
+    /// <summary>
+    /// Re-enables all currently disabled devices and shows a summary notification
+    /// </summary>
     private void RestoreAllDevices()
     {
         if (_viewModel == null) return;
