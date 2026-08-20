@@ -108,6 +108,9 @@ public sealed partial class MainWindow : Window
         NavigateToPage(_currentPageTag);
     }
 
+    /// <summary>
+    /// Navigates to the page matching the nav tag and updates the header text
+    /// </summary>
     private void NavigateToPage(string? tag)
     {
         var primaryBrush = (SolidColorBrush)App.Current.Resources["PrimaryBrush"];
