@@ -27,6 +27,9 @@ public partial class App : Application
         };
     }
 
+    /// <summary>
+    /// Creates and activates the main window on launch
+    /// </summary>
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         MainWindow = new MainWindow();
