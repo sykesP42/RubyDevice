@@ -42,6 +42,10 @@ public class DeviceInfo
     public long TotalUsageSeconds { get; set; }
 }
 
+/// <summary>
+/// Enumerates input devices via the Windows Raw Input API and blocks input from
+/// disabled devices using low-level keyboard and mouse hooks
+/// </summary>
 public class DeviceManager : IDisposable
 {
     private const int RIM_TYPEMOUSE = 0, RIM_TYPEKEYBOARD = 1, RIM_TYPEHID = 2;
