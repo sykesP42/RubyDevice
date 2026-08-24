@@ -8,6 +8,9 @@ using System.Text.Json;
 
 namespace RubyDevice.Core;
 
+/// <summary>
+/// Classification of an input device by the kind of input it produces
+/// </summary>
 public enum DeviceType { Unknown, Keyboard, Mouse, Touchpad }
 
 /// <summary>
