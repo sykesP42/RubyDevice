@@ -230,14 +230,23 @@ public class DeviceManager : IDisposable
     private readonly Dictionary<string, HashSet<IntPtr>> _deviceIdToHandles = new();
 
     // Device activity tracking
+    /// <summary>
+    /// Raised when input is detected from a device, throttled to once per 100ms
+    /// </summary>
     public event EventHandler<DeviceActivityEventArgs>? DeviceActivity;
     private string? _lastActiveDeviceId;
     private DateTime _lastActivityTime = DateTime.MinValue;
 
+    /// <summary>
+    /// Describes a single input activity notification for a device
+    /// </summary>
     public class DeviceActivityEventArgs : EventArgs
     {
+        /// <summary>Identifier of the device that produced input</summary>
         public string DeviceId { get; init; } = "";
+        /// <summary>Type of the device that produced input</summary>
         public DeviceType DeviceType { get; init; }
+        /// <summary>When the input was observed</summary>
         public DateTime Timestamp { get; init; }
     }
     private readonly object _blockLock = new();
