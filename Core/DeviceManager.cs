@@ -255,6 +255,9 @@ public class DeviceManager : IDisposable
     private IntPtr _currentInputDevice = IntPtr.Zero;
     private IntPtr _targetWindow = IntPtr.Zero;
 
+    /// <summary>
+    /// Initializes a new manager and loads the cached device metadata
+    /// </summary>
     public DeviceManager()
     {
         _dataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
