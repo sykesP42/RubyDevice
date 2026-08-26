@@ -42,11 +42,18 @@ public class DeviceViewModel : INotifyPropertyChanged
     public long TotalUsageSeconds { get; set; }
 
     // Reference to parent view model for checking active state
+    /// <summary>
+    /// Stores a weak reference to the parent view model so the device does not
+    /// keep it alive
+    /// </summary>
     internal void SetParentViewModel(MainViewModel parent)
     {
         _parentViewModel = new WeakReference<MainViewModel>(parent);
     }
 
+    /// <summary>
+    /// Refreshes the bindings that depend on whether this device is active
+    /// </summary>
     internal void OnIsActiveChanged()
     {
         OnPropertyChanged(nameof(IsActive));
