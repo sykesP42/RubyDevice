@@ -83,6 +83,9 @@ public class DeviceViewModel : INotifyPropertyChanged
         : new SolidColorBrush(Microsoft.UI.Colors.Transparent);
 
     private bool _isTracking;
+    /// <summary>
+    /// Indicates whether usage tracking is enabled for this device
+    /// </summary>
     public bool IsTracking
     {
         get
@@ -100,6 +103,9 @@ public class DeviceViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// User-entered note shown alongside the device in the device list
+    /// </summary>
     public string UserNote
     {
         get => _userNote;
