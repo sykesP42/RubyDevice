@@ -140,6 +140,9 @@ public class DeviceViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Localized device type name used in the device list
+    /// </summary>
     public string TypeName => Type switch
     {
         DeviceType.Keyboard => LocalizationService.Instance["Keyboard"],
@@ -148,6 +151,9 @@ public class DeviceViewModel : INotifyPropertyChanged
         _ => LocalizationService.Instance["Unknown"]
     };
 
+    /// <summary>
+    /// Segoe MDL2 glyph representing the device type
+    /// </summary>
     public string IconGlyph => Type switch
     {
         DeviceType.Keyboard => "",
