@@ -112,10 +112,19 @@ public class DeviceViewModel : INotifyPropertyChanged
         set { _userNote = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasNote)); }
     }
 
+    /// <summary>
+    /// Visibility of the note indicator, shown only when a note has been entered
+    /// </summary>
     public Visibility HasNote => !string.IsNullOrWhiteSpace(_userNote) ? Visibility.Visible : Visibility.Collapsed;
 
+    /// <summary>
+    /// Visibility of the tracking indicator icon
+    /// </summary>
     public Visibility TrackingIconVisibility => IsTracking ? Visibility.Visible : Visibility.Collapsed;
 
+    /// <summary>
+    /// Whether the device is currently enabled
+    /// </summary>
     public bool IsEnabled
     {
         get => _isEnabled;
