@@ -162,17 +162,29 @@ public class DeviceViewModel : INotifyPropertyChanged
         _ => ""  // Question mark
     };
 
+    /// <summary>
+    /// Localized enabled/disabled label for the device
+    /// </summary>
     public string StatusText => IsEnabled
         ? LocalizationService.Instance["Enabled"]
         : LocalizationService.Instance["Disabled"];
 
+    /// <summary>
+    /// Background colour of the status badge, green when enabled and red when disabled
+    /// </summary>
     public SolidColorBrush StatusColorBrush => new SolidColorBrush(
         IsEnabled ? Microsoft.UI.ColorHelper.FromArgb(255, 209, 250, 229) : Microsoft.UI.ColorHelper.FromArgb(255, 254, 226, 226));
 
+    /// <summary>
+    /// Localized label describing whether the device is external or built in
+    /// </summary>
     public string LocationText => IsExternal
         ? LocalizationService.Instance["External"]
         : LocalizationService.Instance["BuiltIn"];
 
+    /// <summary>
+    /// Total usage time formatted for display, as hours and minutes or minutes alone
+    /// </summary>
     public string UsageTimeText
     {
         get
