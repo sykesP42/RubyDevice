@@ -256,7 +256,9 @@ public class MainViewModel : INotifyPropertyChanged
 
     #region Collections
 
+    /// <summary>Flat list of every enumerated device</summary>
     public ObservableCollection<DeviceViewModel> AllDevices { get; } = new();
+    /// <summary>Devices grouped by type, rebuilt whenever the device list changes</summary>
     public ObservableCollection<DeviceGroupViewModel> DeviceGroups { get; } = new();
 
     #endregion
