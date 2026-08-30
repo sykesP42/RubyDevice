@@ -200,8 +200,12 @@ public class DeviceViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
 
+/// <summary>
+/// Groups the devices of one type together for display in the device list
+/// </summary>
 public class DeviceGroupViewModel
 {
+    /// <summary>Device type this group represents</summary>
     public DeviceType Type { get; }
     /// <summary>Localized group name (e.g. "Keyboards")</summary>
     public string Name { get; }
@@ -216,6 +220,9 @@ public class DeviceGroupViewModel
     /// <summary>Devices belonging to this group</summary>
     public ObservableCollection<DeviceViewModel> Devices { get; } = new();
 
+    /// <summary>
+    /// Creates a group for the given device type and resolves its localized name
+    /// </summary>
     public DeviceGroupViewModel(DeviceType type)
     {
         Type = type;
