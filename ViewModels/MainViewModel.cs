@@ -308,6 +308,9 @@ public class MainViewModel : INotifyPropertyChanged
 
     #region Filter & Sort
 
+    /// <summary>
+    /// Restricts the device list to a single device type, or null for all types
+    /// </summary>
     public DeviceType? FilterType
     {
         get => _filterType;
@@ -315,6 +318,9 @@ public class MainViewModel : INotifyPropertyChanged
     }
 
     private string _searchText = "";
+    /// <summary>
+    /// Free text matched against device name, manufacturer and location
+    /// </summary>
     public string SearchText
     {
         get => _searchText;
@@ -322,6 +328,9 @@ public class MainViewModel : INotifyPropertyChanged
     }
 
     private string _statusFilter = "All";
+    /// <summary>
+    /// Filters the list by device state; one of "All", "Enabled" or "Disabled"
+    /// </summary>
     public string StatusFilter
     {
         get => _statusFilter;
@@ -329,6 +338,9 @@ public class MainViewModel : INotifyPropertyChanged
     }
 
     private int _sortMode;
+    /// <summary>
+    /// Active sort order: 0 by name, 1 by type, 2 by status
+    /// </summary>
     public int SortMode
     {
         get => _sortMode;
