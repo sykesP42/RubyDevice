@@ -404,8 +404,15 @@ public class MainViewModel : INotifyPropertyChanged
 
     #region Device Management
 
+    /// <summary>
+    /// Exposes the underlying device manager for pages that need to inspect or
+    /// toggle devices directly
+    /// </summary>
     public DeviceManager GetDeviceManager() => _deviceManager;
 
+    /// <summary>
+    /// Re-enumerates devices and rebuilds the device view models from the result
+    /// </summary>
     public void Refresh()
     {
         _deviceManager.RefreshDevices();
