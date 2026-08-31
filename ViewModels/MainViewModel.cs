@@ -349,6 +349,9 @@ public class MainViewModel : INotifyPropertyChanged
 
     #endregion
 
+    /// <summary>
+    /// Creates the view model and subscribes to device activity and hotplug events
+    /// </summary>
     public MainViewModel()
     {
         _dataPath = Path.Combine(
@@ -388,6 +391,9 @@ public class MainViewModel : INotifyPropertyChanged
 
     #region Initialization
 
+    /// <summary>
+    /// Performs the initial device enumeration and starts watching for device changes
+    /// </summary>
     public void Initialize()
     {
         Refresh();
