@@ -266,6 +266,9 @@ public class MainViewModel : INotifyPropertyChanged
     #region Activity Highlight
 
     private bool _isActivityHighlightEnabled = true;
+    /// <summary>
+    /// Whether the device list highlights the device currently receiving input
+    /// </summary>
     public bool IsActivityHighlightEnabled
     {
         get => _isActivityHighlightEnabled;
@@ -281,6 +284,10 @@ public class MainViewModel : INotifyPropertyChanged
     }
 
     private string? _activeDeviceId;
+    /// <summary>
+    /// Identifier of the device most recently seen producing input, or null when
+    /// highlighting is disabled
+    /// </summary>
     public string? ActiveDeviceId
     {
         get => _activeDeviceId;
