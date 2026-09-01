@@ -627,7 +627,14 @@ public class MainViewModel : INotifyPropertyChanged
 
     #region INotifyPropertyChanged
 
+    /// <summary>
+    /// Raised when a bound property value changes so the UI can refresh
+    /// </summary>
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    /// <summary>
+    /// Raises <see cref="PropertyChanged"/> for the calling property
+    /// </summary>
     public void OnPropertyChanged([CallerMemberName] string? name = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
