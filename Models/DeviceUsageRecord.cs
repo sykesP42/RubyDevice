@@ -27,5 +27,6 @@ public class DeviceUsageRecord
 /// </summary>
 public class UsageDataFile
 {
+    /// <summary>All persisted usage records, across every device and date</summary>
     public System.Collections.Generic.List<DeviceUsageRecord> Records { get; set; } = new();
 }
