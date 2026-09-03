@@ -371,6 +371,7 @@ public class LocalizationService : INotifyPropertyChanged
         ["DataCleared"] = "使用数据已清除",
 
         // About section
+        ["Version"] = "版本",
         ["AppVersion"] = "1.0.0",
 
         // About
