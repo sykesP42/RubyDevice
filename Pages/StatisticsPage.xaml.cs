@@ -50,7 +50,7 @@ public sealed partial class StatisticsPage : Page
         TextEnabledTime.Text = _loc["EnabledTime"];
         TextActivityRate.Text = _loc["ActivityRate"];
         TextRefresh.Text = _loc["Refresh"];
-        TextDeviceList.Text = _loc["Devices"];
+        TextDeviceList.Text = _loc["HeaderDevices"];
         TextTrackedCount.Text = _loc["TrackedDevices"] + ":";
     }
 
