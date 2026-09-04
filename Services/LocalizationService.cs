@@ -494,10 +494,19 @@ public class LocalizationService : INotifyPropertyChanged
         ["AddNoteHint"] = "为此设备添加备注...",
     };
 
+    /// <summary>
+    /// Looks up a localized string, returning the key itself when it is not found
+    /// </summary>
     public string this[string key] => Strings.TryGetValue(key, out var value) ? value : key;
 
+    /// <summary>
+    /// Raised when the active language changes
+    /// </summary>
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    /// <summary>
+    /// Raises <see cref="PropertyChanged"/> for the calling member
+    /// </summary>
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
