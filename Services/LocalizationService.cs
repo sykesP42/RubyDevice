@@ -9,7 +9,9 @@ namespace RubyDevice.Services;
 /// </summary>
 public enum AppLanguage
 {
+    /// <summary>English language resources</summary>
     English,
+    /// <summary>Simplified Chinese language resources</summary>
     Chinese
 }
 
