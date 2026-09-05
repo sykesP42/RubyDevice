@@ -49,7 +49,14 @@ public class UsageTrackingService : IDisposable
     // Active time accumulation threshold (milliseconds) - minimum interval to count
     private const int ACTIVE_TIME_THRESHOLD_MS = 100;
 
+    /// <summary>
+    /// Current tracking configuration, shared across all devices
+    /// </summary>
     public TrackingConfig Config => _settings.Config;
+
+    /// <summary>
+    /// Raised when a device is added to or removed from usage tracking
+    /// </summary>
     public event EventHandler? TrackingChanged;
 
     private UsageTrackingService()
