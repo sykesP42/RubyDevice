@@ -441,6 +441,10 @@ public class UsageTrackingService : IDisposable
         }
     }
 
+    /// <summary>
+    /// Flushes all in-memory usage records to disk. File I/O happens outside the
+    /// lock so tracking is not blocked while writing.
+    /// </summary>
     public void SaveData()
     {
         // Copy data inside lock, perform I/O outside lock
@@ -469,6 +473,9 @@ public class UsageTrackingService : IDisposable
         }
     }
 
+    /// <summary>
+    /// Stops the tracking timers, saves pending data, and releases resources
+    /// </summary>
     public void Dispose()
     {
         if (_disposed)
