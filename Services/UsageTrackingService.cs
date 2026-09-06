@@ -68,6 +68,10 @@ public class UsageTrackingService : IDisposable
         _settingsPath = Path.Combine(appDataPath, "tracking_settings.json");
     }
 
+    /// <summary>
+    /// Attaches the service to a device manager, loads persisted settings and
+    /// usage data, and starts the tracking timers
+    /// </summary>
     public void Initialize(DeviceManager deviceManager)
     {
         _deviceManager = deviceManager;
