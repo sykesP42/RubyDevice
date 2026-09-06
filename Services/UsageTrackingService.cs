@@ -354,6 +354,9 @@ public class UsageTrackingService : IDisposable
         return result;
     }
 
+    /// <summary>
+    /// Returns the identifiers of every device currently being tracked
+    /// </summary>
     public List<string> GetAllTrackingDevices()
     {
         lock (_lock)
@@ -399,6 +402,9 @@ public class UsageTrackingService : IDisposable
         return (totalActive, totalEnabled);
     }
 
+    /// <summary>
+    /// Drops usage records older than the configured retention period
+    /// </summary>
     public void CleanupOldData()
     {
         lock (_lock)
