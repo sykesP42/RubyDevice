@@ -200,6 +200,9 @@ public class UsageTrackingService : IDisposable
         TrackingChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    /// <summary>
+    /// Returns the date tracking began for a device, or null if it is not tracked
+    /// </summary>
     public DateTime? GetFirstTrackedDate(string deviceId)
     {
         lock (_lock)
@@ -210,6 +213,10 @@ public class UsageTrackingService : IDisposable
         }
     }
 
+    /// <summary>
+    /// Sets how many days of usage history to keep, clamped to the supported
+    /// range of 7 to 365 days
+    /// </summary>
     public void SetRetentionDays(int days)
     {
         TrackingSettingsFile settingsCopy;
@@ -226,6 +233,10 @@ public class UsageTrackingService : IDisposable
         SaveSettings(settingsCopy);
     }
 
+    /// <summary>
+    /// Maps a raw input handle to a device identifier so input events can be
+    /// attributed to the right device
+    /// </summary>
     public void RegisterDeviceHandle(IntPtr handle, string deviceId)
     {
         lock (_lock)
