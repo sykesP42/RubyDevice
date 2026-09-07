@@ -63,8 +63,14 @@ public class ThemeService : INotifyPropertyChanged
         _ => "Themes/LightTheme.xaml"
     };
 
+    /// <summary>
+    /// Raised when the active theme changes
+    /// </summary>
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    /// <summary>
+    /// Raises <see cref="PropertyChanged"/> for the calling member
+    /// </summary>
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
