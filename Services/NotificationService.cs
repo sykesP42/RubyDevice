@@ -112,7 +112,14 @@ public class NotificationService : INotifyPropertyChanged
             .Replace("'", "&apos;");
     }
 
+    /// <summary>
+    /// Raised when a notification setting changes
+    /// </summary>
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    /// <summary>
+    /// Raises <see cref="PropertyChanged"/> for the calling member
+    /// </summary>
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
