@@ -10,9 +10,19 @@ namespace RubyDevice;
 /// </summary>
 public partial class App : Application
 {
+    /// <summary>
+    /// The running application instance, or null during shutdown
+    /// </summary>
     public static App? CurrentApp => (App?)Application.Current;
+
+    /// <summary>
+    /// The main application window, or null before it has been created
+    /// </summary>
     public static Window? MainWindow { get; private set; }
 
+    /// <summary>
+    /// Initializes the application and installs the unhandled exception handler
+    /// </summary>
     public App()
     {
         InitializeComponent();
