@@ -12,6 +12,10 @@ using RubyDevice.ViewModels;
 
 namespace RubyDevice.Pages;
 
+/// <summary>
+/// Detail view for a single device: identity (manufacturer, VID/PID, connection),
+/// today's usage stats, tracking toggle, usage history chart, and notes.
+/// </summary>
 public sealed partial class DeviceDetailPage : Page
 {
     private DeviceViewModel? _device;
@@ -21,6 +25,9 @@ public sealed partial class DeviceDetailPage : Page
     private bool _isLoaded = false;
     private int _selectedDays = 7;
 
+    /// <summary>
+    /// Creates the page and subscribes to localization changes
+    /// </summary>
     public DeviceDetailPage()
     {
         InitializeComponent();
