@@ -22,6 +22,10 @@ public sealed partial class MainWindow : Window
     private IntPtr _hwnd;
     private string? _currentPageTag;
 
+    /// <summary>
+    /// Builds the main window, registers raw input handling, and initializes the
+    /// usage tracking service
+    /// </summary>
     public MainWindow()
     {
         InitializeComponent();
