@@ -23,6 +23,23 @@ dotnet build -c Debug -p:Platform=x64
 dotnet run -c Debug -p:Platform=x64
 ```
 
+## 项目结构
+
+```
+RubyDevice/
+├── App.xaml.cs          应用入口，注册全局异常处理
+├── MainWindow.xaml.cs   主窗口、导航与 Raw Input 注册
+├── Core/                设备枚举与输入拦截（Raw Input API + 低级键盘/鼠标钩子）
+├── Models/              数据模型与持久化结构
+├── Services/            本地化、主题、通知、使用统计、设备监听、数据导出
+├── ViewModels/          MVVM 视图模型
+├── Pages/               各功能页面
+├── Controls/            自定义确认与倒计时对话框
+├── Helpers/             通用工具方法
+├── Themes/              5 套主题资源字典
+└── tests/               单元测试
+```
+
 ## 技术栈
 
 - WinUI 3 (Windows App SDK 1.5)
