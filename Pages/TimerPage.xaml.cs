@@ -198,7 +198,7 @@ public sealed partial class TimerPage : Page
         // Notification
         if (restoredCount > 0)
         {
-            var msg = $"{restoredCount} device(s) restored";
+            var msg = string.Format(_loc["DevicesRestoredCount"], restoredCount);
             var notifyService = NotificationService.Instance;
             notifyService.ShowToast(_loc["DeviceRestored"], msg);
 

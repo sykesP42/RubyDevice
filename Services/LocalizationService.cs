@@ -209,6 +209,7 @@ public class LocalizationService : INotifyPropertyChanged
         ["AutoRestoreNotification"] = "{0} has been disabled.\nAuto-restore in {1} seconds...",
         ["DeviceRestored"] = "Device Restored",
         ["DeviceRestoredMessage"] = "{0} has been automatically re-enabled",
+        ["DevicesRestoredCount"] = "{0} device(s) restored",
         ["NotificationsEnabled"] = "Notifications",
 
         // Device Watcher
@@ -431,6 +432,7 @@ public class LocalizationService : INotifyPropertyChanged
         ["AutoRestoreNotification"] = "{0} 已被禁用。\n{1} 秒后自动恢复...",
         ["DeviceRestored"] = "设备已恢复",
         ["DeviceRestoredMessage"] = "{0} 已自动重新启用",
+        ["DevicesRestoredCount"] = "{0} 台设备已恢复",
         ["NotificationsEnabled"] = "显示通知",
 
         // Device Watcher
