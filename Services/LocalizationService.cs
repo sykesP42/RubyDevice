@@ -205,6 +205,7 @@ public class LocalizationService : INotifyPropertyChanged
         // Notifications
         ["DeviceDisabled"] = "Device Disabled",
         ["DeviceEnabled"] = "Device Enabled",
+        ["DevicesEnabledCount"] = "{0} device(s) enabled",
         ["AutoRestoreNotification"] = "{0} has been disabled.\nAuto-restore in {1} seconds...",
         ["DeviceRestored"] = "Device Restored",
         ["DeviceRestoredMessage"] = "{0} has been automatically re-enabled",
@@ -426,6 +427,7 @@ public class LocalizationService : INotifyPropertyChanged
         // Notifications
         ["DeviceDisabled"] = "设备已禁用",
         ["DeviceEnabled"] = "设备已启用",
+        ["DevicesEnabledCount"] = "{0} 台设备已启用",
         ["AutoRestoreNotification"] = "{0} 已被禁用。\n{1} 秒后自动恢复...",
         ["DeviceRestored"] = "设备已恢复",
         ["DeviceRestoredMessage"] = "{0} 已自动重新启用",

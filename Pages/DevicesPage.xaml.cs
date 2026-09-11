@@ -223,7 +223,7 @@ public sealed partial class DevicesPage : Page
         }
 
         if (enabledCount > 0)
-            NotificationService.Instance.ShowToast(_loc["DeviceEnabled"], $"{enabledCount} device(s) enabled");
+            NotificationService.Instance.ShowToast(_loc["DeviceEnabled"], string.Format(_loc["DevicesEnabledCount"], enabledCount));
     }
 
     private async void BtnDisableAll_Click(object sender, RoutedEventArgs e)
