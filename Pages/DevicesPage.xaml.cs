@@ -135,6 +135,10 @@ public sealed partial class DevicesPage : Page
         }
     }
 
+    /// <summary>
+    /// Handles a per-device enable/disable toggle. The switch is reverted first so the
+    /// confirmation dialog drives the real state change, then re-synced from the device.
+    /// </summary>
     private async void ToggleSwitch_Toggled(object sender, RoutedEventArgs e)
     {
         if (sender is not ToggleSwitch toggle || toggle.DataContext is not DeviceViewModel device || _viewModel == null) return;
@@ -159,6 +163,10 @@ public sealed partial class DevicesPage : Page
         }
     }
 
+    /// <summary>
+    /// Builds the right-click context menu for a device: details, copy device ID, and a
+    /// toggle entry whose label reflects the action that will be performed.
+    /// </summary>
     private void Device_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {
         if (sender is not Border border || border.DataContext is not DeviceViewModel device) return;
@@ -198,6 +206,11 @@ public sealed partial class DevicesPage : Page
         flyout.ShowAt(border, e.GetPosition(border));
     }
 
+    /// <summary>
+    /// Enables every disabled device of the given type. All but the last are toggled
+    /// directly; the last one goes through the confirmation dialog so a single
+    /// confirmation covers the whole batch.
+    /// </summary>
     private async void BtnEnableAll_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement element || element.Tag is not DeviceType type) return;
@@ -226,6 +239,10 @@ public sealed partial class DevicesPage : Page
             NotificationService.Instance.ShowToast(_loc["DeviceEnabled"], string.Format(_loc["DevicesEnabledCount"], enabledCount));
     }
 
+    /// <summary>
+    /// Disables every enabled device of the given type. The first device goes through the
+    /// confirmation and auto-restore flow; the rest are toggled directly once confirmed.
+    /// </summary>
     private async void BtnDisableAll_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement element || element.Tag is not DeviceType type) return;
