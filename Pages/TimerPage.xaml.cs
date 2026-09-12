@@ -108,6 +108,10 @@ public sealed partial class TimerPage : Page
 
     #region Countdown Logic
 
+    /// <summary>
+    /// Validates that there is something to restore, then starts a fresh countdown from
+    /// the configured duration and persists the setting for the next launch.
+    /// </summary>
     private void BtnStart_Click(object sender, RoutedEventArgs e)
     {
         if (_isRunning || _viewModel == null) return;
@@ -139,6 +143,9 @@ public sealed partial class TimerPage : Page
         StopCountdown();
     }
 
+    /// <summary>
+    /// Starts the 1-second countdown tick and locks the timer controls while it runs.
+    /// </summary>
     private void StartCountdown()
     {
         _isRunning = true;
@@ -153,6 +160,10 @@ public sealed partial class TimerPage : Page
         _countdownTimer = new Timer(OnCountdownTick, null, 0, 1000);
     }
 
+    /// <summary>
+    /// Stops the countdown, releases the timer controls and resets the display to the
+    /// configured duration.
+    /// </summary>
     private void StopCountdown()
     {
         _isRunning = false;
@@ -165,6 +176,11 @@ public sealed partial class TimerPage : Page
         UpdateTimerStateText();
     }
 
+    /// <summary>
+    /// Countdown tick, fired on a background thread. Decrements the remaining time,
+    /// marshals the display update to the UI thread, and restores all disabled devices
+    /// once it reaches zero.
+    /// </summary>
     private void OnCountdownTick(object? state)
     {
         if (!_isRunning) return;
@@ -231,6 +247,9 @@ public sealed partial class TimerPage : Page
 
     #region UI Updates
 
+    /// <summary>
+    /// Renders the remaining time as MM:SS.
+    /// </summary>
     private void UpdateTimerDisplay(int totalSeconds)
     {
         var mins = totalSeconds / 60;
@@ -238,6 +257,9 @@ public sealed partial class TimerPage : Page
         TimerDisplay.Text = $"{mins:D2}:{secs:D2}";
     }
 
+    /// <summary>
+    /// Updates the state label and indicator dot to reflect whether the timer is running.
+    /// </summary>
     private void UpdateTimerStateText()
     {
         if (_isRunning)
