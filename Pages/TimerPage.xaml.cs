@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using Microsoft.UI.Xaml;
@@ -56,12 +57,16 @@ public sealed partial class TimerPage : Page
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
+
+        // Detach from any previous view model first, otherwise repeated navigation
+        // would stack up duplicate subscriptions on the same instance.
+        if (_viewModel != null)
+            _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+
         _viewModel = e.Parameter as MainViewModel;
 
         if (_viewModel != null)
-        {
-            _viewModel.PropertyChanged += (_, _) => UpdateDisabledList();
-        }
+            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
         UpdateDisabledList();
         LoadTimerSettings();
@@ -70,8 +75,14 @@ public sealed partial class TimerPage : Page
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
         base.OnNavigatedFrom(e);
+
+        if (_viewModel != null)
+            _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+
         StopCountdown();
     }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e) => UpdateDisabledList();
 
     private void LoadTimerSettings()
     {
