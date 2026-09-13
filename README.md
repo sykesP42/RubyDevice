@@ -23,6 +23,19 @@ dotnet build -c Debug -p:Platform=x64
 dotnet run -c Debug -p:Platform=x64
 ```
 
+## 数据存储
+
+所有配置与统计数据都保存在 `%AppData%\RubyDevice\` 目录下：
+
+| 文件 | 内容 |
+| --- | --- |
+| `device_data.json` | 设备名称与备注缓存 |
+| `usage_data.json` | 每日使用记录（活跃时长 / 启用时长） |
+| `tracking_settings.json` | 各设备的追踪开关与保留天数 |
+| `timer_settings.json` | 自动恢复定时器的上次超时设置 |
+
+删除这些文件即可恢复到初始状态。
+
 ## 项目结构
 
 ```
