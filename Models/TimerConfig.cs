@@ -33,6 +33,11 @@ public class TimerConfig
     }
 
     /// <summary>Save timer settings to disk.</summary>
+    /// <remarks>
+    /// Persistence is best-effort: IO and serialization failures are swallowed so
+    /// that an unwritable or locked AppData directory can never crash the app.
+    /// A failed save therefore leaves the previous file contents untouched.
+    /// </remarks>
     public void Save()
     {
         try
