@@ -8,6 +8,11 @@ public static class TimeHelper
     /// <summary>
     /// Format seconds to human-readable "Xh Ym" or "Ym" format
     /// </summary>
+    /// <remarks>
+    /// Fractional seconds are truncated rather than rounded, and the result never
+    /// carries a seconds component — callers that need second-level precision
+    /// should not use this helper.
+    /// </remarks>
     public static string FormatTime(double seconds)
     {
         var totalSeconds = (long)seconds;
