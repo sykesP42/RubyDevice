@@ -6,6 +6,12 @@ namespace RubyDevice.Core;
 /// <summary>
 /// Helper class for window subclassing to receive WM_INPUT messages
 /// </summary>
+/// <remarks>
+/// The subclass proc is held in a static field so the delegate stays alive for the
+/// process lifetime; if it were collected, the native window would call into freed
+/// memory. The callback is also stored statically, so only one subclass can be
+/// installed at a time — installing a second one replaces the first one's callback.
+/// </remarks>
 public static class WindowSubclassHelper
 {
     private const int GWLP_WNDPROC = -4;
