@@ -15,6 +15,14 @@ dotnet run -c Debug -p:Platform=x64
 ./bin/x64/Debug/net9.0-windows10.0.19041.0/RubyDevice.exe
 ```
 
+## Tests
+
+```bash
+dotnet test tests/RubyDevice.Tests
+```
+
+The test project targets plain `net9.0` with no WinUI dependency, so it runs without the Windows App SDK runtime. It keeps private copies of the pure helpers it exercises (`FormatTime`, `GetWeekStartDate`, `CalculateActivityRate`), so editing one of those helpers in `Services/` does not change what the tests cover.
+
 ## Architecture Overview
 
 RubyDevice is a WinUI 3 desktop application for managing Windows input devices (keyboards, mice, touchpads). It uses MVVM architecture with the following structure:
