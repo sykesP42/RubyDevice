@@ -40,6 +40,10 @@ public class WeeklyUsageSummary
     /// <summary>
     /// Week label for display (e.g., "Jan 1-7")
     /// </summary>
+    /// <remarks>
+    /// Only the start date carries a month, so a week spanning a month boundary
+    /// renders as e.g. "Jan 29-4".
+    /// </remarks>
     public string WeekLabel => WeekStartDate.ToString("MMM d") + "-" + WeekEndDate.Day;
 }
 
