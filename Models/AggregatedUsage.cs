@@ -85,5 +85,10 @@ public class MonthlyUsageSummary
     /// <summary>
     /// Month label for display (e.g., "Jan 2026")
     /// </summary>
+    /// <remarks>
+    /// A date is constructed purely to format the label, so <see cref="Year"/> and
+    /// <see cref="Month"/> must already hold valid values — an out-of-range month
+    /// (0 or 13) throws <see cref="ArgumentOutOfRangeException"/>.
+    /// </remarks>
     public string MonthLabel => new DateTime(Year, Month, 1).ToString("MMM yyyy");
 }
