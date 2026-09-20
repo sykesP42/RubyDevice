@@ -22,6 +22,8 @@ public class UsageTrackingServiceTests
     [InlineData(5400, "1h 30m")]
     [InlineData(7200, "2h 0m")]
     [InlineData(9000, "2h 30m")]
+    [InlineData(86399, "23h 59m")]
+    [InlineData(86400, "24h 0m")]
     public void FormatTime_ReturnsCorrectFormat(double seconds, string expected)
     {
         var result = FormatTime(seconds);
