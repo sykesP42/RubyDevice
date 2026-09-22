@@ -9,6 +9,12 @@ namespace RubyDevice.Services;
 /// Listens for Win32_DeviceChangeEvent to detect when input devices are added or removed,
 /// then fires a debounced notification so the UI can refresh the device list.
 /// </summary>
+/// <remarks>
+/// <see cref="DevicesChanged"/> is raised from a thread-pool thread by the debounce
+/// timer, so subscribers must marshal to the UI thread themselves. Call
+/// <see cref="Dispose"/> on shutdown to stop the watcher and release the timer,
+/// otherwise a pending callback can still fire after the UI is gone.
+/// </remarks>
 public class DeviceWatcherService : IDisposable
 {
     private static DeviceWatcherService? _instance;
