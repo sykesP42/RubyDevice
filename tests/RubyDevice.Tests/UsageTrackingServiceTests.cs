@@ -70,6 +70,7 @@ public class UsageTrackingServiceTests
     [InlineData(1000, 1000, 100.0)] // Same time = 100%
     [InlineData(0, 3600, 0.0)]      // No active time = 0%
     [InlineData(3600, 0, 0.0)]      // No enabled time = 0%
+    [InlineData(7200, 3600, 200.0)] // Active exceeds enabled = over 100%
     public void CalculateActivityRate_ReturnsCorrectPercentage(double activeSeconds, long enabledSeconds, double expected)
     {
         var result = CalculateActivityRate(activeSeconds, enabledSeconds);
