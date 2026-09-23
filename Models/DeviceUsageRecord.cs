@@ -19,6 +19,10 @@ public class DeviceUsageRecord
     /// <summary>
     /// Date key for dictionary storage (YYYY-MM-DD format)
     /// </summary>
+    /// <remarks>
+    /// Formatted with the current culture's calendar, so the year/month/day
+    /// components assume a Gregorian calendar.
+    /// </remarks>
     public string DateKey => Date.ToString("yyyy-MM-dd");
 }
 
