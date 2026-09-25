@@ -6,9 +6,6 @@ namespace RubyDevice.Models;
 /// <summary>
 /// Per-device tracking configuration
 /// </summary>
-/// <summary>
-/// Per-device tracking configuration
-/// </summary>
 public class DeviceTrackingSetting
 {
     /// <summary>Device identifier</summary>
