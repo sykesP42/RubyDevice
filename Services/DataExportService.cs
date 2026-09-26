@@ -88,7 +88,6 @@ public static class DataExportService
     }
 
     /// <summary>
-    /// <summary>
     /// Escape a field for CSV format (handle commas, quotes, newlines)
     /// </summary>
     private static string EscapeCsvField(string field)
