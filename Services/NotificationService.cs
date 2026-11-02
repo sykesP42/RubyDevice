@@ -1,27 +1,50 @@
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Windows.Data.Xml.Dom;
-using Windows.UI.Notifications;
 
 namespace RubyDevice.Services;
 
 /// <summary>
-/// 通知服务 - 管理应用内的Toast通知
+/// Severity levels for in-app notifications
 /// </summary>
+public enum NotificationSeverity { Info, Success, Warning }
+
+/// <summary>
+/// A single notification to be displayed in the app UI
+/// </summary>
+public class AppNotification
+{
+    /// <summary>Short title</summary>
+    public string Title { get; init; } = "";
+    /// <summary>Message body</summary>
+    public string Message { get; init; } = "";
+    /// <summary>Severity used to pick the display style</summary>
+    public NotificationSeverity Severity { get; init; }
+    /// <summary>How long the notification stays visible, in seconds</summary>
+    public int DurationSeconds { get; init; } = 5;
+}
+
+/// <summary>
+/// Notification service. Raises <see cref="NotificationPosted"/> and the app
+/// shell (MainWindow) renders it as an in-app InfoBar.
+/// </summary>
+/// <remarks>
+/// System toast notifications require a Start Menu shortcut with an AUMID, which
+/// an unpackaged app cannot rely on having, so notifications are shown in-app.
+/// </remarks>
 public class NotificationService : INotifyPropertyChanged
 {
     private static NotificationService? _instance;
 
     /// <summary>
-    /// 获取通知服务的单例实例
+    /// Gets the notification service singleton instance
     /// </summary>
     public static NotificationService Instance => _instance ??= new NotificationService();
 
     private bool _enableNotifications = true;
 
     /// <summary>
-    /// 是否启用通知
+    /// Whether notifications should be shown
     /// </summary>
     public bool EnableNotifications
     {
@@ -37,80 +60,65 @@ public class NotificationService : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// 显示Toast通知
+    /// Raised whenever a notification should be displayed. Fired on the calling
+    /// thread; MainWindow marshals to the UI thread.
     /// </summary>
-    /// <param name="title">标题</param>
-    /// <param name="message">消息内容</param>
-    /// <param name="duration">显示时长（秒）</param>
-    /// <remarks>
-    /// 通知失败时静默处理，不抛出异常，避免影响主流程。
-    /// </remarks>
+    public event EventHandler<AppNotification>? NotificationPosted;
+
+    /// <summary>
+    /// Posts an in-app notification
+    /// </summary>
+    /// <param name="title">Title</param>
+    /// <param name="message">Message body</param>
+    /// <param name="duration">Display duration in seconds</param>
     public void ShowToast(string title, string message, int duration = 5)
     {
         if (!EnableNotifications) return;
 
-        try
+        NotificationPosted?.Invoke(this, new AppNotification
         {
-            string toastXml = $@"
-                <toast duration='short'>
-                    <visual>
-                        <binding template='ToastText02'>
-                            <text id='1'>{EscapeXml(title)}</text>
-                            <text id='2'>{EscapeXml(message)}</text>
-                        </binding>
-                    </visual>
-                </toast>";
-
-            var xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(toastXml);
-
-            var toastNotification = new ToastNotification(xmlDoc);
-            ToastNotificationManager.CreateToastNotifier().Show(toastNotification);
-        }
-        catch
-        {
-            // 如果Toast通知失败，静默处理
-        }
+            Title = title,
+            Message = message,
+            Severity = NotificationSeverity.Info,
+            DurationSeconds = duration
+        });
     }
 
     /// <summary>
-    /// 显示设备禁用通知（带自动恢复倒计时）
+    /// Posts a device-disabled notification (with auto-restore countdown info)
     /// </summary>
     public void ShowDeviceDisabledNotification(string deviceName, int autoRestoreSeconds)
     {
         if (!EnableNotifications) return;
 
         var loc = LocalizationService.Instance;
-        ShowToast(
-            loc["DeviceDisabled"],
-            string.Format(loc["AutoRestoreNotification"], deviceName, autoRestoreSeconds),
-            10
-        );
+        Post(new AppNotification
+        {
+            Title = loc["DeviceDisabled"],
+            Message = string.Format(loc["AutoRestoreNotification"], deviceName, autoRestoreSeconds),
+            Severity = NotificationSeverity.Warning,
+            DurationSeconds = autoRestoreSeconds
+        });
     }
 
     /// <summary>
-    /// 显示设备启用通知
+    /// Posts a device-enabled notification
     /// </summary>
     public void ShowDeviceEnabledNotification(string deviceName)
     {
         if (!EnableNotifications) return;
 
         var loc = LocalizationService.Instance;
-        ShowToast(loc["DeviceEnabled"], deviceName);
+        Post(new AppNotification
+        {
+            Title = loc["DeviceEnabled"],
+            Message = deviceName,
+            Severity = NotificationSeverity.Success,
+            DurationSeconds = 5
+        });
     }
 
-    /// <summary>
-    /// 转义 XML 特殊字符，防止 Toast 通知内容破坏 XML 结构
-    /// </summary>
-    private static string EscapeXml(string text)
-    {
-        return text
-            .Replace("&", "&amp;")
-            .Replace("<", "&lt;")
-            .Replace(">", "&gt;")
-            .Replace("\"", "&quot;")
-            .Replace("'", "&apos;");
-    }
+    private void Post(AppNotification notification) => NotificationPosted?.Invoke(this, notification);
 
     /// <summary>
     /// Raised when a notification setting changes

@@ -1,0 +1,17 @@
+<!--
+    PRI generation (MrtCore.PriGen, pulled in transitively by WindowsAppSDK)
+    needs the Appx packaging tasks that ship with Visual Studio's MSBuild; plain
+    `dotnet build` cannot resolve them on its own. Probe the usual per-edition
+    install paths so any machine with VS 2022 or the Build Tools can build.
+-->
+<Project>
+  <PropertyGroup>
+    <_VsAppxPathRoot Condition="'$(_VsAppxPathRoot)' == ''">C:\Program Files\Microsoft Visual Studio\2022\</_VsAppxPathRoot>
+    <_VsAppxSuffix Condition="'$(_VsAppxSuffix)' == ''">\MSBuild\Microsoft\VisualStudio\v17.0\AppxPackage\</_VsAppxSuffix>
+    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_VsAppxPathRoot)Community$(_VsAppxSuffix)')">$(_VsAppxPathRoot)Community$(_VsAppxSuffix)</AppxMSBuildToolsPath>
+    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_VsAppxPathRoot)Professional$(_VsAppxSuffix)')">$(_VsAppxPathRoot)Professional$(_VsAppxSuffix)</AppxMSBuildToolsPath>
+    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_VsAppxPathRoot)Enterprise$(_VsAppxSuffix)')">$(_VsAppxPathRoot)Enterprise$(_VsAppxSuffix)</AppxMSBuildToolsPath>
+    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_VsAppxPathRoot)BuildTools$(_VsAppxSuffix)')">$(_VsAppxPathRoot)BuildTools$(_VsAppxSuffix)</AppxMSBuildToolsPath>
+    <PriProjTaskAssembly Condition="'$(AppxMSBuildToolsPath)' != ''">$(AppxMSBuildToolsPath)Microsoft.Build.Packaging.Pri.Tasks.dll</PriProjTaskAssembly>
+  </PropertyGroup>
+</Project>

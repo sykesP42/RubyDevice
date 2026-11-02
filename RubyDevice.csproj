@@ -13,9 +13,13 @@
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <GenerateLibraryLayout>true</GenerateLibraryLayout>
     <EnablePreviewMsixTooling>false</EnablePreviewMsixTooling>
-    <!-- Fix PRI generation by pointing to VS MSBuild tools -->
-    <AppxMSBuildToolsPath>C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VisualStudio\v17.0\AppxPackage\</AppxMSBuildToolsPath>
-    <PriProjTaskAssembly>$(AppxMSBuildToolsPath)\Microsoft.Build.Packaging.Pri.Tasks.dll</PriProjTaskAssembly>
+    <!--
+      Keep the test project (and especially its bin output, which contains
+      deployed copies of our .xaml files) out of this project's implicit
+      Compile/Page globs; otherwise the XAML compiler sees duplicate pages and
+      fails on the second build.
+    -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);tests\**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,9 +33,4 @@
     <Manifest Include="app.manifest" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="tests\**\*" />
-    <Content Remove="tests\**\*" />
-    <EmbeddedResource Remove="tests\**\*" />
-  </ItemGroup>
 </Project>

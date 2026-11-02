@@ -30,7 +30,7 @@ public class WeeklyUsageSummary
     /// <summary>
     /// Total enabled seconds during the week
     /// </summary>
-    public long TotalEnabledSeconds { get; set; }
+    public double TotalEnabledSeconds { get; set; }
 
     /// <summary>
     /// Number of days with recorded data in this week
@@ -75,7 +75,7 @@ public class MonthlyUsageSummary
     /// <summary>
     /// Total enabled seconds during the month
     /// </summary>
-    public long TotalEnabledSeconds { get; set; }
+    public double TotalEnabledSeconds { get; set; }
 
     /// <summary>
     /// Number of days with recorded data in this month

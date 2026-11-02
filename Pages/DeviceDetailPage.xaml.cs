@@ -101,15 +101,17 @@ public sealed partial class DeviceDetailPage : Page
 
         DeviceIcon.Text = _device.Type switch
         {
-            DeviceType.Keyboard => "",
-            DeviceType.Mouse => "",
-            DeviceType.Touchpad => "",
+            DeviceType.Keyboard => "\uE765",
+            DeviceType.Mouse => "\uE962",
+            DeviceType.Touchpad => "\uE9CE",
             _ => ""
         };
 
         DeviceNameText.Text = _device.Name;
         DeviceTypeText.Text = _device.TypeName;
         DeviceStatus.Text = _device.StatusText;
+        DeviceStatus.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources[
+            _device.IsEnabled ? "SuccessBrush" : "DangerBrush"];
         DeviceToggle.IsOn = _device.IsEnabled;
 
         InfoManufacturer.Text = string.IsNullOrEmpty(_device.Manufacturer) ? _loc["Unknown"] : _device.Manufacturer;
@@ -127,7 +129,8 @@ public sealed partial class DeviceDetailPage : Page
     {
         if (_device == null) return;
 
-        var (activeSeconds, enabledSeconds) = UsageTrackingService.Instance.GetTodayTotals();
+        // This page is scoped to one device, so show that device's usage
+        var (activeSeconds, enabledSeconds) = UsageTrackingService.Instance.GetTodayUsage(_device.DeviceId);
         ValueActiveTime.Text = FormatTime(activeSeconds);
         ValueEnabledTime.Text = FormatTime(enabledSeconds);
 
@@ -172,7 +175,7 @@ public sealed partial class DeviceDetailPage : Page
             {
                 Width = barWidth,
                 Height = Math.Max(2, activeHeight),
-                Fill = new Microsoft.UI.Xaml.Media.SolidColorBrush(Color.FromArgb(255, 59, 130, 246)),
+                Fill = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ChartActiveBrush"],
                 RadiusX = 2,
                 RadiusY = 2
             };
@@ -187,7 +190,7 @@ public sealed partial class DeviceDetailPage : Page
             {
                 Width = barWidth,
                 Height = Math.Max(2, enabledHeight),
-                Fill = new Microsoft.UI.Xaml.Media.SolidColorBrush(Color.FromArgb(255, 16, 185, 129)),
+                Fill = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ChartEnabledBrush"],
                 RadiusX = 2,
                 RadiusY = 2
             };
@@ -206,8 +209,7 @@ public sealed partial class DeviceDetailPage : Page
             {
                 Text = record.Date.ToString("MM-dd"),
                 FontSize = 9,
-                Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                    (Color)Application.Current.Resources["TextTertiaryColor"]),
+                Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextTertiaryBrush"],
                 Width = groupWidth * labelInterval,
                 HorizontalAlignment = HorizontalAlignment.Center
             };
@@ -238,16 +240,17 @@ public sealed partial class DeviceDetailPage : Page
         {
             DeviceToggle.IsOn = wasEnabled;
             await _viewModel.EnableDeviceWithConfirmAsync(_device, this);
-            DeviceToggle.IsOn = _device.IsEnabled;
-            DeviceStatus.Text = _device.StatusText;
         }
         else if (!wantEnable && wasEnabled)
         {
             DeviceToggle.IsOn = wasEnabled;
             await _viewModel.DisableDeviceWithConfirmAsync(_device, this);
-            DeviceToggle.IsOn = _device.IsEnabled;
-            DeviceStatus.Text = _device.StatusText;
         }
+
+        DeviceToggle.IsOn = _device.IsEnabled;
+        DeviceStatus.Text = _device.StatusText;
+        DeviceStatus.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources[
+            _device.IsEnabled ? "SuccessBrush" : "DangerBrush"];
 
         _isToggling = false;
     }
@@ -268,9 +271,9 @@ public sealed partial class DeviceDetailPage : Page
 
     private void Range_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is RadioButton rb && rb.Tag is string tag)
+        if (sender is RadioButton rb && rb.Tag is string tag && int.TryParse(tag, out var days))
         {
-            _selectedDays = int.Parse(tag);
+            _selectedDays = days;
             DrawChart();
         }
     }

@@ -3,7 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:RubyDevice.ViewModels"
-    Background="{StaticResource WindowBackgroundBrush}">
+    Background="{ThemeResource WindowBackgroundBrush}">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -12,8 +12,8 @@
         </Grid.RowDefinitions>
 
         <!-- Toolbar -->
-        <Border Grid.Row="0" Padding="16,10" Background="{StaticResource HeaderBackgroundBrush}"
-               BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
+        <Border Grid.Row="0" Padding="16,10" Background="{ThemeResource HeaderBackgroundBrush}"
+               BorderBrush="{ThemeResource BorderBrush}" BorderThickness="0,0,0,1">
             <StackPanel Spacing="10">
                 <!-- First row: Filters -->
                 <StackPanel Orientation="Horizontal" Spacing="12">
@@ -31,7 +31,7 @@
                         <TextBlock x:Name="TextTouchpad"/>
                     </RadioButton>
 
-                    <Border Width="1" Height="20" Background="{StaticResource DividerBrush}" Margin="8,0"/>
+                    <Border Width="1" Height="20" Background="{ThemeResource DividerBrush}" Margin="8,0"/>
 
                     <!-- Status Filter -->
                     <RadioButton x:Name="StatusAll" GroupName="Status" IsChecked="True"
@@ -59,7 +59,6 @@
 
                     <!-- Search Box -->
                     <AutoSuggestBox Grid.Column="0" x:Name="SearchBox"
-                                    PlaceholderText="Search..."
                                     QuerySubmitted="SearchBox_QuerySubmitted"
                                     TextChanged="SearchBox_TextChanged"
                                     Height="32"/>
@@ -77,7 +76,7 @@
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4"
                                 VerticalAlignment="Center">
                         <TextBlock x:Name="TextActivityHighlight" FontSize="12"
-                                  Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                  Foreground="{ThemeResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                         <ToggleSwitch x:Name="ActivityHighlightToggle" IsOn="True"
                                      Toggled="ActivityHighlight_Toggled" OnContent="" OffContent=""/>
                     </StackPanel>
@@ -98,15 +97,15 @@
             <StackPanel Spacing="12">
                 <!-- Device count -->
                 <TextBlock x:Name="TextDeviceCount" FontSize="12"
-                          Foreground="{StaticResource TextSecondaryBrush}" Visibility="Collapsed"/>
+                          Foreground="{ThemeResource TextSecondaryBrush}" Visibility="Collapsed"/>
 
                 <!-- Empty state -->
                 <TextBlock x:Name="TextNoDevices" FontSize="13"
-                          Foreground="{StaticResource TextTertiaryBrush}"
+                          Foreground="{ThemeResource TextTertiaryBrush}"
                           HorizontalAlignment="Center" Margin="0,40"
                           Visibility="Collapsed"/>
 
-                <ItemsControl ItemsSource="{x:Bind ViewModel.DeviceGroups}">
+                <ItemsControl ItemsSource="{x:Bind ViewModel.DeviceGroups, Mode=OneWay}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:DeviceGroupViewModel">
                             <StackPanel Spacing="8" Margin="0,0,0,12">
@@ -119,31 +118,30 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="{x:Bind IconGlyph}" FontFamily="Segoe MDL2 Assets"
-                                              FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+                                              FontSize="14" Foreground="{ThemeResource TextSecondaryBrush}"
                                               VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="1" Text="{x:Bind Name}" FontWeight="SemiBold"
-                                              Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                    <Button Grid.Column="2" x:Name="BtnEnableAll" Content="Enable All"
+                                              Foreground="{ThemeResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="2" Content="{x:Bind EnableAllText}"
                                            Click="BtnEnableAll_Click" Tag="{x:Bind Type}"
                                            Padding="8,4" FontSize="11" MinWidth="0"
-                                           Visibility="{x:Bind HasDisabled}"
-                                           ToolTipService.ToolTip="Enable all devices in this group"/>
-                                    <Button Grid.Column="3" x:Name="BtnDisableAll" Content="Disable All"
+                                           Visibility="{x:Bind HasDisabled}"/>
+                                    <Button Grid.Column="3" Content="{x:Bind DisableAllText}"
                                            Click="BtnDisableAll_Click" Tag="{x:Bind Type}"
                                            Padding="8,4" FontSize="11" MinWidth="0"
-                                           Visibility="{x:Bind HasEnabled}"
-                                           ToolTipService.ToolTip="Disable all devices in this group"/>
+                                           Visibility="{x:Bind HasEnabled}"/>
                                 </Grid>
 
                                 <!-- Devices -->
-                                <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="8"
-                                       Padding="12" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                                <Border Background="{ThemeResource CardBackgroundBrush}" CornerRadius="8"
+                                       Padding="12" BorderBrush="{ThemeResource BorderBrush}" BorderThickness="1">
                                     <ItemsControl ItemsSource="{x:Bind Devices}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate x:DataType="vm:DeviceViewModel">
                                                 <Border PointerPressed="Device_Click" Tag="{x:Bind}"
                                                        RightTapped="Device_RightTapped"
-                                                       Padding="0,8">
+                                                       Background="{x:Bind ActiveBrush, Mode=OneWay}"
+                                                       CornerRadius="4" Padding="0,8">
                                                     <Grid ColumnSpacing="10">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*"/>
@@ -155,35 +153,35 @@
                                                         <!-- Device Info -->
                                                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                                                <TextBlock Text="{x:Bind Name}" FontWeight="Medium"
+                                                                <TextBlock Text="{x:Bind Name, Mode=OneWay}" FontWeight="Medium"
                                                                           TextTrimming="CharacterEllipsis" MaxLines="1"/>
                                                                 <!-- Note indicator -->
                                                                 <TextBlock Text="&#xE768;" FontFamily="Segoe MDL2 Assets"
-                                                                          FontSize="10" Foreground="{StaticResource TextTertiaryBrush}"
-                                                                          Visibility="{x:Bind HasNote}"
-                                                                          ToolTipService.ToolTip="Has note"/>
+                                                                          FontSize="10" Foreground="{ThemeResource TextTertiaryBrush}"
+                                                                          Visibility="{x:Bind HasNote, Mode=OneWay}"
+                                                                          ToolTipService.ToolTip="{x:Bind HasNoteText}"/>
                                                             </StackPanel>
                                                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                                                <TextBlock Text="{x:Bind LocationText}" FontSize="12"
-                                                                          Foreground="{StaticResource TextSecondaryBrush}"/>
-                                                                <TextBlock Text="{x:Bind UsageTimeText}" FontSize="12"
-                                                                          Foreground="{StaticResource TextTertiaryBrush}"/>
+                                                                <TextBlock Text="{x:Bind LocationText, Mode=OneWay}" FontSize="12"
+                                                                          Foreground="{ThemeResource TextSecondaryBrush}"/>
+                                                                <TextBlock Text="{x:Bind UsageTimeText, Mode=OneWay}" FontSize="12"
+                                                                          Foreground="{ThemeResource TextTertiaryBrush}"/>
                                                             </StackPanel>
                                                         </StackPanel>
 
                                                         <!-- Tracking indicator -->
                                                         <StackPanel Grid.Column="1" Orientation="Horizontal"
                                                                     VerticalAlignment="Center" Spacing="4"
-                                                                    Visibility="{x:Bind TrackingIconVisibility}">
+                                                                    Visibility="{x:Bind TrackingIconVisibility, Mode=OneWay}">
                                                             <TextBlock Text="&#xE9D9;" FontFamily="Segoe MDL2 Assets"
-                                                                      FontSize="12" Foreground="{StaticResource PrimaryBrush}"
-                                                                      ToolTipService.ToolTip="Tracking enabled"/>
+                                                                      FontSize="12" Foreground="{ThemeResource PrimaryBrush}"
+                                                                      ToolTipService.ToolTip="{x:Bind TrackingText}"/>
                                                         </StackPanel>
 
                                                         <!-- Status -->
-                                                        <TextBlock Grid.Column="2" Text="{x:Bind StatusText}"
+                                                        <TextBlock Grid.Column="2" Text="{x:Bind StatusText, Mode=OneWay}"
                                                                   VerticalAlignment="Center" Margin="4,0"
-                                                                  Foreground="{StaticResource TextSecondaryBrush}"
+                                                                  Foreground="{ThemeResource TextSecondaryBrush}"
                                                                   FontSize="13"/>
 
                                                         <!-- Toggle -->

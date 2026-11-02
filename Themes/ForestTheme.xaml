@@ -17,7 +17,7 @@
     <!-- Text -->
     <SolidColorBrush x:Key="TextPrimaryBrush" Color="#14532D"/>
     <SolidColorBrush x:Key="TextSecondaryBrush" Color="#166534"/>
-    <SolidColorBrush x:Key="TextTertiaryBrush" Color="#86EFAC"/>
+    <SolidColorBrush x:Key="TextTertiaryBrush" Color="#4F7A5E"/>
 
     <!-- Borders & Dividers -->
     <SolidColorBrush x:Key="BorderBrush" Color="#BBF7D0"/>
@@ -40,5 +40,8 @@
     <SolidColorBrush x:Key="TouchpadLightBrush" Color="#BBF7D0"/>
     <SolidColorBrush x:Key="OtherDeviceBrush" Color="#64748B"/>
     <SolidColorBrush x:Key="OtherDeviceLightBrush" Color="#F1F5F9"/>
+
+    <SolidColorBrush x:Key="ChartActiveBrush" Color="#0284C7"/>
+    <SolidColorBrush x:Key="ChartEnabledBrush" Color="#16A34A"/>
 
 </ResourceDictionary>

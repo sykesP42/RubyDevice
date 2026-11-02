@@ -2,13 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Media;
 using RubyDevice.Core;
 using RubyDevice.Models;
 using RubyDevice.Services;
@@ -22,9 +20,10 @@ public class DeviceViewModel : INotifyPropertyChanged
 {
     private bool _isEnabled = true;
     private string _userNote = "";
+    private bool _isTracking;
     private WeakReference<MainViewModel>? _parentViewModel;
 
-    /// <summary>Raw input device handle string, unique per physical device</summary>
+    /// <summary>Stable physical device identifier</summary>
     public string DeviceId { get; set; } = "";
     /// <summary>Display name of the device</summary>
     public string Name { get; set; } = "";
@@ -52,6 +51,40 @@ public class DeviceViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
+    /// Re-synchronizes all display properties from the device descriptor and
+    /// raises change notifications so existing bindings stay live
+    /// </summary>
+    internal void ApplyFrom(DeviceInfo info, bool isTracking, double totalActiveSeconds)
+    {
+        DeviceId = info.DeviceId;
+        Name = info.Name;
+        Manufacturer = info.Manufacturer;
+        Type = info.Type;
+        IsExternal = info.IsExternal;
+        VendorId = info.VendorId;
+        ProductId = info.ProductId;
+        TotalUsageSeconds = (long)Math.Round(totalActiveSeconds);
+        _isEnabled = info.IsEnabled;
+        _userNote = info.UserNote;
+        _isTracking = isTracking;
+
+        OnPropertyChanged(nameof(Name));
+        OnPropertyChanged(nameof(Manufacturer));
+        OnPropertyChanged(nameof(TypeName));
+        OnPropertyChanged(nameof(IconGlyph));
+        OnPropertyChanged(nameof(IsEnabled));
+        OnPropertyChanged(nameof(StatusText));
+        OnPropertyChanged(nameof(LocationText));
+        OnPropertyChanged(nameof(UsageTimeText));
+        OnPropertyChanged(nameof(UserNote));
+        OnPropertyChanged(nameof(HasNote));
+        OnPropertyChanged(nameof(IsTracking));
+        OnPropertyChanged(nameof(TrackingIconVisibility));
+        OnPropertyChanged(nameof(IsActive));
+        OnPropertyChanged(nameof(ActiveBrush));
+    }
+
+    /// <summary>
     /// Refreshes the bindings that depend on whether this device is active
     /// </summary>
     internal void OnIsActiveChanged()
@@ -76,29 +109,33 @@ public class DeviceViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Highlight brush for active device
+    /// Highlight brush for the row of the device currently receiving input.
+    /// Uses the theme's light primary brush so it adapts to the active theme.
     /// </summary>
-    public SolidColorBrush ActiveBrush => IsActive
-        ? new SolidColorBrush(Microsoft.UI.ColorHelper.FromArgb(255, 59, 130, 246)) // Blue highlight
-        : new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+    public Microsoft.UI.Xaml.Media.Brush ActiveBrush => IsActive
+        ? (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["PrimaryLightBrush"]
+        : new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
 
-    private bool _isTracking;
+    private bool _isTrackingBacking;
     /// <summary>
-    /// Indicates whether usage tracking is enabled for this device
+    /// Indicates whether usage tracking is enabled for this device.
+    /// The getter queries the tracking service so state stays fresh; the setter
+    /// only updates the notification state (the service is updated by callers).
     /// </summary>
     public bool IsTracking
     {
         get
         {
-            // Query the service directly to ensure fresh state
-            return Services.UsageTrackingService.Instance.IsTracking(DeviceId);
+            if (string.IsNullOrEmpty(DeviceId)) return _isTrackingBacking;
+            return UsageTrackingService.Instance.IsTracking(DeviceId);
         }
         set
         {
-            if (_isTracking != value)
+            if (_isTrackingBacking != value)
             {
-                _isTracking = value;
+                _isTrackingBacking = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(TrackingIconVisibility));
             }
         }
     }
@@ -116,6 +153,12 @@ public class DeviceViewModel : INotifyPropertyChanged
     /// Visibility of the note indicator, shown only when a note has been entered
     /// </summary>
     public Visibility HasNote => !string.IsNullOrWhiteSpace(_userNote) ? Visibility.Visible : Visibility.Collapsed;
+
+    /// <summary>Localized tooltip for the note indicator</summary>
+    public string HasNoteText => LocalizationService.Instance["HasNote"];
+
+    /// <summary>Localized tooltip for the tracking indicator</summary>
+    public string TrackingText => LocalizationService.Instance["TrackingEnabled"];
 
     /// <summary>
     /// Visibility of the tracking indicator icon
@@ -135,7 +178,6 @@ public class DeviceViewModel : INotifyPropertyChanged
                 _isEnabled = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(StatusText));
-                OnPropertyChanged(nameof(StatusColorBrush));
             }
         }
     }
@@ -156,10 +198,10 @@ public class DeviceViewModel : INotifyPropertyChanged
     /// </summary>
     public string IconGlyph => Type switch
     {
-        DeviceType.Keyboard => "",
-        DeviceType.Mouse => "",
-        DeviceType.Touchpad => "",
-        _ => ""  // Question mark
+        DeviceType.Keyboard => "\uE765",
+        DeviceType.Mouse => "\uE962",
+        DeviceType.Touchpad => "\uE9CE",
+        _ => "\uE7BA"  // Question mark
     };
 
     /// <summary>
@@ -168,12 +210,6 @@ public class DeviceViewModel : INotifyPropertyChanged
     public string StatusText => IsEnabled
         ? LocalizationService.Instance["Enabled"]
         : LocalizationService.Instance["Disabled"];
-
-    /// <summary>
-    /// Background colour of the status badge, green when enabled and red when disabled
-    /// </summary>
-    public SolidColorBrush StatusColorBrush => new SolidColorBrush(
-        IsEnabled ? Microsoft.UI.ColorHelper.FromArgb(255, 209, 250, 229) : Microsoft.UI.ColorHelper.FromArgb(255, 254, 226, 226));
 
     /// <summary>
     /// Localized label describing whether the device is external or built in
@@ -211,6 +247,10 @@ public class DeviceGroupViewModel
     public string Name { get; }
     /// <summary>MDL2 icon glyph for the group</summary>
     public string IconGlyph { get; }
+    /// <summary>Localized batch-enable button label</summary>
+    public string EnableAllText { get; }
+    /// <summary>Localized batch-disable button label</summary>
+    public string DisableAllText { get; }
     /// <summary>Number of devices in this group</summary>
     public string CountText => Devices.Count > 0 ? Devices.Count.ToString() : "0";
     /// <summary>Visible when at least one device is enabled</summary>
@@ -236,23 +276,31 @@ public class DeviceGroupViewModel
         };
         IconGlyph = type switch
         {
-            DeviceType.Keyboard => "",
-            DeviceType.Mouse => "",
-            DeviceType.Touchpad => "",
-            _ => ""
+            DeviceType.Keyboard => "\uE765",
+            DeviceType.Mouse => "\uE962",
+            DeviceType.Touchpad => "\uE9CE",
+            _ => "\uE7BA"
         };
+        EnableAllText = loc["EnableAll"];
+        DisableAllText = loc["DisableAll"];
     }
 }
 
 /// <summary>
 /// Main application view model. Manages the device collection, filtering/sorting,
-/// activity highlighting, and device enable/disable operations.
+/// activity highlighting, device enable/disable operations, and the app-wide
+/// auto-restore countdown.
 /// </summary>
 public class MainViewModel : INotifyPropertyChanged
 {
     private readonly DeviceManager _deviceManager = new();
+    private readonly DispatcherQueue? _dispatcherQueue;
     private DeviceType? _filterType;
-    private readonly string _dataPath;
+
+    /// <summary>First-stage disable confirmation countdown, in seconds</summary>
+    public const int DisableConfirmSeconds = 5;
+    /// <summary>Auto-restore countdown shown after a device is disabled, in seconds</summary>
+    public const int AutoRestoreSeconds = 10;
 
     #region Collections
 
@@ -354,12 +402,13 @@ public class MainViewModel : INotifyPropertyChanged
     /// </summary>
     public MainViewModel()
     {
-        _dataPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "RubyDevice", "device_data.json");
+        // Captured on the UI thread where the view model is constructed; the
+        // device watcher raises its events from a thread-pool thread.
+        _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
         // Subscribe to device activity events
         _deviceManager.DeviceActivity += OnDeviceActivity;
+        _deviceManager.DevicesEmergencyUnlocked += OnDevicesEmergencyUnlocked;
 
         // Subscribe to device change events (hotplug)
         DeviceWatcherService.Instance.DevicesChanged += OnDevicesChanged;
@@ -373,17 +422,35 @@ public class MainViewModel : INotifyPropertyChanged
         ActiveDeviceId = e.DeviceId;
     }
 
+    private void OnDevicesEmergencyUnlocked(object? sender, EventArgs e)
+    {
+        _dispatcherQueue?.TryEnqueue(() =>
+        {
+            StopAutoRestore();
+            Refresh();
+            var loc = LocalizationService.Instance;
+            NotificationService.Instance.ShowToast(loc["EmergencyUnlock"], loc["EmergencyUnlockMessage"]);
+        });
+    }
+
     private void OnDevicesChanged(object? sender, EventArgs e)
     {
         var settings = AppSettings.Load();
         if (!settings.AutoRefresh) return;
 
-        // Refresh on UI thread
-        Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread()?.TryEnqueue(() =>
+        _dispatcherQueue?.TryEnqueue(() =>
         {
+            var before = AllDevices.Select(d => (d.DeviceId, d.IsEnabled)).ToList();
             Refresh();
-            var loc = LocalizationService.Instance;
-            NotificationService.Instance.ShowToast(loc["DevicesChanged"], loc["DeviceListRefreshed"]);
+
+            // Only notify when the device list actually changed; the WMI event
+            // fires for every device class, not just input devices.
+            var after = AllDevices.Select(d => (d.DeviceId, d.IsEnabled)).ToList();
+            if (!before.SequenceEqual(after))
+            {
+                var loc = LocalizationService.Instance;
+                NotificationService.Instance.ShowToast(loc["DevicesChanged"], loc["DeviceListRefreshed"]);
+            }
         });
     }
 
@@ -411,32 +478,38 @@ public class MainViewModel : INotifyPropertyChanged
     public DeviceManager GetDeviceManager() => _deviceManager;
 
     /// <summary>
-    /// Re-enumerates devices and rebuilds the device view models from the result
+    /// Re-enumerates devices and updates the device view models in place, keeping
+    /// object identity stable for pages that hold references to them
     /// </summary>
     public void Refresh()
     {
         _deviceManager.RefreshDevices();
-        AllDevices.Clear();
 
-        foreach (var d in _deviceManager.Devices)
+        var existing = AllDevices.ToDictionary(d => d.DeviceId, d => d);
+        var seen = new HashSet<string>();
+
+        foreach (var info in _deviceManager.GetDevicesSnapshot())
         {
-            var vm = new DeviceViewModel
+            seen.Add(info.DeviceId);
+            var isTracking = UsageTrackingService.Instance.IsTracking(info.DeviceId);
+            var totalActive = UsageTrackingService.Instance.GetTotalActiveSeconds(info.DeviceId);
+
+            if (existing.TryGetValue(info.DeviceId, out var vm))
             {
-                DeviceId = d.DeviceId,
-                Name = d.Name,
-                Manufacturer = d.Manufacturer,
-                Type = d.Type,
-                IsEnabled = d.IsEnabled,
-                IsExternal = d.IsExternal,
-                VendorId = d.VendorId,
-                ProductId = d.ProductId,
-                UserNote = d.UserNote,
-                TotalUsageSeconds = d.TotalUsageSeconds,
-                IsTracking = Services.UsageTrackingService.Instance.IsTracking(d.DeviceId)
-            };
-            vm.SetParentViewModel(this);
-            AllDevices.Add(vm);
+                vm.ApplyFrom(info, isTracking, totalActive);
+            }
+            else
+            {
+                var newVm = new DeviceViewModel();
+                newVm.SetParentViewModel(this);
+                newVm.ApplyFrom(info, isTracking, totalActive);
+                AllDevices.Add(newVm);
+            }
         }
+
+        foreach (var vm in AllDevices.Where(d => !seen.Contains(d.DeviceId)).ToList())
+            AllDevices.Remove(vm);
+
         UpdateGroups();
     }
 
@@ -496,20 +569,11 @@ public class MainViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Persist device notes and usage totals to disk
+    /// Persist device notes to disk via the device manager's cache
     /// </summary>
     public void SaveDeviceData()
     {
-        try
-        {
-            var dir = Path.GetDirectoryName(_dataPath);
-            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
-
-            var data = AllDevices.ToDictionary(d => d.DeviceId, d => new { d.UserNote, d.TotalUsageSeconds });
-            File.WriteAllText(_dataPath, JsonSerializer.Serialize(data));
-        }
-        catch { }
+        _deviceManager.SaveCache();
     }
 
     /// <summary>
@@ -523,7 +587,7 @@ public class MainViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// 实际启用/禁用设备 - 调用 DeviceManager 的 SetupAPI
+    /// Actually enable/disable a device through the device manager's hooks
     /// </summary>
     public bool ToggleDevice(string deviceId, bool enable)
     {
@@ -531,96 +595,174 @@ public class MainViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// 禁用设备（两阶段确认：5秒确认 + 10秒自动恢复）
+    /// Re-enables every currently disabled device and returns how many were restored
     /// </summary>
-    public async Task DisableDeviceWithConfirmAsync(DeviceViewModel device, UIElement root)
+    public int RestoreAllDisabledDevices()
     {
-        // 第一阶段：5秒倒计时确认
-        bool confirmed = false;
-        var confirmDialog = new Controls.DisableConfirmDialog(
-            device.Name,
-            5, // 5秒倒计时
-            () => { confirmed = true; });
-
-        if (root?.XamlRoot != null)
-            confirmDialog.XamlRoot = root.XamlRoot;
-
-        await confirmDialog.ShowWithCountdownAsync();
-
-        if (!confirmed)
-        {
-            // 用户取消了
-            return;
-        }
-
-        // 执行禁用
-        if (!ToggleDevice(device.DeviceId, false))
-        {
-            return; // 禁用失败
-        }
-
-        device.IsEnabled = false;
-
-        // 显示禁用通知
-        NotificationService.Instance.ShowDeviceDisabledNotification(device.Name, 10);
-
-        // 第二阶段：10秒自动恢复倒计时
-        var restoreDialog = new Controls.AutoRestoreDialog(
-            device.Name,
-            10, // 10秒自动恢复
-            () =>
-            {
-                // 恢复设备
-                if (ToggleDevice(device.DeviceId, true))
-                {
-                    device.IsEnabled = true;
-                    var loc = LocalizationService.Instance;
-                    NotificationService.Instance.ShowToast(
-                        loc["DeviceRestored"],
-                        string.Format(loc["DeviceRestoredMessage"], device.Name));
-                }
-            },
-            () =>
-            {
-                // 保持禁用
-                var loc = LocalizationService.Instance;
-                NotificationService.Instance.ShowToast(
-                    loc["DeviceDisabled"],
-                    device.Name);
-            });
-
-        if (root?.XamlRoot != null)
-            restoreDialog.XamlRoot = root.XamlRoot;
-
-        await restoreDialog.ShowAndCountdownAsync();
-    }
-
-    /// <summary>
-    /// 启用设备（简单确认）
-    /// </summary>
-    public async Task EnableDeviceWithConfirmAsync(DeviceViewModel device, UIElement root)
-    {
-        var dialog = new Controls.EnableConfirmDialog(device.Name, () =>
+        var restored = 0;
+        foreach (var device in AllDevices.Where(d => !d.IsEnabled).ToList())
         {
             if (ToggleDevice(device.DeviceId, true))
             {
                 device.IsEnabled = true;
-                NotificationService.Instance.ShowDeviceEnabledNotification(device.Name);
+                restored++;
             }
-        });
+        }
+        return restored;
+    }
 
+    #endregion
+
+    #region Enable / Disable Confirm Flows
+
+    /// <summary>
+    /// Disable a device with the two-stage confirmation: a 5-second confirm
+    /// countdown, then a 10-second auto-restore countdown the user can cancel.
+    /// </summary>
+    public async Task DisableDeviceWithConfirmAsync(DeviceViewModel device, UIElement root)
+    {
+        // Stage 1: confirmation with countdown
+        var confirmDialog = new Controls.DisableConfirmDialog(device.Name, DisableConfirmSeconds);
         if (root?.XamlRoot != null)
-            dialog.XamlRoot = root.XamlRoot;
+            confirmDialog.XamlRoot = root.XamlRoot;
 
-        await dialog.ShowAndConfirmAsync();
+        if (!await confirmDialog.ShowWithCountdownAsync())
+        {
+            return; // User cancelled
+        }
+
+        if (!ToggleDevice(device.DeviceId, false))
+        {
+            var loc = LocalizationService.Instance;
+            NotificationService.Instance.ShowToast(loc["ActionFailed"], device.Name);
+            return;
+        }
+
+        device.IsEnabled = false;
+        NotificationService.Instance.ShowDeviceDisabledNotification(device.Name, AutoRestoreSeconds);
+
+        // Stage 2: auto-restore countdown
+        var restoreDialog = new Controls.AutoRestoreDialog(device.Name, AutoRestoreSeconds);
+        if (root?.XamlRoot != null)
+            restoreDialog.XamlRoot = root.XamlRoot;
+
+        if (await restoreDialog.ShowAndCountdownAsync())
+        {
+            EnableDevice(device);
+        }
     }
 
     /// <summary>
-    /// Legacy alias for DisableDeviceWithConfirmAsync, kept for API compatibility
+    /// Enable a device after a simple confirmation
     /// </summary>
-    public async Task ToggleDeviceWithConfirmAsync(DeviceViewModel device, UIElement root)
+    public async Task EnableDeviceWithConfirmAsync(DeviceViewModel device, UIElement root)
     {
-        await DisableDeviceWithConfirmAsync(device, root);
+        var dialog = new Controls.EnableConfirmDialog(device.Name);
+        if (root?.XamlRoot != null)
+            dialog.XamlRoot = root.XamlRoot;
+
+        if (await dialog.ShowAndConfirmAsync())
+        {
+            EnableDevice(device);
+        }
+    }
+
+    private void EnableDevice(DeviceViewModel device)
+    {
+        if (ToggleDevice(device.DeviceId, true))
+        {
+            device.IsEnabled = true;
+            NotificationService.Instance.ShowDeviceEnabledNotification(device.Name);
+        }
+    }
+
+    #endregion
+
+    #region Auto-Restore Countdown
+
+    private DispatcherTimer? _autoRestoreTimer;
+    private DateTime _autoRestoreDeadline;
+    private int _autoRestoreTotalSeconds;
+    private bool _isAutoRestoreRunning;
+
+    /// <summary>Whether the auto-restore countdown is currently running.
+    /// The countdown lives here so it keeps running when the Timer page is closed.</summary>
+    public bool IsAutoRestoreRunning
+    {
+        get => _isAutoRestoreRunning;
+        private set
+        {
+            if (_isAutoRestoreRunning != value)
+            {
+                _isAutoRestoreRunning = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    /// <summary>Total configured countdown duration in seconds</summary>
+    public int AutoRestoreTotalSeconds => _autoRestoreTotalSeconds;
+
+    /// <summary>Seconds left on the auto-restore countdown</summary>
+    public int AutoRestoreRemainingSeconds => IsAutoRestoreRunning
+        ? Math.Max(0, (int)Math.Ceiling((_autoRestoreDeadline - DateTime.Now).TotalSeconds))
+        : 0;
+
+    /// <summary>Raised roughly once per second while the countdown runs</summary>
+    public event EventHandler? AutoRestoreTick;
+
+    /// <summary>
+    /// Starts the auto-restore countdown. Returns false when it is already
+    /// running or no devices are disabled.
+    /// </summary>
+    public bool StartAutoRestore(int minutes)
+    {
+        if (IsAutoRestoreRunning) return false;
+        if (!AllDevices.Any(d => !d.IsEnabled)) return false;
+
+        _autoRestoreTotalSeconds = Math.Max(1, minutes) * 60;
+        // Deadline-based so tick lag never accumulates drift
+        _autoRestoreDeadline = DateTime.Now.AddSeconds(_autoRestoreTotalSeconds);
+        IsAutoRestoreRunning = true;
+        OnPropertyChanged(nameof(AutoRestoreRemainingSeconds));
+
+        _autoRestoreTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _autoRestoreTimer.Tick += OnAutoRestoreTick;
+        _autoRestoreTimer.Start();
+        return true;
+    }
+
+    /// <summary>
+    /// Stops the auto-restore countdown without restoring devices
+    /// </summary>
+    public void StopAutoRestore()
+    {
+        if (_autoRestoreTimer != null)
+        {
+            _autoRestoreTimer.Stop();
+            _autoRestoreTimer.Tick -= OnAutoRestoreTick;
+            _autoRestoreTimer = null;
+        }
+        IsAutoRestoreRunning = false;
+    }
+
+    private void OnAutoRestoreTick(object? sender, object e)
+    {
+        OnPropertyChanged(nameof(AutoRestoreRemainingSeconds));
+        AutoRestoreTick?.Invoke(this, EventArgs.Empty);
+
+        if (AutoRestoreRemainingSeconds > 0) return;
+
+        var restored = RestoreAllDisabledDevices();
+        StopAutoRestore();
+
+        if (restored > 0)
+        {
+            var loc = LocalizationService.Instance;
+            NotificationService.Instance.ShowToast(
+                loc["DeviceRestored"],
+                string.Format(loc["DevicesRestoredCount"], restored));
+        }
     }
 
     #endregion
@@ -633,7 +775,7 @@ public class MainViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     /// <summary>
-    /// Raises <see cref="PropertyChanged"/> for the calling property
+    /// Raises <see cref="PropertyChanged"/> for the calling member
     /// </summary>
     public void OnPropertyChanged([CallerMemberName] string? name = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

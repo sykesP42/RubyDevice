@@ -187,7 +187,7 @@ public class LocalizationService : INotifyPropertyChanged
 
         // Device Toggle Dialogs
         ["DisableConfirmTitle"] = "Disable Device",
-        ["DisableConfirmMessage"] = "This device will be disabled.\nIt will auto-restore in 10 seconds.",
+        ["DisableConfirmMessage"] = "{0} will be disabled.\nIt will auto-restore in 10 seconds.",
         ["EnableConfirmTitle"] = "Enable Device",
         ["EnableConfirmMessage"] = "Enable this device?",
         ["DisablingIn"] = "Disabling in",
@@ -260,6 +260,23 @@ public class LocalizationService : INotifyPropertyChanged
         ["ExportSuccess"] = "Data exported successfully",
         ["ExportFailed"] = "Export failed",
         ["NoUsageData"] = "No usage data available",
+
+        // Batch / context menu actions
+        ["EnableAction"] = "Enable",
+        ["DisableAction"] = "Disable",
+
+        // Misc
+        ["Confirm"] = "Confirm",
+        ["Clear"] = "Clear",
+        ["ActionFailed"] = "Operation failed",
+        ["EmergencyUnlock"] = "Emergency unlock",
+        ["EmergencyUnlockMessage"] = "All devices have been re-enabled (both Shift keys were held)",
+        ["ExportHint"] = "Export the selected device's usage data as a CSV file",
+
+        // Settings descriptions
+        ["AppearanceDesc"] = "Choose the interface language and color theme",
+        ["BehaviorDesc"] = "Control how the application behaves",
+        ["DataManagementDesc"] = "Manage locally stored usage data",
 
         // Device Detail Page
         ["Back"] = "Back",
@@ -410,7 +427,7 @@ public class LocalizationService : INotifyPropertyChanged
 
         // Device Toggle Dialogs
         ["DisableConfirmTitle"] = "禁用设备",
-        ["DisableConfirmMessage"] = "此设备将被禁用。\n禁用后将在 10 秒后自动恢复。",
+        ["DisableConfirmMessage"] = "{0} 将被禁用。\n禁用后将在 10 秒后自动恢复。",
         ["EnableConfirmTitle"] = "启用设备",
         ["EnableConfirmMessage"] = "确定要启用此设备吗？",
         ["DisablingIn"] = "禁用倒计时",
@@ -483,6 +500,23 @@ public class LocalizationService : INotifyPropertyChanged
         ["ExportSuccess"] = "数据导出成功",
         ["ExportFailed"] = "导出失败",
         ["NoUsageData"] = "暂无使用数据",
+
+        // Batch / context menu actions
+        ["EnableAction"] = "启用",
+        ["DisableAction"] = "禁用",
+
+        // Misc
+        ["Confirm"] = "确认",
+        ["Clear"] = "清除",
+        ["ActionFailed"] = "操作失败",
+        ["EmergencyUnlock"] = "紧急解锁",
+        ["EmergencyUnlockMessage"] = "已检测到同时按住两个 Shift 键，所有设备已恢复为启用状态",
+        ["ExportHint"] = "将所选设备的使用数据导出为 CSV 文件",
+
+        // Settings descriptions
+        ["AppearanceDesc"] = "选择界面语言与配色主题",
+        ["BehaviorDesc"] = "控制应用程序的行为方式",
+        ["DataManagementDesc"] = "管理本地存储的使用数据",
 
         // Device Detail Page
         ["Back"] = "返回",

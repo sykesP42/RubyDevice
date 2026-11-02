@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
-using Microsoft.UI.Xaml;
 using RubyDevice.Core;
 using RubyDevice.Models;
 
@@ -28,6 +27,9 @@ public class UsageTrackingService : IDisposable
     // Constants for timer intervals
     private const int ENABLED_TIME_UPDATE_INTERVAL_SECONDS = 60;
     private const int DATA_SAVE_INTERVAL_MINUTES = 5;
+    // Max interval credited per enabled-time tick; guards against inflated
+    // counts when the process was suspended between ticks (e.g. sleep).
+    private const int MAX_ENABLED_TIME_CREDIT_SECONDS = ENABLED_TIME_UPDATE_INTERVAL_SECONDS * 3;
 
     private readonly string _dataPath;
     private readonly string _settingsPath;
@@ -39,15 +41,14 @@ public class UsageTrackingService : IDisposable
     private Timer? _saveTimer;
     private DeviceManager? _deviceManager;
     private bool _disposed;
-
-    // Handle to device ID mapping (populated from DeviceManager)
-    private readonly Dictionary<IntPtr, string> _handleToDeviceId = new();
+    private DateTime _lastEnabledUpdateUtc = DateTime.UtcNow;
+    private DateTime _lastCleanupDate = DateTime.Today;
 
     // Track last active time for each device (for accurate ActiveSeconds calculation)
     private readonly Dictionary<string, DateTime> _lastActiveTime = new();
 
-    // Active time accumulation threshold (milliseconds) - minimum interval to count
-    private const int ACTIVE_TIME_THRESHOLD_MS = 100;
+    // Input gaps longer than this are treated as idle and not counted as active time
+    private const double ACTIVE_IDLE_GAP_SECONDS = 2.0;
 
     /// <summary>
     /// Current tracking configuration, shared across all devices
@@ -70,14 +71,26 @@ public class UsageTrackingService : IDisposable
 
     /// <summary>
     /// Attaches the service to a device manager, loads persisted settings and
-    /// usage data, and starts the tracking timers
+    /// usage data, drops records past the retention window, and starts the
+    /// tracking timers
     /// </summary>
     public void Initialize(DeviceManager deviceManager)
     {
         _deviceManager = deviceManager;
+
+        // Active time is accumulated from the device manager's activity events,
+        // which already carry the resolved device identity.
+        deviceManager.DeviceActivity += OnDeviceActivity;
+
         LoadSettings();
         LoadData();
+        CleanupOldData();
         StartTimers();
+    }
+
+    private void OnDeviceActivity(object? sender, DeviceManager.DeviceActivityEventArgs e)
+    {
+        ProcessActiveInput(e.DeviceId);
     }
 
     private void LoadSettings()
@@ -140,7 +153,16 @@ public class UsageTrackingService : IDisposable
         // Save data periodically
         _saveTimer = new Timer(_ =>
         {
-            try { SaveData(); }
+            try
+            {
+                SaveData();
+                // Drop expired records once per day
+                if (DateTime.Today > _lastCleanupDate)
+                {
+                    _lastCleanupDate = DateTime.Today;
+                    CleanupOldData();
+                }
+            }
             catch { /* Timer callbacks must not throw to prevent silent termination */ }
         }, null, TimeSpan.FromMinutes(DATA_SAVE_INTERVAL_MINUTES), TimeSpan.FromMinutes(DATA_SAVE_INTERVAL_MINUTES));
     }
@@ -234,31 +256,16 @@ public class UsageTrackingService : IDisposable
     }
 
     /// <summary>
-    /// Maps a raw input handle to a device identifier so input events can be
-    /// attributed to the right device
+    /// Records active input for a device, accumulating active seconds based on
+    /// the time elapsed since the previous input. Gaps longer than
+    /// <see cref="ACTIVE_IDLE_GAP_SECONDS"/> are treated as idle time.
     /// </summary>
-    public void RegisterDeviceHandle(IntPtr handle, string deviceId)
+    public void ProcessActiveInput(string deviceId)
     {
-        lock (_lock)
-        {
-            _handleToDeviceId[handle] = deviceId;
-        }
-    }
-
-    /// <summary>
-    /// Records active input for a device handle, accumulating active seconds
-    /// based on time elapsed since the last input on the same device
-    /// </summary>
-    public void ProcessActiveInput(IntPtr deviceHandle)
-    {
-        if (_disposed) return;
+        if (_disposed || string.IsNullOrEmpty(deviceId)) return;
 
         lock (_lock)
         {
-            if (!_handleToDeviceId.TryGetValue(deviceHandle, out var deviceId))
-                return;
-
-            // Use IsTrackingInternal to avoid re-acquiring lock
             if (!IsTrackingInternal(deviceId))
                 return;
 
@@ -266,69 +273,75 @@ public class UsageTrackingService : IDisposable
             var today = DateTime.Today;
             var dateKey = today.ToString("yyyy-MM-dd");
 
-            if (!_records.ContainsKey(deviceId))
-                _records[deviceId] = new Dictionary<string, DeviceUsageRecord>();
+            EnsureRecord(deviceId, dateKey, today);
 
-            if (!_records[deviceId].ContainsKey(dateKey))
-            {
-                _records[deviceId][dateKey] = new DeviceUsageRecord
-                {
-                    DeviceId = deviceId,
-                    Date = today
-                };
-            }
-
-            // Calculate actual time elapsed since last active input
+            // Credit the gap since the previous input only when it is short
+            // enough to count as continuous use
             if (_lastActiveTime.TryGetValue(deviceId, out var lastTime))
             {
-                var elapsedMs = (now - lastTime).TotalMilliseconds;
-
-                // Only count if within reasonable threshold (e.g., less than 1 second gap)
-                // This prevents counting large gaps when user was away
-                if (elapsedMs > 0 && elapsedMs < 1000)
+                var elapsed = (now - lastTime).TotalSeconds;
+                if (elapsed > 0 && elapsed <= ACTIVE_IDLE_GAP_SECONDS)
                 {
-                    // Add the elapsed time in seconds (with 0.1s precision)
-                    _records[deviceId][dateKey].ActiveSeconds += elapsedMs / 1000.0;
+                    _records[deviceId][dateKey].ActiveSeconds += elapsed;
                 }
             }
 
-            // Update last active time
             _lastActiveTime[deviceId] = now;
         }
     }
 
     /// <summary>
-    /// Periodically accumulates enabled seconds for all tracked, enabled devices
+    /// Periodically accumulates enabled seconds for all tracked, enabled devices.
+    /// Uses the real elapsed time between ticks so delayed or suspended ticks do
+    /// not inflate the count.
     /// </summary>
     private void UpdateEnabledTime()
     {
-        // Check disposed flag first to avoid accessing disposed resources
         if (_disposed || _deviceManager == null) return;
 
-        var today = DateTime.Today;
-        var dateKey = today.ToString("yyyy-MM-dd");
+        var nowUtc = DateTime.UtcNow;
+        var devices = _deviceManager.GetDevicesSnapshot();
 
         lock (_lock)
         {
-            foreach (var device in _deviceManager.Devices)
+            var elapsed = (nowUtc - _lastEnabledUpdateUtc).TotalSeconds;
+            _lastEnabledUpdateUtc = nowUtc;
+            if (elapsed <= 0) return;
+            elapsed = Math.Min(elapsed, MAX_ENABLED_TIME_CREDIT_SECONDS);
+
+            var today = DateTime.Today;
+            var dateKey = today.ToString("yyyy-MM-dd");
+
+            foreach (var device in devices)
             {
                 if (!IsTrackingInternal(device.DeviceId) || !device.IsEnabled)
                     continue;
 
-                if (!_records.ContainsKey(device.DeviceId))
-                    _records[device.DeviceId] = new Dictionary<string, DeviceUsageRecord>();
-
-                if (!_records[device.DeviceId].ContainsKey(dateKey))
-                {
-                    _records[device.DeviceId][dateKey] = new DeviceUsageRecord
-                    {
-                        DeviceId = device.DeviceId,
-                        Date = today
-                    };
-                }
-
-                _records[device.DeviceId][dateKey].EnabledSeconds += ENABLED_TIME_UPDATE_INTERVAL_SECONDS;
+                EnsureRecord(device.DeviceId, dateKey, today);
+                _records[device.DeviceId][dateKey].EnabledSeconds += elapsed;
             }
+        }
+    }
+
+    /// <summary>
+    /// Makes sure a record exists for the device/date pair. Must be called while
+    /// holding <see cref="_lock"/>.
+    /// </summary>
+    private void EnsureRecord(string deviceId, string dateKey, DateTime date)
+    {
+        if (!_records.TryGetValue(deviceId, out var deviceRecords))
+        {
+            deviceRecords = new Dictionary<string, DeviceUsageRecord>();
+            _records[deviceId] = deviceRecords;
+        }
+
+        if (!deviceRecords.ContainsKey(dateKey))
+        {
+            deviceRecords[dateKey] = new DeviceUsageRecord
+            {
+                DeviceId = deviceId,
+                Date = date
+            };
         }
     }
 
@@ -352,6 +365,25 @@ public class UsageTrackingService : IDisposable
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Gets today's active/enabled seconds for a single device
+    /// </summary>
+    public (double ActiveSeconds, double EnabledSeconds) GetTodayUsage(string deviceId)
+    {
+        var today = DateTime.Today.ToString("yyyy-MM-dd");
+
+        lock (_lock)
+        {
+            if (_records.TryGetValue(deviceId, out var deviceRecords) &&
+                deviceRecords.TryGetValue(today, out var record))
+            {
+                return (record.ActiveSeconds, record.EnabledSeconds);
+            }
+        }
+
+        return (0, 0);
     }
 
     /// <summary>
@@ -380,11 +412,11 @@ public class UsageTrackingService : IDisposable
     /// <summary>
     /// Gets the combined active/enabled seconds for today across all tracked devices
     /// </summary>
-    public (double ActiveSeconds, long EnabledSeconds) GetTodayTotals()
+    public (double ActiveSeconds, double EnabledSeconds) GetTodayTotals()
     {
         var today = DateTime.Today.ToString("yyyy-MM-dd");
         double totalActive = 0;
-        long totalEnabled = 0;
+        double totalEnabled = 0;
 
         lock (_lock)
         {
@@ -403,6 +435,19 @@ public class UsageTrackingService : IDisposable
     }
 
     /// <summary>
+    /// Returns the all-time total of active seconds recorded for a device
+    /// </summary>
+    public double GetTotalActiveSeconds(string deviceId)
+    {
+        lock (_lock)
+        {
+            return _records.TryGetValue(deviceId, out var deviceRecords)
+                ? deviceRecords.Values.Sum(r => r.ActiveSeconds)
+                : 0;
+        }
+    }
+
+    /// <summary>
     /// Drops usage records older than the configured retention period
     /// </summary>
     public void CleanupOldData()
@@ -410,7 +455,6 @@ public class UsageTrackingService : IDisposable
         lock (_lock)
         {
             var cutoff = DateTime.Today.AddDays(-_settings.Config.RetentionDays);
-            var keysToRemove = new List<string>();
             foreach (var deviceRecords in _records.Values)
             {
                 var datesToRemove = deviceRecords.Keys
@@ -421,6 +465,30 @@ public class UsageTrackingService : IDisposable
                     deviceRecords.Remove(date);
             }
         }
+    }
+
+    /// <summary>
+    /// Clears all usage records and per-device tracking settings, then persists
+    /// the empty state to disk
+    /// </summary>
+    public void ClearAllData()
+    {
+        TrackingSettingsFile settingsCopy;
+        lock (_lock)
+        {
+            _records.Clear();
+            _lastActiveTime.Clear();
+            _settings.Devices.Clear();
+            settingsCopy = new TrackingSettingsFile
+            {
+                Config = _settings.Config,
+                Devices = new Dictionary<string, DeviceTrackingSetting>(_settings.Devices)
+            };
+        }
+
+        SaveSettings(settingsCopy);
+        SaveData();
+        TrackingChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void SaveSettings(TrackingSettingsFile settings)
@@ -474,7 +542,7 @@ public class UsageTrackingService : IDisposable
     }
 
     /// <summary>
-    /// Stops the tracking timers, saves pending data, and releases resources
+    /// Stops the tracking timers, saves pending data and settings, and releases resources
     /// </summary>
     public void Dispose()
     {
@@ -483,24 +551,29 @@ public class UsageTrackingService : IDisposable
 
         _disposed = true;
 
+        if (_deviceManager != null)
+        {
+            _deviceManager.DeviceActivity -= OnDeviceActivity;
+            _deviceManager = null;
+        }
+
         // Stop timers first before disposing resources they depend on
         _enabledTimeTimer?.Dispose();
         _saveTimer?.Dispose();
         _enabledTimeTimer = null;
         _saveTimer = null;
 
-        SaveData();
-    }
-
-    /// <summary>
-    /// Clears all device handle mappings. Should be called before re-enumerating devices.
-    /// </summary>
-    public void ClearDeviceHandles()
-    {
+        TrackingSettingsFile settingsCopy;
         lock (_lock)
         {
-            _handleToDeviceId.Clear();
+            settingsCopy = new TrackingSettingsFile
+            {
+                Config = _settings.Config,
+                Devices = new Dictionary<string, DeviceTrackingSetting>(_settings.Devices)
+            };
         }
+        SaveSettings(settingsCopy);
+        SaveData();
     }
 
     /// <summary>

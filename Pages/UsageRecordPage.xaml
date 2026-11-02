@@ -3,24 +3,24 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:RubyDevice.ViewModels"
-    Background="{StaticResource WindowBackgroundBrush}">
+    Background="{ThemeResource WindowBackgroundBrush}">
 
     <ScrollViewer Padding="24,16">
         <StackPanel Spacing="20">
             <!-- Device Tracking Controls -->
-            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
-                   BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <Border Background="{ThemeResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
+                   BorderBrush="{ThemeResource BorderBrush}" BorderThickness="1">
                 <StackPanel Spacing="16">
                     <TextBlock x:Name="TextTrackedDevices" FontSize="18" FontWeight="SemiBold"
-                              Foreground="{StaticResource TextPrimaryBrush}"/>
+                              Foreground="{ThemeResource TextPrimaryBrush}"/>
 
-                    <TextBlock x:Name="TextNoTracking" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"
+                    <TextBlock x:Name="TextNoTracking" FontSize="13" Foreground="{ThemeResource TextSecondaryBrush}"
                               Visibility="Collapsed"/>
 
                     <ListView x:Name="DeviceList" SelectionMode="None">
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="vm:DeviceViewModel">
-                                <Grid Padding="12,8" ColumnSpacing="16" Background="{StaticResource DividerBrush}"
+                                <Grid Padding="12,8" ColumnSpacing="16" Background="{ThemeResource DividerBrush}"
                                      CornerRadius="8" Margin="0,4">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -30,22 +30,23 @@
 
                                     <!-- Type Icon -->
                                     <Border Grid.Column="0" Width="32" Height="32" CornerRadius="6"
-                                           Background="{StaticResource CardBackgroundBrush}">
+                                           Background="{ThemeResource CardBackgroundBrush}">
                                         <TextBlock Text="{x:Bind IconGlyph}" FontFamily="Segoe MDL2 Assets"
                                                   FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                  Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                  Foreground="{ThemeResource TextSecondaryBrush}"/>
                                     </Border>
 
                                     <!-- Device Name -->
                                     <StackPanel Grid.Column="1" Spacing="2">
                                         <TextBlock Text="{x:Bind Name}" FontSize="13" FontWeight="Medium"
-                                                  Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                  Foreground="{ThemeResource TextPrimaryBrush}"/>
                                         <TextBlock Text="{x:Bind TypeName}" FontSize="11"
-                                                  Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                  Foreground="{ThemeResource TextSecondaryBrush}"/>
                                     </StackPanel>
 
                                     <!-- Tracking Toggle -->
                                     <ToggleSwitch Grid.Column="2" IsOn="{x:Bind IsTracking, Mode=TwoWay}"
+                                                 OnContent="" OffContent=""
                                                  Toggled="TrackingToggle_Toggled" Tag="{x:Bind DeviceId}"/>
                                 </Grid>
                             </DataTemplate>
@@ -63,51 +64,51 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Tracked Count -->
-                <Border Grid.Column="0" Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="16"
-                       BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <Border Grid.Column="0" Background="{ThemeResource CardBackgroundBrush}" CornerRadius="12" Padding="16"
+                       BorderBrush="{ThemeResource BorderBrush}" BorderThickness="1">
                     <StackPanel Spacing="8">
-                        <Border Width="40" Height="40" CornerRadius="8" Background="{StaticResource PrimaryLightBrush}">
-                            <FontIcon Glyph="&#xE9D9;" FontSize="18" Foreground="{StaticResource PrimaryBrush}"/>
+                        <Border Width="40" Height="40" CornerRadius="8" Background="{ThemeResource PrimaryLightBrush}">
+                            <FontIcon Glyph="&#xE9D9;" FontSize="18" Foreground="{ThemeResource PrimaryBrush}"/>
                         </Border>
-                        <TextBlock x:Name="TextTrackedCount" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBlock x:Name="TextTrackedCount" FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}"/>
                         <TextBlock x:Name="CountTracked" Text="0" FontSize="28" FontWeight="Bold"
-                                  Foreground="{StaticResource TextPrimaryBrush}"/>
+                                  Foreground="{ThemeResource TextPrimaryBrush}"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Active Time -->
-                <Border Grid.Column="1" Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="16"
-                       BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <Border Grid.Column="1" Background="{ThemeResource CardBackgroundBrush}" CornerRadius="12" Padding="16"
+                       BorderBrush="{ThemeResource BorderBrush}" BorderThickness="1">
                     <StackPanel Spacing="8">
-                        <Border Width="40" Height="40" CornerRadius="8" Background="#D1FAE5">
-                            <FontIcon Glyph="&#xE823;" FontSize="18" Foreground="{StaticResource SuccessBrush}"/>
+                        <Border Width="40" Height="40" CornerRadius="8" Background="{ThemeResource DividerBrush}">
+                            <FontIcon Glyph="&#xE823;" FontSize="18" Foreground="{ThemeResource SuccessBrush}"/>
                         </Border>
-                        <TextBlock x:Name="TextActiveTime" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBlock x:Name="TextActiveTime" FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}"/>
                         <TextBlock x:Name="ValueActiveTime" Text="0m" FontSize="28" FontWeight="Bold"
-                                  Foreground="{StaticResource TextPrimaryBrush}"/>
+                                  Foreground="{ThemeResource TextPrimaryBrush}"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Enabled Time -->
-                <Border Grid.Column="2" Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="16"
-                       BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <Border Grid.Column="2" Background="{ThemeResource CardBackgroundBrush}" CornerRadius="12" Padding="16"
+                       BorderBrush="{ThemeResource BorderBrush}" BorderThickness="1">
                     <StackPanel Spacing="8">
-                        <Border Width="40" Height="40" CornerRadius="8" Background="#DBEAFE">
-                            <FontIcon Glyph="&#xE823;" FontSize="18" Foreground="{StaticResource PrimaryBrush}"/>
+                        <Border Width="40" Height="40" CornerRadius="8" Background="{ThemeResource DividerBrush}">
+                            <FontIcon Glyph="&#xE823;" FontSize="18" Foreground="{ThemeResource PrimaryBrush}"/>
                         </Border>
-                        <TextBlock x:Name="TextEnabledTime" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBlock x:Name="TextEnabledTime" FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}"/>
                         <TextBlock x:Name="ValueEnabledTime" Text="0m" FontSize="28" FontWeight="Bold"
-                                  Foreground="{StaticResource TextPrimaryBrush}"/>
+                                  Foreground="{ThemeResource TextPrimaryBrush}"/>
                     </StackPanel>
                 </Border>
             </Grid>
 
             <!-- Settings -->
-            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
-                   BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <Border Background="{ThemeResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
+                   BorderBrush="{ThemeResource BorderBrush}" BorderThickness="1">
                 <StackPanel Spacing="16">
                     <TextBlock x:Name="TextSettings" FontSize="18" FontWeight="SemiBold"
-                              Foreground="{StaticResource TextPrimaryBrush}"/>
+                              Foreground="{ThemeResource TextPrimaryBrush}"/>
 
                     <Grid ColumnSpacing="16">
                         <Grid.ColumnDefinitions>
@@ -116,7 +117,7 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBlock Grid.Column="0" x:Name="TextRetentionDays" FontSize="13"
-                                  Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                  Foreground="{ThemeResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         <NumberBox Grid.Column="1" x:Name="RetentionBox" Value="30" Minimum="7" Maximum="365"
                                    SpinButtonPlacementMode="Compact" Width="100"
                                    ValueChanged="RetentionBox_ValueChanged"/>
@@ -125,8 +126,8 @@
             </Border>
 
             <!-- Usage History -->
-            <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
-                   BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+            <Border Background="{ThemeResource CardBackgroundBrush}" CornerRadius="12" Padding="20"
+                   BorderBrush="{ThemeResource BorderBrush}" BorderThickness="1">
                 <StackPanel Spacing="16">
                     <Grid ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
@@ -136,10 +137,9 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBlock x:Name="TextUsageHistory" FontSize="18" FontWeight="SemiBold"
-                                  Foreground="{StaticResource TextPrimaryBrush}"/>
+                                  Foreground="{ThemeResource TextPrimaryBrush}"/>
 
-                        <Button Grid.Column="1" x:Name="BtnExport" Click="BtnExport_Click" Padding="12,6"
-                                ToolTipService.ToolTip="Export the selected device's usage data as a CSV file">
+                        <Button Grid.Column="1" x:Name="BtnExport" Click="BtnExport_Click" Padding="12,6">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE74E;" FontSize="14"/>
                                 <TextBlock x:Name="TextExport"/>
@@ -162,12 +162,12 @@
                     <!-- Chart Legend -->
                     <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Spacing="4">
-                            <Border Width="12" Height="12" CornerRadius="2" Background="#3B82F6"/>
-                            <TextBlock x:Name="LegendActive" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <Border Width="12" Height="12" CornerRadius="2" Background="{ThemeResource ChartActiveBrush}"/>
+                            <TextBlock x:Name="LegendActive" FontSize="11" Foreground="{ThemeResource TextSecondaryBrush}"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="4">
-                            <Border Width="12" Height="12" CornerRadius="2" Background="#10B981"/>
-                            <TextBlock x:Name="LegendEnabled" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <Border Width="12" Height="12" CornerRadius="2" Background="{ThemeResource ChartEnabledBrush}"/>
+                            <TextBlock x:Name="LegendEnabled" FontSize="11" Foreground="{ThemeResource TextSecondaryBrush}"/>
                         </StackPanel>
                     </StackPanel>
 
@@ -180,20 +180,20 @@
 
                         <!-- Y-Axis Labels -->
                         <StackPanel Grid.Column="0" Orientation="Vertical" Spacing="0" Height="150">
-                            <TextBlock x:Name="YAxisMax" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}"
+                            <TextBlock x:Name="YAxisMax" FontSize="10" Foreground="{ThemeResource TextTertiaryBrush}"
                                       HorizontalAlignment="Right" VerticalAlignment="Top"/>
-                            <TextBlock x:Name="YAxisMid" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}"
+                            <TextBlock x:Name="YAxisMid" FontSize="10" Foreground="{ThemeResource TextTertiaryBrush}"
                                       HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                            <TextBlock x:Name="YAxisMin" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}"
+                            <TextBlock x:Name="YAxisMin" FontSize="10" Foreground="{ThemeResource TextTertiaryBrush}"
                                       Text="0h" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
                         </StackPanel>
 
                         <!-- Chart Canvas -->
-                        <Border Grid.Column="1" Background="{StaticResource DividerBrush}" CornerRadius="8" Padding="8">
+                        <Border Grid.Column="1" Background="{ThemeResource DividerBrush}" CornerRadius="8" Padding="8">
                             <Grid>
                                 <Canvas x:Name="ChartCanvas" Height="150" HorizontalAlignment="Stretch"/>
                                 <TextBlock x:Name="ChartEmpty"
-                                          FontSize="12" Foreground="{StaticResource TextTertiaryBrush}"
+                                          FontSize="12" Foreground="{ThemeResource TextTertiaryBrush}"
                                           HorizontalAlignment="Center" VerticalAlignment="Center"
                                           Visibility="Collapsed"/>
                             </Grid>
@@ -212,18 +212,18 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" x:Name="TextDateHeader" FontSize="11" FontWeight="SemiBold"
-                                  Foreground="{StaticResource TextTertiaryBrush}"/>
+                                  Foreground="{ThemeResource TextTertiaryBrush}"/>
                         <TextBlock Grid.Column="1" x:Name="TextActiveHeader" FontSize="11" FontWeight="SemiBold"
-                                  Foreground="{StaticResource TextTertiaryBrush}" Margin="0,0,12,0"/>
+                                  Foreground="{ThemeResource TextTertiaryBrush}" Margin="0,0,12,0"/>
                         <TextBlock Grid.Column="2" x:Name="TextEnabledHeader" FontSize="11" FontWeight="SemiBold"
-                                  Foreground="{StaticResource TextTertiaryBrush}"/>
+                                  Foreground="{ThemeResource TextTertiaryBrush}"/>
                     </Grid>
 
                     <!-- Data List -->
                     <ListView x:Name="HistoryList" SelectionMode="None" MaxHeight="200">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid Padding="12,8" ColumnSpacing="16" Background="{StaticResource DividerBrush}"
+                                <Grid Padding="12,8" ColumnSpacing="16" Background="{ThemeResource DividerBrush}"
                                      CornerRadius="8" Margin="0,4">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -232,11 +232,11 @@
                                     </Grid.ColumnDefinitions>
 
                                     <TextBlock Grid.Column="0" Text="{Binding DateText}" FontSize="13"
-                                              Foreground="{StaticResource TextPrimaryBrush}"/>
+                                              Foreground="{ThemeResource TextPrimaryBrush}"/>
                                     <TextBlock Grid.Column="1" Text="{Binding ActiveText}" FontSize="12"
-                                              Foreground="{StaticResource SuccessBrush}"/>
+                                              Foreground="{ThemeResource SuccessBrush}"/>
                                     <TextBlock Grid.Column="2" Text="{Binding EnabledText}" FontSize="12"
-                                              Foreground="{StaticResource TextSecondaryBrush}"/>
+                                              Foreground="{ThemeResource TextSecondaryBrush}"/>
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>

@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Windows.ApplicationModel.DataTransfer;
 using RubyDevice.Core;
@@ -127,12 +128,28 @@ public sealed partial class DevicesPage : Page
         }
     }
 
+    /// <summary>
+    /// Opens the device detail page on row press. Presses that start on the
+    /// inline toggle switch do not navigate.
+    /// </summary>
     private void Device_Click(object sender, PointerRoutedEventArgs e)
     {
+        if (IsSourceWithinToggle(e.OriginalSource as DependencyObject)) return;
+
         if (sender is Border border && border.Tag is DeviceViewModel device && _viewModel != null)
         {
             Frame.Navigate(typeof(DeviceDetailPage), (device, _viewModel));
         }
+    }
+
+    private static bool IsSourceWithinToggle(DependencyObject? source)
+    {
+        while (source != null)
+        {
+            if (source is ToggleSwitch) return true;
+            source = VisualTreeHelper.GetParent(source);
+        }
+        return false;
     }
 
     /// <summary>
@@ -143,21 +160,18 @@ public sealed partial class DevicesPage : Page
     {
         if (sender is not ToggleSwitch toggle || toggle.DataContext is not DeviceViewModel device || _viewModel == null) return;
 
-        // 记住当前状态
         bool wasEnabled = device.IsEnabled;
         bool wantEnable = toggle.IsOn;
 
         if (wantEnable && !wasEnabled)
         {
-            // 启用设备：简单确认
-            toggle.IsOn = wasEnabled; // 先恢复
+            toggle.IsOn = wasEnabled; // revert until confirmed
             await _viewModel.EnableDeviceWithConfirmAsync(device, this);
             toggle.IsOn = device.IsEnabled;
         }
         else if (!wantEnable && wasEnabled)
         {
-            // 禁用设备：5秒倒计时 + 10秒自动恢复
-            toggle.IsOn = wasEnabled; // 先恢复
+            toggle.IsOn = wasEnabled; // revert until confirmed
             await _viewModel.DisableDeviceWithConfirmAsync(device, this);
             toggle.IsOn = device.IsEnabled;
         }
@@ -188,8 +202,10 @@ public sealed partial class DevicesPage : Page
             Clipboard.SetContent(pkg);
         };
 
-        var toggleText = device.IsEnabled ? _loc["Disabled"] : _loc["Enabled"];
-        var toggleItem = new MenuFlyoutItem { Text = toggleText };
+        var toggleItem = new MenuFlyoutItem
+        {
+            Text = device.IsEnabled ? _loc["DisableAction"] : _loc["EnableAction"]
+        };
         toggleItem.Click += async (_, _) =>
         {
             if (device.IsEnabled)

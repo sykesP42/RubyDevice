@@ -14,7 +14,7 @@ public class DeviceUsageRecord
     /// <summary>Total active (in-use) seconds on this date</summary>
     public double ActiveSeconds { get; set; }
     /// <summary>Total enabled seconds on this date</summary>
-    public long EnabledSeconds { get; set; }
+    public double EnabledSeconds { get; set; }
 
     /// <summary>
     /// Date key for dictionary storage (YYYY-MM-DD format)

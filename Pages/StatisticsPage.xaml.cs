@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -20,6 +21,10 @@ public sealed partial class StatisticsPage : Page
     private readonly LocalizationService _loc = LocalizationService.Instance;
     public MainViewModel? ViewModel => _viewModel;
     private bool _isLoaded = false;
+
+    // Named handler so the subscription can be removed on navigation; anonymous
+    // lambdas would stack up one handler per visit and leak the page.
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e) => UpdateStats();
 
     public StatisticsPage()
     {
@@ -63,7 +68,7 @@ public sealed partial class StatisticsPage : Page
         UpdateStats();
 
         if (_viewModel != null)
-            _viewModel.PropertyChanged += (_, _) => UpdateStats();
+            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
         UsageTrackingService.Instance.TrackingChanged += OnTrackingChanged;
     }
@@ -71,6 +76,8 @@ public sealed partial class StatisticsPage : Page
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
         _isLoaded = false;
+        if (_viewModel != null)
+            _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
         UsageTrackingService.Instance.TrackingChanged -= OnTrackingChanged;
         _loc.PropertyChanged -= OnLocalizationChanged;
         base.OnNavigatedFrom(e);
@@ -111,9 +118,9 @@ public sealed partial class StatisticsPage : Page
         CountMouse.Text = mice.ToString();
         CountTouchpad.Text = touchpads.ToString();
 
-        PctKeyboard.Text = $"({keyboards * 100 / total}%)";
-        PctMouse.Text = $"({mice * 100 / total}%)";
-        PctTouchpad.Text = $"({touchpads * 100 / total}%)";
+        PctKeyboard.Text = $"({Math.Round(keyboards * 100.0 / total)}%)";
+        PctMouse.Text = $"({Math.Round(mice * 100.0 / total)}%)";
+        PctTouchpad.Text = $"({Math.Round(touchpads * 100.0 / total)}%)";
 
         // Today's usage from tracking service
         var (activeSeconds, enabledSeconds) = UsageTrackingService.Instance.GetTodayTotals();

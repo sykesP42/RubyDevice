@@ -18,7 +18,10 @@ public enum DeviceType { Unknown, Keyboard, Mouse, Touchpad }
 /// </summary>
 public class DeviceInfo
 {
-    /// <summary>Raw input handle string, unique per physical device</summary>
+    /// <summary>
+    /// Stable identifier derived from the device path (VID/PID or ACPI id).
+    /// Unlike raw input handles, it survives reboots and re-enumeration.
+    /// </summary>
     public string DeviceId { get; set; } = "";
     /// <summary>Display name of the device</summary>
     public string Name { get; set; } = "";
@@ -44,7 +47,13 @@ public class DeviceInfo
 
 /// <summary>
 /// Enumerates input devices via the Windows Raw Input API and blocks input from
-/// disabled devices using low-level keyboard and mouse hooks
+/// disabled devices using low-level keyboard and mouse hooks.
+///
+/// Blocking works by remembering which device produced the most recent raw input
+/// of each type (keyboard/mouse are tracked independently) and swallowing hook
+/// events while that device is blocked. Because input swallowed by a hook never
+/// generates WM_INPUT, the last-known device can go stale; holding both Shift
+/// keys together is an emergency escape hatch that unblocks everything.
 /// </summary>
 public class DeviceManager : IDisposable
 {
@@ -97,6 +106,11 @@ public class DeviceManager : IDisposable
     private const int RIDEV_INPUTSINK = 0x100;
     private const int WM_INPUT = 0x00FF;
 
+    // Virtual-key codes used by the emergency unlock chord (both Shifts held)
+    private const int VK_LSHIFT = 0xA0, VK_RSHIFT = 0xA1;
+    private const int WM_KEYDOWN = 0x0100, WM_KEYUP = 0x0101;
+    private const int WM_SYSKEYDOWN = 0x0104, WM_SYSKEYUP = 0x0105;
+
     [StructLayout(LayoutKind.Sequential)]
     private struct RAWINPUTDEVICE
     {
@@ -117,60 +131,12 @@ public class DeviceManager : IDisposable
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct MSLLHOOKSTRUCT
-    {
-        public int ptX;
-        public int ptY;
-        public int mouseData;
-        public int flags;
-        public int time;
-        public IntPtr dwExtraInfo;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
     private struct RAWINPUTHEADER
     {
         public int dwType;
         public int dwSize;
         public IntPtr hDevice;
         public IntPtr wParam;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct RAWKEYBOARD
-    {
-        public ushort MakeCode;
-        public ushort Flags;
-        public ushort Reserved;
-        public ushort VKey;
-        public uint Message;
-        public uint ExtraInformation;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct RAWMOUSE
-    {
-        public ushort Flags;
-        public ushort ButtonFlags;
-        public ushort ButtonData;
-        public uint RawButtons;
-        public int LastX;
-        public int LastY;
-        public uint ExtraInformation;
-    }
-
-    [StructLayout(LayoutKind.Explicit)]
-    private struct RAWINPUTDATA
-    {
-        [FieldOffset(0)] public RAWMOUSE mouse;
-        [FieldOffset(0)] public RAWKEYBOARD keyboard;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct RAWINPUT
-    {
-        public RAWINPUTHEADER header;
-        public RAWINPUTDATA data;
     }
 
     private delegate IntPtr LowLevelHookProc(int nCode, IntPtr wParam, IntPtr lParam);
@@ -212,13 +178,18 @@ public class DeviceManager : IDisposable
     };
 
     /// <summary>
-    /// Currently enumerated devices, grouped by physical device identity
+    /// Currently enumerated devices, grouped by physical device identity.
+    /// Guarded by <see cref="_stateLock"/>; callers should use
+    /// <see cref="GetDevicesSnapshot"/> to iterate safely from other threads.
     /// </summary>
     public List<DeviceInfo> Devices { get; } = new();
+    private readonly object _stateLock = new();
     private readonly Dictionary<string, DeviceInfo> _cache = new();
     private readonly string _dataPath;
 
-    // Hook handles
+    // Hook handles. _hookProc must stay rooted for the process lifetime - the
+    // native hook keeps a raw function pointer to the delegate, so if it were
+    // collected the next input event would call into freed memory.
     private IntPtr _keyboardHook = IntPtr.Zero;
     private IntPtr _mouseHook = IntPtr.Zero;
     private LowLevelHookProc? _hookProc;
@@ -228,14 +199,21 @@ public class DeviceManager : IDisposable
     private readonly Dictionary<string, IntPtr> _devicePathToHandle = new();
     // Store all handles for each physical device (for blocking all interfaces)
     private readonly Dictionary<string, HashSet<IntPtr>> _deviceIdToHandles = new();
+    // Device IDs the user disabled; survives re-enumeration within the session
+    private readonly HashSet<string> _disabledDeviceIds = new();
 
     // Device activity tracking
     /// <summary>
-    /// Raised when input is detected from a device, throttled to once per 100ms
+    /// Raised when input is detected from a device, throttled to once per 100ms per device
     /// </summary>
     public event EventHandler<DeviceActivityEventArgs>? DeviceActivity;
-    private string? _lastActiveDeviceId;
-    private DateTime _lastActivityTime = DateTime.MinValue;
+    private readonly Dictionary<string, DateTime> _lastActivityByDevice = new();
+
+    /// <summary>
+    /// Raised when the user triggers the emergency unlock (both Shift keys held).
+    /// All devices have been unblocked when this fires.
+    /// </summary>
+    public event EventHandler? DevicesEmergencyUnlocked;
 
     /// <summary>
     /// Describes a single input activity notification for a device
@@ -251,8 +229,11 @@ public class DeviceManager : IDisposable
     }
     private readonly object _blockLock = new();
 
-    // Current input device handle (updated by Raw Input)
-    private IntPtr _currentInputDevice = IntPtr.Zero;
+    // Last raw-input handle seen for each device type. Kept separately so that
+    // blocking a keyboard can never freeze mice and vice versa.
+    private IntPtr _lastKeyboardDevice = IntPtr.Zero;
+    private IntPtr _lastMouseDevice = IntPtr.Zero;
+    private bool _lShiftDown, _rShiftDown;
     private IntPtr _targetWindow = IntPtr.Zero;
 
     /// <summary>
@@ -275,6 +256,29 @@ public class DeviceManager : IDisposable
                 var data = JsonSerializer.Deserialize<Dictionary<string, DeviceInfo>>(json);
                 if (data != null) foreach (var kv in data) _cache[kv.Key] = kv.Value;
             }
+        }
+        catch { }
+    }
+
+    /// <summary>
+    /// Persist cached device notes. Only the note text is stored; usage totals
+    /// live in the usage tracking service's own data file.
+    /// </summary>
+    public void SaveCache()
+    {
+        try
+        {
+            var dir = Path.GetDirectoryName(_dataPath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+            Dictionary<string, DeviceInfo> snapshot;
+            lock (_stateLock)
+            {
+                snapshot = Devices.ToDictionary(d => d.DeviceId, d => d);
+            }
+            var data = snapshot.ToDictionary(kv => kv.Key, kv => new { kv.Value.UserNote });
+            File.WriteAllText(_dataPath, JsonSerializer.Serialize(data));
         }
         catch { }
     }
@@ -305,74 +309,69 @@ public class DeviceManager : IDisposable
     }
 
     /// <summary>
-    /// Process WM_INPUT message to track which device generated the input
+    /// Process WM_INPUT message to track which device generated the input.
+    /// Only the RAWINPUTHEADER is decoded - it carries the device handle and type,
+    /// and unlike the full struct it never reads past the buffer returned by
+    /// GetRawInputData (which can be shorter than the declared RAWINPUT size).
     /// </summary>
     public void ProcessRawInput(IntPtr hRawInput)
     {
         uint size = 0;
         GetRawInputData(hRawInput, 0x10000003, IntPtr.Zero, ref size, Marshal.SizeOf<RAWINPUTHEADER>());
 
-        if (size > 0)
+        if (size == 0) return;
+
+        IntPtr buffer = Marshal.AllocHGlobal((int)size);
+        try
         {
-            IntPtr buffer = Marshal.AllocHGlobal((int)size);
-            try
+            if (GetRawInputData(hRawInput, 0x10000003, buffer, ref size, Marshal.SizeOf<RAWINPUTHEADER>()) > 0)
             {
-                if (GetRawInputData(hRawInput, 0x10000003, buffer, ref size, Marshal.SizeOf<RAWINPUTHEADER>()) > 0)
+                RAWINPUTHEADER header = Marshal.PtrToStructure<RAWINPUTHEADER>(buffer);
+                var deviceType = header.dwType == RIM_TYPEKEYBOARD ? DeviceType.Keyboard
+                    : header.dwType == RIM_TYPEMOUSE ? DeviceType.Mouse
+                    : DeviceType.Unknown;
+
+                lock (_blockLock)
                 {
-                    RAWINPUT raw = Marshal.PtrToStructure<RAWINPUT>(buffer);
-                    _currentInputDevice = raw.header.hDevice;
-
-                    // Notify tracking service of active input
-                    Services.UsageTrackingService.Instance.ProcessActiveInput(raw.header.hDevice);
-
-                    // Fire device activity event (throttled to avoid UI flood)
-                    OnDeviceActivity(raw.header.hDevice);
+                    if (deviceType == DeviceType.Keyboard) _lastKeyboardDevice = header.hDevice;
+                    else if (deviceType == DeviceType.Mouse) _lastMouseDevice = header.hDevice;
                 }
+
+                OnDeviceActivity(header.hDevice, deviceType);
             }
-            finally
-            {
-                Marshal.FreeHGlobal(buffer);
-            }
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(buffer);
         }
     }
 
     /// <summary>
     /// Fire device activity event (throttled to max once per 100ms per device)
     /// </summary>
-    private void OnDeviceActivity(IntPtr deviceHandle)
+    private void OnDeviceActivity(IntPtr deviceHandle, DeviceType deviceType)
     {
-        // Find the device ID from handle
-        string? deviceId = null;
-        DeviceType deviceType = DeviceType.Unknown;
-
-        foreach (var kvp in _deviceIdToHandles)
-        {
-            if (kvp.Value.Contains(deviceHandle))
-            {
-                deviceId = kvp.Key;
-                var device = Devices.Find(d => d.DeviceId == deviceId);
-                if (device != null)
-                    deviceType = device.Type;
-                break;
-            }
-        }
-
+        string? deviceId = GetDeviceIdFromHandle(deviceHandle);
         if (deviceId == null) return;
 
         // Throttle: only fire if different device or enough time passed
         var now = DateTime.Now;
-        if (_lastActiveDeviceId != deviceId || (now - _lastActivityTime).TotalMilliseconds > 100)
+        lock (_stateLock)
         {
-            _lastActiveDeviceId = deviceId;
-            _lastActivityTime = now;
-
-            DeviceActivity?.Invoke(this, new DeviceActivityEventArgs
+            if (_lastActivityByDevice.TryGetValue(deviceId, out var last) &&
+                (now - last).TotalMilliseconds <= 100)
             {
-                DeviceId = deviceId,
-                DeviceType = deviceType,
-                Timestamp = now
-            });
+                return;
+            }
+            _lastActivityByDevice[deviceId] = now;
         }
+
+        DeviceActivity?.Invoke(this, new DeviceActivityEventArgs
+        {
+            DeviceId = deviceId,
+            DeviceType = deviceType,
+            Timestamp = now
+        });
     }
 
     /// <summary>
@@ -380,97 +379,103 @@ public class DeviceManager : IDisposable
     /// </summary>
     public string? GetDeviceIdFromHandle(IntPtr handle)
     {
-        foreach (var kvp in _deviceIdToHandles)
+        lock (_stateLock)
         {
-            if (kvp.Value.Contains(handle))
-                return kvp.Key;
+            foreach (var kvp in _deviceIdToHandles)
+            {
+                if (kvp.Value.Contains(handle))
+                    return kvp.Key;
+            }
         }
         return null;
     }
 
     /// <summary>
+    /// Returns a thread-safe copy of the currently enumerated devices
+    /// </summary>
+    public List<DeviceInfo> GetDevicesSnapshot()
+    {
+        lock (_stateLock)
+        {
+            return Devices.ToList();
+        }
+    }
+
+    /// <summary>
     /// Re-enumerates input devices via Raw Input, merging interfaces of the same
-    /// physical device and restoring cached notes/usage totals
+    /// physical device and restoring cached notes and enabled/disabled state
     /// </summary>
     public void RefreshDevices()
     {
-        Devices.Clear();
-        _devicePathToHandle.Clear();
-        _deviceIdToHandles.Clear();
-
-        // Clear stale handle mappings before re-enumerating devices
-        Services.UsageTrackingService.Instance.ClearDeviceHandles();
-
-        try
+        lock (_stateLock)
         {
-            uint count = 0;
-            int size = Marshal.SizeOf<RAWINPUTDEVICELIST>();
-            GetRawInputDeviceList(IntPtr.Zero, ref count, size);
-            if (count == 0) { AddFallback(); return; }
+            Devices.Clear();
+            _devicePathToHandle.Clear();
+            _deviceIdToHandles.Clear();
 
-            var list = new RAWINPUTDEVICELIST[count];
-            var ptr = Marshal.AllocHGlobal((int)(count * size));
             try
             {
-                GetRawInputDeviceList(ptr, ref count, size);
-                for (int i = 0; i < count; i++)
-                    list[i] = Marshal.PtrToStructure<RAWINPUTDEVICELIST>(ptr + i * size);
+                uint count = 0;
+                int size = Marshal.SizeOf<RAWINPUTDEVICELIST>();
+                GetRawInputDeviceList(IntPtr.Zero, ref count, size);
+                if (count == 0) { AddFallback(); return; }
 
-                // Group devices by physical device identity (VID+PID or path prefix)
-                var deviceGroups = new Dictionary<string, List<(DeviceInfo info, IntPtr handle, int dwType)>>();
-
-                foreach (var dev in list)
+                var list = new RAWINPUTDEVICELIST[count];
+                var ptr = Marshal.AllocHGlobal((int)(count * size));
+                try
                 {
-                    var info = GetDeviceInfo(dev.hDevice, dev.dwType);
-                    if (info != null && !string.IsNullOrEmpty(info.Name))
+                    GetRawInputDeviceList(ptr, ref count, size);
+                    for (int i = 0; i < count; i++)
+                        list[i] = Marshal.PtrToStructure<RAWINPUTDEVICELIST>(ptr + i * size);
+
+                    // Group devices by physical device identity (VID+PID or path prefix)
+                    var deviceGroups = new Dictionary<string, List<(DeviceInfo info, IntPtr handle, int dwType)>>();
+
+                    foreach (var dev in list)
                     {
-                        // Determine the physical device key for grouping
-                        string physicalKey = GetPhysicalDeviceKey(info);
+                        var info = GetDeviceInfo(dev.hDevice, dev.dwType);
+                        if (info != null && !string.IsNullOrEmpty(info.Name))
+                        {
+                            if (!deviceGroups.ContainsKey(info.DeviceId))
+                                deviceGroups[info.DeviceId] = new List<(DeviceInfo, IntPtr, int)>();
 
-                        if (!deviceGroups.ContainsKey(physicalKey))
-                            deviceGroups[physicalKey] = new List<(DeviceInfo, IntPtr, int)>();
-
-                        deviceGroups[physicalKey].Add((info, dev.hDevice, dev.dwType));
+                            deviceGroups[info.DeviceId].Add((info, dev.hDevice, dev.dwType));
+                        }
                     }
-                }
 
-                // Merge grouped devices - select the best representative for each physical device
-                foreach (var group in deviceGroups.Values)
-                {
-                    var best = SelectBestDevice(group);
-                    if (best.info != null)
+                    // Merge grouped devices - select the best representative for each physical device
+                    foreach (var group in deviceGroups.Values)
                     {
-                        // Store device path to handle mapping for blocking
+                        var best = SelectBestDevice(group);
+                        if (best.info == null) continue;
+
                         _devicePathToHandle[best.info.DevicePath] = best.handle;
 
                         if (_cache.TryGetValue(best.info.DeviceId, out var cached))
-                        {
                             best.info.UserNote = cached.UserNote;
-                            best.info.TotalUsageSeconds = cached.TotalUsageSeconds;
-                        }
+
+                        // Restore the enabled/disabled state from this session
+                        best.info.IsEnabled = !_disabledDeviceIds.Contains(best.info.DeviceId);
 
                         // Store all handles for this physical device (for blocking all interfaces)
-                        var allHandles = new HashSet<IntPtr>();
-                        foreach (var (info, handle, _) in group)
-                        {
-                            allHandles.Add(handle);
-                            Services.UsageTrackingService.Instance.RegisterDeviceHandle(handle, best.info.DeviceId);
-                        }
-                        _deviceIdToHandles[best.info.DeviceId] = allHandles;
+                        _deviceIdToHandles[best.info.DeviceId] = group
+                            .Select(g => g.handle)
+                            .ToHashSet();
 
                         Devices.Add(best.info);
                     }
                 }
-            }
-            finally { Marshal.FreeHGlobal(ptr); }
+                finally { Marshal.FreeHGlobal(ptr); }
 
-            if (Devices.Count == 0) AddFallback();
+                if (Devices.Count == 0) AddFallback();
+            }
+            catch { AddFallback(); }
         }
-        catch { AddFallback(); }
     }
 
     /// <summary>
-    /// Get a unique key for grouping interfaces of the same physical device
+    /// Compute the stable physical identity for a device from its interface path.
+    /// Used both for grouping composite interfaces and as the persistent DeviceId.
     /// </summary>
     private static string GetPhysicalDeviceKey(DeviceInfo info)
     {
@@ -480,9 +485,8 @@ public class DeviceManager : IDisposable
         // This handles composite devices like mice with keyboard interfaces
         var vidIdx = path.IndexOf("VID_");
         var pidIdx = path.IndexOf("PID_");
-        if (vidIdx >= 0 && pidIdx >= 0 && pidIdx > vidIdx)
+        if (vidIdx >= 0 && pidIdx > vidIdx && vidIdx + 8 <= path.Length && pidIdx + 8 <= path.Length)
         {
-            // Extract VID and PID
             var vid = path.Substring(vidIdx + 4, 4);
             var pid = path.Substring(pidIdx + 4, 4);
             return $"VIDPID_{vid}_{pid}";
@@ -570,7 +574,7 @@ public class DeviceManager : IDisposable
 
     private DeviceInfo? GetDeviceInfo(IntPtr hDevice, int dwType)
     {
-        var dev = new DeviceInfo { DeviceId = hDevice.ToString(), IsEnabled = true };
+        var dev = new DeviceInfo { IsEnabled = true };
 
         uint nameSize = 0;
         GetRawInputDeviceInfo(hDevice, RIDI_DEVICENAME, IntPtr.Zero, ref nameSize);
@@ -656,33 +660,42 @@ public class DeviceManager : IDisposable
             _ => !string.IsNullOrEmpty(dev.Manufacturer) ? $"{dev.Manufacturer} Device" : "HID Device"
         };
 
+        // Stable identity: derived from the device path so it survives reboots.
+        // Raw input handles would change every session and orphan all persisted data.
+        dev.DeviceId = GetPhysicalDeviceKey(dev);
+        if (string.IsNullOrEmpty(dev.DeviceId))
+            dev.DeviceId = $"UNKNOWN_{hDevice}";
+
         return dev;
     }
 
     private static string ExtractVidPid(string path, string prefix)
     {
+        // "VID_XXXX" needs 8 characters from the match start
         int idx = path.ToUpperInvariant().IndexOf(prefix);
-        return idx >= 0 && idx + 7 <= path.Length ? path.Substring(idx + 4, 4) : "";
+        return idx >= 0 && idx + 8 <= path.Length ? path.Substring(idx + 4, 4) : "";
     }
 
     private void AddFallback()
     {
-        Devices.Add(new DeviceInfo { Name = "Keyboard", Type = DeviceType.Keyboard, IsEnabled = true });
-        Devices.Add(new DeviceInfo { Name = "Mouse", Type = DeviceType.Mouse, IsEnabled = true });
-        Devices.Add(new DeviceInfo { Name = "Touchpad", Type = DeviceType.Touchpad, IsEnabled = true });
+        Devices.Add(new DeviceInfo { Name = "Keyboard", DeviceId = "FALLBACK_KEYBOARD", Type = DeviceType.Keyboard, IsEnabled = true });
+        Devices.Add(new DeviceInfo { Name = "Mouse", DeviceId = "FALLBACK_MOUSE", Type = DeviceType.Mouse, IsEnabled = true });
+        Devices.Add(new DeviceInfo { Name = "Touchpad", DeviceId = "FALLBACK_TOUCHPAD", Type = DeviceType.Touchpad, IsEnabled = true });
     }
 
     /// <summary>
     /// Install low-level hooks (called automatically when blocking is needed)
     /// </summary>
-    public void InstallHooks()
+    /// <returns>True if both hooks are installed</returns>
+    public bool InstallHooks()
     {
-        if (_keyboardHook == IntPtr.Zero || _mouseHook == IntPtr.Zero)
-        {
-            _hookProc = HookProc;
+        _hookProc ??= HookProc;
+        if (_keyboardHook == IntPtr.Zero)
             _keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, _hookProc, GetModuleHandle(null), 0);
+        if (_mouseHook == IntPtr.Zero)
             _mouseHook = SetWindowsHookEx(WH_MOUSE_LL, _hookProc, GetModuleHandle(null), 0);
-        }
+
+        return _keyboardHook != IntPtr.Zero && _mouseHook != IntPtr.Zero;
     }
 
     /// <summary>
@@ -703,35 +716,85 @@ public class DeviceManager : IDisposable
     }
 
     /// <summary>
-    /// Combined hook procedure for both keyboard and mouse
+    /// Combined hook procedure for both keyboard and mouse. Input is blocked only
+    /// when the most recent raw input of the SAME type came from a blocked device.
+    /// Holding both Shift keys forces every device to be unblocked immediately.
     /// </summary>
     private IntPtr HookProc(int nCode, IntPtr wParam, IntPtr lParam)
     {
         if (nCode >= 0)
         {
-            // Check if current input device is blocked
-            bool shouldBlock = false;
+            int msg = wParam.ToInt32();
+            bool isMouse = msg >= 0x0200;
+
+            if (!isMouse)
+            {
+                // Track the emergency unlock chord (both Shift keys) even while
+                // blocking, because we still see events we are about to swallow.
+                if (msg is WM_KEYDOWN or WM_SYSKEYDOWN)
+                {
+                    var kb = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
+                    if (kb.vkCode == VK_LSHIFT) _lShiftDown = true;
+                    else if (kb.vkCode == VK_RSHIFT) _rShiftDown = true;
+                }
+                else if (msg is WM_KEYUP or WM_SYSKEYUP)
+                {
+                    var kb = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
+                    if (kb.vkCode == VK_LSHIFT) _lShiftDown = false;
+                    else if (kb.vkCode == VK_RSHIFT) _rShiftDown = false;
+                }
+            }
+
+            bool shouldBlock;
+            bool emergency = false;
             lock (_blockLock)
             {
-                shouldBlock = _blockedHandles.Contains(_currentInputDevice);
+                shouldBlock = _blockedHandles.Contains(isMouse ? _lastMouseDevice : _lastKeyboardDevice);
+                if (shouldBlock && _lShiftDown && _rShiftDown)
+                {
+                    // Emergency escape: unblock everything instead of swallowing
+                    // input we may be misattributing.
+                    shouldBlock = false;
+                    emergency = true;
+                }
+            }
+
+            if (emergency)
+            {
+                EmergencyUnlock();
             }
 
             if (shouldBlock)
             {
-                // Block this input by returning non-zero
                 return new IntPtr(1);
             }
         }
 
-        // Determine which hook to call next
-        IntPtr hookToCall = _keyboardHook;
-        int msg = wParam.ToInt32();
-        if (msg >= 0x0200 && msg <= 0x020E) // Mouse messages range
+        // Route to the matching hook chain; the OS ignores the hook handle for
+        // low-level hooks, but pass the right one anyway.
+        bool mouseMsg = wParam.ToInt32() >= 0x0200;
+        return CallNextHookEx(mouseMsg ? _mouseHook : _keyboardHook, nCode, wParam, lParam);
+    }
+
+    /// <summary>
+    /// Clears all blocking state after the emergency chord was detected and
+    /// notifies subscribers. Hooks are unhooked from here rather than inside the
+    /// hook callback, which the system does not guarantee to be reentrant.
+    /// </summary>
+    private void EmergencyUnlock()
+    {
+        lock (_blockLock)
         {
-            hookToCall = _mouseHook;
+            if (_blockedHandles.Count == 0) return;
+            _blockedHandles.Clear();
         }
 
-        return CallNextHookEx(hookToCall, nCode, wParam, lParam);
+        lock (_stateLock)
+        {
+            _disabledDeviceIds.Clear();
+            foreach (var d in Devices) d.IsEnabled = true;
+        }
+        DevicesEmergencyUnlocked?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -743,25 +806,30 @@ public class DeviceManager : IDisposable
     /// <returns>True if the device was found and toggled</returns>
     public bool ToggleDevice(string deviceId, bool enable)
     {
-        var dev = Devices.Find(d => d.DeviceId == deviceId);
+        DeviceInfo? dev;
+        lock (_stateLock)
+        {
+            dev = Devices.Find(d => d.DeviceId == deviceId);
+        }
         if (dev == null) return false;
 
         // Get all handles for this physical device (to block all interfaces)
-        if (!_deviceIdToHandles.TryGetValue(deviceId, out var handles) || handles.Count == 0)
+        HashSet<IntPtr>? handles;
+        lock (_stateLock)
+        {
+            _deviceIdToHandles.TryGetValue(deviceId, out handles);
+        }
+
+        if (handles == null || handles.Count == 0)
         {
             // Fallback: try to get handle from path
-            if (_devicePathToHandle.TryGetValue(dev.DevicePath, out var handle))
+            lock (_stateLock)
             {
-                handles = new HashSet<IntPtr> { handle };
+                if (_devicePathToHandle.TryGetValue(dev.DevicePath, out var handle))
+                    handles = new HashSet<IntPtr> { handle };
             }
-            else if (long.TryParse(deviceId, out long handleValue))
-            {
-                handles = new HashSet<IntPtr> { new IntPtr(handleValue) };
-            }
-            else
-            {
+            if (handles == null || handles.Count == 0)
                 return false;
-            }
         }
 
         if (enable)
@@ -772,24 +840,36 @@ public class DeviceManager : IDisposable
                 foreach (var h in handles)
                     _blockedHandles.Remove(h);
             }
-            dev.IsEnabled = true;
-
-            // If nothing is blocked, uninstall hooks
             if (_blockedHandles.Count == 0)
             {
                 UninstallHooks();
             }
+
+            lock (_stateLock)
+            {
+                _disabledDeviceIds.Remove(deviceId);
+                dev.IsEnabled = true;
+            }
         }
         else
         {
-            // Disable device - add all handles to blocked list and install hooks
-            InstallHooks();
+            // Disable device - install hooks first so no input slips through
+            if (!InstallHooks())
+            {
+                return false;
+            }
+
             lock (_blockLock)
             {
                 foreach (var h in handles)
                     _blockedHandles.Add(h);
             }
-            dev.IsEnabled = false;
+
+            lock (_stateLock)
+            {
+                _disabledDeviceIds.Add(deviceId);
+                dev.IsEnabled = false;
+            }
         }
 
         return true;

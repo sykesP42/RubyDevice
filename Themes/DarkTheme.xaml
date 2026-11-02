@@ -31,4 +31,7 @@
     <SolidColorBrush x:Key="TouchpadBrush" Color="#F472B6"/>
     <SolidColorBrush x:Key="OtherDeviceBrush" Color="#9CA3AF"/>
 
+    <SolidColorBrush x:Key="ChartActiveBrush" Color="#60A5FA"/>
+    <SolidColorBrush x:Key="ChartEnabledBrush" Color="#34D399"/>
+
 </ResourceDictionary>

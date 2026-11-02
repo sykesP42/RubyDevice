@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -27,6 +28,7 @@ public sealed partial class UsageRecordPage : Page
     private string _selectedRangeMode = "days"; // "days", "week", "month"
     private string? _selectedDeviceId;
     private bool _isLoaded;
+    private bool _suppressRetentionEvents;
 
     public UsageRecordPage()
     {
@@ -66,6 +68,7 @@ public sealed partial class UsageRecordPage : Page
         LegendActive.Text = _loc["ActiveTime"];
         LegendEnabled.Text = _loc["EnabledTime"];
         TextExport.Text = _loc["ExportData"];
+        ToolTipService.SetToolTip(BtnExport, _loc["ExportHint"]);
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -83,8 +86,10 @@ public sealed partial class UsageRecordPage : Page
 
         UsageTrackingService.Instance.TrackingChanged += OnTrackingChanged;
 
-        // Set retention days
+        // Set retention days without triggering a settings write-back
+        _suppressRetentionEvents = true;
         RetentionBox.Value = UsageTrackingService.Instance.Config.RetentionDays;
+        _suppressRetentionEvents = false;
     }
 
     protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -286,7 +291,7 @@ public sealed partial class UsageRecordPage : Page
             {
                 Width = barWidth,
                 Height = Math.Max(2, activeHeight),
-                Fill = new Microsoft.UI.Xaml.Media.SolidColorBrush(Color.FromArgb(255, 59, 130, 246)),
+                Fill = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ChartActiveBrush"],
                 RadiusX = 2,
                 RadiusY = 2
             };
@@ -301,7 +306,7 @@ public sealed partial class UsageRecordPage : Page
             {
                 Width = barWidth,
                 Height = Math.Max(2, enabledHeight),
-                Fill = new Microsoft.UI.Xaml.Media.SolidColorBrush(Color.FromArgb(255, 16, 185, 129)),
+                Fill = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ChartEnabledBrush"],
                 RadiusX = 2,
                 RadiusY = 2
             };
@@ -320,8 +325,7 @@ public sealed partial class UsageRecordPage : Page
             {
                 Text = record.Date.ToString("MM-dd"),
                 FontSize = 10,
-                Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                    (Color)Application.Current.Resources["TextTertiaryColor"]),
+                Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextTertiaryBrush"],
                 Width = groupWidth * labelInterval,
                 HorizontalAlignment = HorizontalAlignment.Center
             };
@@ -371,7 +375,7 @@ public sealed partial class UsageRecordPage : Page
             {
                 Width = barWidth,
                 Height = Math.Max(2, activeHeight),
-                Fill = new Microsoft.UI.Xaml.Media.SolidColorBrush(Color.FromArgb(255, 59, 130, 246)),
+                Fill = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ChartActiveBrush"],
                 RadiusX = 2,
                 RadiusY = 2
             };
@@ -386,7 +390,7 @@ public sealed partial class UsageRecordPage : Page
             {
                 Width = barWidth,
                 Height = Math.Max(2, enabledHeight),
-                Fill = new Microsoft.UI.Xaml.Media.SolidColorBrush(Color.FromArgb(255, 16, 185, 129)),
+                Fill = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ChartEnabledBrush"],
                 RadiusX = 2,
                 RadiusY = 2
             };
@@ -400,8 +404,7 @@ public sealed partial class UsageRecordPage : Page
             {
                 Text = week.WeekStartDate.ToString("MM-dd"),
                 FontSize = 10,
-                Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                    (Color)Application.Current.Resources["TextTertiaryColor"]),
+                Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextTertiaryBrush"],
                 Width = groupWidth,
                 HorizontalAlignment = HorizontalAlignment.Center
             };
@@ -451,7 +454,7 @@ public sealed partial class UsageRecordPage : Page
             {
                 Width = barWidth,
                 Height = Math.Max(2, activeHeight),
-                Fill = new Microsoft.UI.Xaml.Media.SolidColorBrush(Color.FromArgb(255, 59, 130, 246)),
+                Fill = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ChartActiveBrush"],
                 RadiusX = 2,
                 RadiusY = 2
             };
@@ -466,7 +469,7 @@ public sealed partial class UsageRecordPage : Page
             {
                 Width = barWidth,
                 Height = Math.Max(2, enabledHeight),
-                Fill = new Microsoft.UI.Xaml.Media.SolidColorBrush(Color.FromArgb(255, 16, 185, 129)),
+                Fill = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ChartEnabledBrush"],
                 RadiusX = 2,
                 RadiusY = 2
             };
@@ -480,8 +483,7 @@ public sealed partial class UsageRecordPage : Page
             {
                 Text = month.MonthLabel,
                 FontSize = 10,
-                Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                    (Color)Application.Current.Resources["TextTertiaryColor"]),
+                Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextTertiaryBrush"],
                 Width = groupWidth,
                 HorizontalAlignment = HorizontalAlignment.Center
             };
@@ -516,6 +518,9 @@ public sealed partial class UsageRecordPage : Page
 
     private void RetentionBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
     {
+        // Skip the value assignment performed in OnNavigatedTo, which would
+        // otherwise rewrite tracking_settings.json on every page visit
+        if (_suppressRetentionEvents) return;
         if (args.NewValue >= 7 && args.NewValue <= 365)
         {
             UsageTrackingService.Instance.SetRetentionDays((int)args.NewValue);
@@ -546,7 +551,7 @@ public sealed partial class UsageRecordPage : Page
             else
             {
                 _selectedRangeMode = "days";
-                _selectedDays = int.Parse(tag);
+                _selectedDays = int.TryParse(tag, out var days) ? days : 30;
             }
             LoadHistoryData();
         }
@@ -589,7 +594,9 @@ public sealed partial class UsageRecordPage : Page
                 csvContent = DataExportService.GenerateCsvContent(records, _viewModel.AllDevices.ToList());
             }
 
-            await Windows.Storage.FileIO.WriteTextAsync(file, csvContent);
+            // UTF-8 BOM so Excel detects the encoding for non-ASCII device names
+            var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(csvContent)).ToArray();
+            await Windows.Storage.FileIO.WriteBytesAsync(file, bytes);
 
             // Show success notification
             var notifyService = NotificationService.Instance;

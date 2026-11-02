@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using RubyDevice.Models;
@@ -24,7 +25,7 @@ public static class DataExportService
         if (records.Count == 0)
             return string.Empty;
 
-        var deviceLookup = devices.ToDictionary(d => d.DeviceId, d => d.Name);
+        var deviceLookup = BuildDeviceLookup(devices);
         var sb = new StringBuilder();
 
         // Header
@@ -34,10 +35,17 @@ public static class DataExportService
         foreach (var record in records.OrderByDescending(r => r.Date))
         {
             var deviceName = deviceLookup.TryGetValue(record.DeviceId, out var name) ? name : record.DeviceId;
-            var activeFormatted = FormatTime(record.ActiveSeconds);
-            var enabledFormatted = FormatTime(record.EnabledSeconds);
+            var activeFormatted = FormatTimeWithSeconds(record.ActiveSeconds);
+            var enabledFormatted = FormatTimeWithSeconds(record.EnabledSeconds);
 
-            sb.AppendLine($"{record.Date:yyyy-MM-dd},{EscapeCsvField(deviceName)},{EscapeCsvField(record.DeviceId)},{record.ActiveSeconds},{record.EnabledSeconds},{activeFormatted},{enabledFormatted}");
+            sb.AppendLine(string.Join(",",
+                record.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                EscapeCsvField(deviceName),
+                EscapeCsvField(record.DeviceId),
+                FormatNumber(record.ActiveSeconds),
+                FormatNumber(record.EnabledSeconds),
+                activeFormatted,
+                enabledFormatted));
         }
 
         return sb.ToString();
@@ -51,7 +59,7 @@ public static class DataExportService
         if (summaries.Count == 0)
             return string.Empty;
 
-        var deviceLookup = devices.ToDictionary(d => d.DeviceId, d => d.Name);
+        var deviceLookup = BuildDeviceLookup(devices);
         var sb = new StringBuilder();
 
         sb.AppendLine("Week Start,Week End,Device Name,Device ID,Active Time (seconds),Enabled Time (seconds),Days with Data");
@@ -59,7 +67,14 @@ public static class DataExportService
         foreach (var summary in summaries.OrderByDescending(w => w.WeekStartDate))
         {
             var deviceName = deviceLookup.TryGetValue(summary.DeviceId, out var name) ? name : summary.DeviceId;
-            sb.AppendLine($"{summary.WeekStartDate:yyyy-MM-dd},{summary.WeekEndDate:yyyy-MM-dd},{EscapeCsvField(deviceName)},{EscapeCsvField(summary.DeviceId)},{summary.TotalActiveSeconds},{summary.TotalEnabledSeconds},{summary.DaysWithData}");
+            sb.AppendLine(string.Join(",",
+                summary.WeekStartDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                summary.WeekEndDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                EscapeCsvField(deviceName),
+                EscapeCsvField(summary.DeviceId),
+                FormatNumber(summary.TotalActiveSeconds),
+                FormatNumber(summary.TotalEnabledSeconds),
+                summary.DaysWithData.ToString(CultureInfo.InvariantCulture)));
         }
 
         return sb.ToString();
@@ -73,7 +88,7 @@ public static class DataExportService
         if (summaries.Count == 0)
             return string.Empty;
 
-        var deviceLookup = devices.ToDictionary(d => d.DeviceId, d => d.Name);
+        var deviceLookup = BuildDeviceLookup(devices);
         var sb = new StringBuilder();
 
         sb.AppendLine("Year,Month,Device Name,Device ID,Active Time (seconds),Enabled Time (seconds),Days with Data");
@@ -81,10 +96,38 @@ public static class DataExportService
         foreach (var summary in summaries.OrderByDescending(m => m.Year).ThenByDescending(m => m.Month))
         {
             var deviceName = deviceLookup.TryGetValue(summary.DeviceId, out var name) ? name : summary.DeviceId;
-            sb.AppendLine($"{summary.Year},{summary.Month},{EscapeCsvField(deviceName)},{EscapeCsvField(summary.DeviceId)},{summary.TotalActiveSeconds},{summary.TotalEnabledSeconds},{summary.DaysWithData}");
+            sb.AppendLine(string.Join(",",
+                summary.Year.ToString(CultureInfo.InvariantCulture),
+                summary.Month.ToString(CultureInfo.InvariantCulture),
+                EscapeCsvField(deviceName),
+                EscapeCsvField(summary.DeviceId),
+                FormatNumber(summary.TotalActiveSeconds),
+                FormatNumber(summary.TotalEnabledSeconds),
+                summary.DaysWithData.ToString(CultureInfo.InvariantCulture)));
         }
 
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Builds a device id -> name lookup. Duplicate ids (possible with fallback
+    /// entries) keep the first name instead of throwing.
+    /// </summary>
+    private static Dictionary<string, string> BuildDeviceLookup(List<DeviceViewModel> devices)
+    {
+        return devices
+            .Where(d => !string.IsNullOrEmpty(d.DeviceId))
+            .GroupBy(d => d.DeviceId)
+            .ToDictionary(g => g.Key, g => g.First().Name);
+    }
+
+    /// <summary>
+    /// Formats a numeric CSV cell with InvariantCulture so decimal commas from
+    /// the user's locale never shift the columns.
+    /// </summary>
+    private static string FormatNumber(double value)
+    {
+        return value.ToString("0.##", CultureInfo.InvariantCulture);
     }
 
     /// <summary>
@@ -104,9 +147,9 @@ public static class DataExportService
     }
 
     /// <summary>
-    /// Format seconds to human-readable time
+    /// Format seconds to human-readable time including a seconds component
     /// </summary>
-    private static string FormatTime(double seconds)
+    private static string FormatTimeWithSeconds(double seconds)
     {
         var totalSeconds = (long)seconds;
         var hours = totalSeconds / 3600;
@@ -115,9 +158,8 @@ public static class DataExportService
 
         if (hours > 0)
             return $"{hours}h {mins}m";
-        else if (mins > 0)
+        if (mins > 0)
             return $"{mins}m {secs}s";
-        else
-            return $"{secs}s";
+        return $"{secs}s";
     }
 }

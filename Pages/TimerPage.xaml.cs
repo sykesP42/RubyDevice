@@ -1,11 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Threading;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
-using RubyDevice.Core;
 using RubyDevice.Models;
 using RubyDevice.Services;
 using RubyDevice.ViewModels;
@@ -13,22 +13,16 @@ using RubyDevice.ViewModels;
 namespace RubyDevice.Pages;
 
 /// <summary>
-/// Auto-restore timer page. Counts down and re-enables all disabled devices
-/// when the timeout expires. Uses a System.Threading.Timer with 1s ticks.
+/// Auto-restore timer page. The countdown itself lives in <see cref="MainViewModel"/>
+/// so it keeps running when the user navigates away; this page only displays and
+/// controls it.
 /// </summary>
 public sealed partial class TimerPage : Page
 {
     private MainViewModel? _viewModel;
     private readonly LocalizationService _loc = LocalizationService.Instance;
-    private bool _initialized = false;
-
-    // Countdown timer
-    private Timer? _countdownTimer;
-    private int _remainingSeconds;
+    private bool _initialized;
     private int _totalMinutes;
-    private bool _isRunning;
-
-    // Timer settings persistence
 
     public TimerPage()
     {
@@ -36,6 +30,7 @@ public sealed partial class TimerPage : Page
         _loc.PropertyChanged += (_, _) => UpdateLocalizedStrings();
         UpdateLocalizedStrings();
         _initialized = true;
+        ApplyPresetVisuals();
     }
 
     private void UpdateLocalizedStrings()
@@ -50,6 +45,8 @@ public sealed partial class TimerPage : Page
         TextStop.Text = _loc["Stop"];
         TextRestoreAll.Text = _loc["RestoreAll"];
         TimerUnitText.Text = _loc["Minutes"];
+        ToolTipService.SetToolTip(BtnStart, _loc["Start"]);
+        ToolTipService.SetToolTip(BtnStop, _loc["Stop"]);
 
         UpdateTimerStateText();
     }
@@ -61,40 +58,68 @@ public sealed partial class TimerPage : Page
         // Detach from any previous view model first, otherwise repeated navigation
         // would stack up duplicate subscriptions on the same instance.
         if (_viewModel != null)
+        {
             _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            _viewModel.AutoRestoreTick -= OnAutoRestoreTick;
+        }
 
         _viewModel = e.Parameter as MainViewModel;
 
         if (_viewModel != null)
+        {
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+            _viewModel.AutoRestoreTick += OnAutoRestoreTick;
+        }
 
         UpdateDisabledList();
         LoadTimerSettings();
+        SyncCountdownState();
     }
 
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
         base.OnNavigatedFrom(e);
 
+        // Only detach the UI: the countdown keeps running app-wide.
         if (_viewModel != null)
+        {
             _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
-
-        StopCountdown();
+            _viewModel.AutoRestoreTick -= OnAutoRestoreTick;
+        }
     }
 
-    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e) => UpdateDisabledList();
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MainViewModel.IsAutoRestoreRunning))
+        {
+            SyncCountdownState();
+            UpdateDisabledList();
+        }
+        else
+        {
+            UpdateDisabledList();
+        }
+    }
+
+    private void OnAutoRestoreTick(object? sender, EventArgs e)
+    {
+        if (_viewModel == null) return;
+
+        if (_viewModel.IsAutoRestoreRunning)
+        {
+            UpdateTimerDisplay(_viewModel.AutoRestoreRemainingSeconds);
+        }
+        UpdateTimerStateText();
+        UpdateDisabledList();
+    }
 
     private void LoadTimerSettings()
     {
         var settings = TimerConfig.Load();
-        TimeoutBox.Value = settings.TimeoutMinutes;
-        _totalMinutes = settings.TimeoutMinutes;
-        UpdateTimerDisplay(settings.TimeoutMinutes * 60);
-    }
-
-    private void SaveTimerSettings()
-    {
-        new TimerConfig { TimeoutMinutes = _totalMinutes }.Save();
+        _totalMinutes = Math.Clamp(settings.TimeoutMinutes, 1, 480);
+        TimeoutBox.Value = _totalMinutes;
+        UpdateTimerDisplay(_totalMinutes * 60);
+        ApplyPresetVisuals();
     }
 
     private void UpdateDisabledList()
@@ -106,18 +131,14 @@ public sealed partial class TimerPage : Page
         BtnRestoreAll.Visibility = disabled.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    #region Countdown Logic
+    #region Countdown Controls
 
-    /// <summary>
-    /// Validates that there is something to restore, then starts a fresh countdown from
-    /// the configured duration and persists the setting for the next launch.
-    /// </summary>
     private void BtnStart_Click(object sender, RoutedEventArgs e)
     {
-        if (_isRunning || _viewModel == null) return;
+        if (_viewModel == null || _viewModel.IsAutoRestoreRunning) return;
 
-        var disabled = _viewModel.AllDevices.Where(d => !d.IsEnabled).ToList();
-        if (disabled.Count == 0)
+        var disabledCount = _viewModel.AllDevices.Count(d => !d.IsEnabled);
+        if (disabledCount == 0)
         {
             // No devices to restore
             var dialog = new ContentDialog
@@ -131,116 +152,70 @@ public sealed partial class TimerPage : Page
             return;
         }
 
-        _totalMinutes = (int)Math.Max(1, TimeoutBox.Value);
-        _remainingSeconds = _totalMinutes * 60;
+        var minutes = (int)Math.Max(1, TimeoutBox.Value);
+        if (!_viewModel.StartAutoRestore(minutes)) return;
 
-        StartCountdown();
-        SaveTimerSettings();
+        // Persist the chosen timeout for the next launch
+        new TimerConfig { TimeoutMinutes = minutes }.Save();
+
+        _totalMinutes = minutes;
+        UpdateTimerDisplay(_viewModel.AutoRestoreRemainingSeconds);
+        UpdateTimerStateText();
     }
 
     private void BtnStop_Click(object sender, RoutedEventArgs e)
     {
-        StopCountdown();
-    }
-
-    /// <summary>
-    /// Starts the 1-second countdown tick and locks the timer controls while it runs.
-    /// </summary>
-    private void StartCountdown()
-    {
-        _isRunning = true;
-        BtnStart.IsEnabled = false;
-        BtnStop.IsEnabled = true;
-        TimeoutBox.IsEnabled = false;
-        UpdateTimerDisplay(_remainingSeconds);
+        _viewModel?.StopAutoRestore();
         UpdateTimerStateText();
-
-        // Start countdown timer (fires every 1 second)
-        _countdownTimer?.Dispose();
-        _countdownTimer = new Timer(OnCountdownTick, null, 0, 1000);
-    }
-
-    /// <summary>
-    /// Stops the countdown, releases the timer controls and resets the display to the
-    /// configured duration.
-    /// </summary>
-    private void StopCountdown()
-    {
-        _isRunning = false;
-        _countdownTimer?.Dispose();
-        _countdownTimer = null;
-        BtnStart.IsEnabled = true;
-        BtnStop.IsEnabled = false;
-        TimeoutBox.IsEnabled = true;
-        UpdateTimerDisplay(_totalMinutes * 60);
-        UpdateTimerStateText();
-    }
-
-    /// <summary>
-    /// Countdown tick, fired on a background thread. Decrements the remaining time,
-    /// marshals the display update to the UI thread, and restores all disabled devices
-    /// once it reaches zero.
-    /// </summary>
-    private void OnCountdownTick(object? state)
-    {
-        if (!_isRunning) return;
-
-        _remainingSeconds--;
-
-        // Update UI on UI thread
-        DispatcherQueue.TryEnqueue(() =>
+        if (_viewModel == null || !_viewModel.IsAutoRestoreRunning)
         {
-            if (!_isRunning) return;
-            UpdateTimerDisplay(_remainingSeconds);
-
-            if (_remainingSeconds <= 0)
-            {
-                // Timer complete - restore all disabled devices
-                RestoreAllDevices();
-                StopCountdown();
-            }
-        });
-    }
-
-    /// <summary>
-    /// Re-enables all currently disabled devices and shows a summary notification
-    /// </summary>
-    private void RestoreAllDevices()
-    {
-        if (_viewModel == null) return;
-
-        var deviceManager = _viewModel.GetDeviceManager();
-        var disabled = _viewModel.AllDevices.Where(d => !d.IsEnabled).ToList();
-        var restoredCount = 0;
-
-        foreach (var device in disabled)
-        {
-            if (deviceManager.ToggleDevice(device.DeviceId, true))
-            {
-                device.IsEnabled = true;
-                restoredCount++;
-            }
-        }
-
-        // Notification
-        if (restoredCount > 0)
-        {
-            var msg = string.Format(_loc["DevicesRestoredCount"], restoredCount);
-            var notifyService = NotificationService.Instance;
-            notifyService.ShowToast(_loc["DeviceRestored"], msg);
-
-            UpdateDisabledList();
+            UpdateTimerDisplay(_totalMinutes * 60);
         }
     }
 
     private void BtnRestoreAll_Click(object sender, RoutedEventArgs e)
     {
-        RestoreAllDevices();
+        if (_viewModel == null) return;
 
-        if (_isRunning)
+        var restoredCount = _viewModel.RestoreAllDisabledDevices();
+        if (restoredCount > 0)
         {
-            StopCountdown();
+            var msg = string.Format(_loc["DevicesRestoredCount"], restoredCount);
+            NotificationService.Instance.ShowToast(_loc["DeviceRestored"], msg);
         }
+
+        if (_viewModel.IsAutoRestoreRunning)
+        {
+            _viewModel.StopAutoRestore();
+        }
+
+        UpdateTimerDisplay(_totalMinutes * 60);
+        UpdateTimerStateText();
+        UpdateDisabledList();
+    }
+
+    /// <summary>
+    /// Aligns the page with the view model's countdown state. The countdown
+    /// survives page navigation, so returning to this page re-attaches to it.
+    /// </summary>
+    private void SyncCountdownState()
+    {
+        if (_viewModel == null) return;
+
+        var running = _viewModel.IsAutoRestoreRunning;
+        BtnStart.IsEnabled = !running;
+        BtnStop.IsEnabled = running;
+        TimeoutBox.IsEnabled = !running;
+
+        if (running)
+        {
+            UpdateTimerDisplay(_viewModel.AutoRestoreRemainingSeconds);
+        }
+        else
+        {
+            UpdateTimerDisplay(_totalMinutes * 60);
+        }
+        UpdateTimerStateText();
     }
 
     #endregion
@@ -252,6 +227,7 @@ public sealed partial class TimerPage : Page
     /// </summary>
     private void UpdateTimerDisplay(int totalSeconds)
     {
+        totalSeconds = Math.Max(0, totalSeconds);
         var mins = totalSeconds / 60;
         var secs = totalSeconds % 60;
         TimerDisplay.Text = $"{mins:D2}:{secs:D2}";
@@ -262,18 +238,11 @@ public sealed partial class TimerPage : Page
     /// </summary>
     private void UpdateTimerStateText()
     {
-        if (_isRunning)
-        {
-            TimerState.Text = _loc["TimerRunning"];
-            StateIndicator.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                Windows.UI.Color.FromArgb(255, 34, 197, 94)); // Green
-        }
-        else
-        {
-            TimerState.Text = _loc["TimerIdle"];
-            StateIndicator.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                Windows.UI.Color.FromArgb(255, 148, 163, 184)); // Gray
-        }
+        var running = _viewModel?.IsAutoRestoreRunning ?? false;
+        TimerState.Text = running ? _loc["TimerRunning"] : _loc["TimerIdle"];
+        StateIndicator.Background = running
+            ? (Brush)Application.Current.Resources["SuccessBrush"]
+            : (Brush)Application.Current.Resources["TextTertiaryBrush"];
     }
 
     #endregion
@@ -282,25 +251,49 @@ public sealed partial class TimerPage : Page
 
     private void Preset_Click(object sender, RoutedEventArgs e)
     {
-        if (_isRunning) return;
+        if (_viewModel is { IsAutoRestoreRunning: true }) return;
 
-        if (sender is Button btn && btn.Tag is string minutes)
+        if (sender is Button btn && btn.Tag is string minutes && int.TryParse(minutes, out var mins))
         {
-            var mins = int.Parse(minutes);
             TimeoutBox.Value = mins;
             _totalMinutes = mins;
             UpdateTimerDisplay(mins * 60);
+            ApplyPresetVisuals();
+        }
+    }
+
+    /// <summary>
+    /// Highlights the preset matching the current timeout so the selection is visible
+    /// </summary>
+    private void ApplyPresetVisuals()
+    {
+        var buttons = new[] { Preset5, Preset15, Preset30, Preset60, Preset120 };
+        var primary = (Brush)Application.Current.Resources["PrimaryBrush"];
+        var primaryLight = (Brush)Application.Current.Resources["PrimaryLightBrush"];
+        var border = (Brush)Application.Current.Resources["BorderBrush"];
+        var secondary = (Brush)Application.Current.Resources["TextSecondaryBrush"];
+        var textPrimary = (Brush)Application.Current.Resources["TextPrimaryBrush"];
+        var transparent = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+
+        foreach (var btn in buttons)
+        {
+            var selected = btn.Tag is string tag && int.TryParse(tag, out var m) && m == _totalMinutes;
+            btn.Background = selected ? primaryLight : transparent;
+            btn.BorderBrush = selected ? primary : border;
+            btn.BorderThickness = new Thickness(1);
+            btn.Foreground = selected ? textPrimary : secondary;
         }
     }
 
     private void TimeoutBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
     {
-        if (!_initialized || _isRunning) return;
-        if (args.NewValue > 0)
-        {
-            _totalMinutes = (int)args.NewValue;
-            UpdateTimerDisplay(_totalMinutes * 60);
-        }
+        if (!_initialized) return;
+        if (_viewModel is { IsAutoRestoreRunning: true }) return;
+        if (args.NewValue <= 0) return;
+
+        _totalMinutes = (int)args.NewValue;
+        UpdateTimerDisplay(_totalMinutes * 60);
+        ApplyPresetVisuals();
     }
 
     private async void ToggleSwitch_Toggled(object sender, RoutedEventArgs e)
@@ -317,12 +310,14 @@ public sealed partial class TimerPage : Page
             toggle.IsOn = wasEnabled;
             await _viewModel.EnableDeviceWithConfirmAsync(device, this);
             toggle.IsOn = device.IsEnabled;
+            UpdateDisabledList();
         }
         else if (!wantEnable && wasEnabled)
         {
             toggle.IsOn = wasEnabled;
             await _viewModel.DisableDeviceWithConfirmAsync(device, this);
             toggle.IsOn = device.IsEnabled;
+            UpdateDisabledList();
         }
     }
 

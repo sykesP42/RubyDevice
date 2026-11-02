@@ -26,6 +26,7 @@ public class DeviceWatcherService : IDisposable
 
     private ManagementEventWatcher? _watcher;
     private Timer? _debounceTimer;
+    private readonly object _debounceLock = new();
     private bool _disposed;
 
     /// <summary>
@@ -90,12 +91,20 @@ public class DeviceWatcherService : IDisposable
     {
         if (_disposed) return;
 
-        _debounceTimer?.Dispose();
-        _debounceTimer = new Timer(_ =>
+        // WMI callbacks can interleave, so the debounce timer replacement is
+        // guarded; otherwise a discarded timer could survive and fire an
+        // extra DevicesChanged event.
+        Timer timer;
+        lock (_debounceLock)
         {
-            if (_disposed) return;
-            DevicesChanged?.Invoke(this, EventArgs.Empty);
-        }, null, 1000, Timeout.Infinite);
+            _debounceTimer?.Dispose();
+            timer = new Timer(_ =>
+            {
+                if (_disposed) return;
+                DevicesChanged?.Invoke(this, EventArgs.Empty);
+            }, null, 1000, Timeout.Infinite);
+            _debounceTimer = timer;
+        }
     }
 
     /// <summary>

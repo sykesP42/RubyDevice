@@ -6,13 +6,15 @@ using RubyDevice.Services;
 
 namespace RubyDevice.Controls;
 
+/// <summary>
+/// Second-stage dialog shown after a device was disabled. Counts down and, unless
+/// the user keeps the device disabled, asks the caller to restore it.
+/// </summary>
 public sealed partial class AutoRestoreDialog : ContentDialog
 {
-    private readonly int _countdownSeconds;
-    private readonly Action _onRestore;
-    private readonly Action _onKeepDisabled;
     private readonly DispatcherTimer _timer;
     private int _remainingSeconds;
+    private bool _decided;
 
     public string DialogTitle { get; }
     public string DeviceName { get; }
@@ -22,13 +24,11 @@ public sealed partial class AutoRestoreDialog : ContentDialog
     public string RestoreText { get; }
 
     /// <summary>
-    /// 创建自动恢复倒计时弹窗
+    /// Creates the auto-restore countdown dialog
     /// </summary>
-    /// <param name="deviceName">设备名称</param>
-    /// <param name="countdownSeconds">倒计时秒数</param>
-    /// <param name="onRestore">恢复设备操作</param>
-    /// <param name="onKeepDisabled">保持禁用操作</param>
-    public AutoRestoreDialog(string deviceName, int countdownSeconds, Action onRestore, Action onKeepDisabled)
+    /// <param name="deviceName">Device name</param>
+    /// <param name="countdownSeconds">Countdown seconds</param>
+    public AutoRestoreDialog(string deviceName, int countdownSeconds)
     {
         InitializeComponent();
 
@@ -40,9 +40,6 @@ public sealed partial class AutoRestoreDialog : ContentDialog
         KeepDisabledText = loc["KeepDisabled"];
         RestoreText = loc["RestoreNow"];
 
-        _countdownSeconds = countdownSeconds;
-        _onRestore = onRestore;
-        _onKeepDisabled = onKeepDisabled;
         _remainingSeconds = countdownSeconds;
 
         _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
@@ -51,22 +48,26 @@ public sealed partial class AutoRestoreDialog : ContentDialog
         UpdateCountdownText();
     }
 
-    public async Task ShowAndCountdownAsync()
+    /// <summary>
+    /// Shows the dialog and runs the countdown.
+    /// </summary>
+    /// <returns>True when the device should be restored (countdown expired or
+    /// user chose "Restore Now"), false when the user chose "Keep Disabled"</returns>
+    public async Task<bool> ShowAndCountdownAsync()
     {
         _timer.Start();
         var result = await ShowAsync();
         _timer.Stop();
 
-        if (result == ContentDialogResult.Primary)
+        if (_decided)
         {
-            // 用户选择保持禁用
-            _onKeepDisabled?.Invoke();
+            // Countdown expired and already hid the dialog
+            return true;
         }
-        else
-        {
-            // 用户选择立即恢复或倒计时结束
-            _onRestore?.Invoke();
-        }
+
+        _decided = true;
+        // Primary button = "Keep Disabled"; anything else restores
+        return result != ContentDialogResult.Primary;
     }
 
     private void Timer_Tick(object? sender, object e)
@@ -74,12 +75,11 @@ public sealed partial class AutoRestoreDialog : ContentDialog
         _remainingSeconds--;
         UpdateCountdownText();
 
-        if (_remainingSeconds <= 0)
-        {
-            _timer.Stop();
-            Hide();
-            _onRestore?.Invoke();
-        }
+        if (_remainingSeconds > 0 || _decided) return;
+
+        _decided = true;
+        _timer.Stop();
+        Hide();
     }
 
     private void UpdateCountdownText()
