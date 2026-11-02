@@ -1,81 +1,95 @@
 # RubyDevice
 
-**RubyDevice** 是一款现代化的 Windows 输入设备管理工具，基于 WinUI 3 构建。它允许用户查看、管理和控制连接到计算机的所有输入设备（键盘、鼠标、触控板）。
+**RubyDevice** is a modern Windows input device manager built on WinUI 3. It lets you view, manage, and control every input device (keyboard, mouse, touchpad) connected to your computer.
 
-## 功能特性
+## Features
 
-- **设备枚举** - 自动检测并列出系统中所有 HID 输入设备，显示详细信息（制造商、VID/PID、连接类型）
-- **设备控制** - 一键启用或禁用特定输入设备，无需管理员权限
-- **安全确认机制** - 两阶段确认流程，防止误操作和意外锁定
-- **使用统计** - 追踪设备使用时间，提供可视化统计图表
-- **多语言支持** - 内置中英文界面切换
-- **多主题支持** - 5 种主题样式（浅色、深色、海洋、森林、日落）
+- **Device enumeration** - Automatically detects and lists all HID input devices, with details (manufacturer, VID/PID, connection type)
+- **Device control** - Enable or disable specific input devices with one click, no administrator rights required
+- **Safety confirmations** - Two-stage confirmation flow: a 5-second confirm countdown, then a 10-second auto-restore countdown after disabling
+- **Emergency unlock** - Hold **both Shift keys together** to instantly re-enable every device if blocking ever misfires
+- **Usage statistics** - Tracks active and enabled time per device with daily/weekly/monthly charts
+- **In-app notifications** - Banner notifications for device state changes (toast notifications are unreliable for unpackaged apps)
+- **Multi-language** - Built-in English and Chinese UI
+- **Multi-theme** - 5 theme palettes (Light, Dark, Ocean, Forest, Sunset)
+- **Hotplug auto-refresh** - Device list refreshes automatically when devices are plugged or unplugged
 
-## 界面导航
+## Navigation
 
-左侧导航栏包含六个页面：
+The left sidebar has six pages:
 
-- **设备** - 设备列表，可单个或批量启用/禁用，并查看设备详情
-- **使用记录** - 按日查看各设备的使用时长，支持导出 CSV
-- **统计** - 周度与月度聚合统计
-- **定时器** - 配置自动恢复倒计时
-- **设置** - 切换界面语言与主题外观
-- **关于** - 版本与许可信息
+- **Devices** - Device list with single or batch enable/disable, and device details
+- **Usage Record** - Per-day usage per device with charts and CSV export
+- **Statistics** - Device counts, type distribution, and usage overview
+- **Timer** - Schedule an auto-restore countdown for all disabled devices (keeps running when you leave the page)
+- **Settings** - Language, theme, auto-start with Windows, auto-refresh, notifications, data management
+- **About** - Version and license info
 
-## 系统要求
+## System Requirements
 
-- Windows 10 版本 1809 (17763) 或更高
-- .NET 9.0 Runtime
+- Windows 10 version 1809 (17763) or higher
+- .NET 9.0 SDK
+- Visual Studio 2022 (any edition) or VS Build Tools - the PRI resource tasks ship with VS; `Directory.Build.props` probes the standard install paths automatically
 
-## 构建项目
+## Building
 
 ```bash
 dotnet build -c Debug -p:Platform=x64
 dotnet run -c Debug -p:Platform=x64
 ```
 
-## 数据存储
+## Running Tests
 
-所有配置与统计数据都保存在 `%AppData%\RubyDevice\` 目录下：
+```bash
+dotnet test tests/RubyDevice.Tests -p:Platform=x64
+```
 
-| 文件 | 内容 |
+The test project references the app project directly and covers the real `TimeHelper`, `DataExportService` (CSV formats, escaping, culture-invariant numbers), and usage model display properties.
+
+## Data Storage
+
+All configuration and statistics are saved in `%AppData%\RubyDevice\`:
+
+| File | Content |
 | --- | --- |
-| `device_data.json` | 设备名称与备注缓存 |
-| `usage_data.json` | 每日使用记录（活跃时长 / 启用时长） |
-| `tracking_settings.json` | 各设备的追踪开关与保留天数 |
-| `timer_settings.json` | 自动恢复定时器的上次超时设置 |
+| `device_data.json` | Device notes cache |
+| `usage_data.json` | Daily usage records (active / enabled seconds) |
+| `tracking_settings.json` | Per-device tracking toggles and retention days |
+| `timer_settings.json` | Last auto-restore timeout setting |
+| `app_settings.json` | Language, theme, behavior toggles |
+| `crash.log` | Unhandled exception log (created on first crash) |
 
-删除这些文件即可恢复到初始状态。
+Devices are identified by a **stable ID derived from their device path** (VID/PID or ACPI id), so notes, tracking settings, and history survive reboots. Delete these files to reset the app to its initial state.
 
-## 数据导出
+## CSV Export
 
-「使用记录」页可以将选中范围的使用数据导出为 CSV，包含日期、设备名称、设备 ID、活跃时长与启用时长。设备名称中若含逗号或引号，导出时会按 CSV 规范加引号转义。
+The "Usage Record" page exports the selected range as CSV with date, device name, device ID, active and enabled time. Numbers use `InvariantCulture` so the columns never shift on comma-decimal locales, and the file is written as UTF-8 with BOM so Excel renders non-ASCII device names correctly.
 
-## 项目结构
+## Project Structure
 
 ```
 RubyDevice/
-├── App.xaml.cs          应用入口，注册全局异常处理
-├── MainWindow.xaml.cs   主窗口、导航与 Raw Input 注册
-├── Core/                设备枚举与输入拦截（Raw Input API + 低级键盘/鼠标钩子）
-├── Models/              数据模型与持久化结构
-├── Services/            本地化、主题、通知、使用统计、设备监听、数据导出
-├── ViewModels/          MVVM 视图模型
-├── Pages/               各功能页面
-├── Controls/            自定义确认与倒计时对话框
-├── Helpers/             通用工具方法
-├── Themes/              5 套主题资源字典
-├── docs/                设计文档与实施计划
-└── tests/               单元测试
+├── App.xaml.cs          Entry point, theme switching, crash log
+├── MainWindow.xaml.cs   Main window, navigation, raw input registration, in-app notifications
+├── Core/                Device enumeration and input blocking (Raw Input API + low-level hooks)
+├── Models/              Data models and persistence structures
+├── Services/            Localization, theme, notification, usage tracking, device watcher, export, auto-start
+├── ViewModels/          MVVM view models (device state + app-wide auto-restore countdown)
+├── Pages/               Feature pages
+├── Controls/            Confirm and auto-restore dialogs
+├── Helpers/             Shared utilities
+├── Themes/              5 theme resource dictionaries
+├── docs/                Design documents
+└── tests/               Unit tests
 ```
 
-## 技术栈
+## Tech Stack
 
 - WinUI 3 (Windows App SDK 1.5)
 - .NET 9.0
 - C# / XAML
-- MVVM 架构
+- MVVM architecture
 
-## 许可证
+## License
 
 MIT License
