@@ -99,7 +99,7 @@
 
                 <!-- Footer -->
                 <Border Grid.Row="1" Padding="16,12" BorderBrush="{ThemeResource BorderBrush}" BorderThickness="0,1,0,0">
-                    <TextBlock Text="v1.0.0" FontSize="11" Foreground="{ThemeResource TextTertiaryBrush}"/>
+                    <TextBlock Text="v1.1.0" FontSize="11" Foreground="{ThemeResource TextTertiaryBrush}"/>
                 </Border>
             </Grid>
 

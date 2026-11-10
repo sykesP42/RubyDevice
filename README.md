@@ -1,5 +1,7 @@
 # RubyDevice
 
+[![CI](https://github.com/sykesP42/RubyDevice/actions/workflows/ci.yml/badge.svg)](https://github.com/sykesP42/RubyDevice/actions/workflows/ci.yml)
+
 **RubyDevice** is a modern Windows input device manager built on WinUI 3. It lets you view, manage, and control every input device (keyboard, mouse, touchpad) connected to your computer.
 
 ## Features
