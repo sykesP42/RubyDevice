@@ -62,6 +62,26 @@ public sealed partial class DeviceDetailPage : Page
         NoteBox.PlaceholderText = _loc["AddNoteHint"];
         LegendActive.Text = _loc["ActiveTime"];
         LegendEnabled.Text = _loc["EnabledTime"];
+        UpdateTrackedSinceLabel();
+    }
+
+    /// <summary>
+    /// Shows when tracking began next to the toggle, hidden for untracked devices
+    /// </summary>
+    private void UpdateTrackedSinceLabel()
+    {
+        if (_device == null) return;
+
+        var firstTracked = UsageTrackingService.Instance.GetFirstTrackedDate(_device.DeviceId);
+        if (firstTracked.HasValue)
+        {
+            TextTrackedSince.Text = string.Format(_loc["TrackedSince"], firstTracked.Value.ToString("yyyy-MM-dd"));
+            TextTrackedSince.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            TextTrackedSince.Visibility = Visibility.Collapsed;
+        }
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -123,6 +143,7 @@ public sealed partial class DeviceDetailPage : Page
         NoteBox.Text = _device.UserNote;
 
         TrackingToggle.IsOn = UsageTrackingService.Instance.IsTracking(_device.DeviceId);
+        UpdateTrackedSinceLabel();
     }
 
     private void LoadUsageData()
@@ -261,6 +282,7 @@ public sealed partial class DeviceDetailPage : Page
 
         UsageTrackingService.Instance.SetTracking(_device.DeviceId, TrackingToggle.IsOn);
         _device.IsTracking = TrackingToggle.IsOn;
+        UpdateTrackedSinceLabel();
     }
 
     private void NoteBox_LostFocus(object sender, RoutedEventArgs e)

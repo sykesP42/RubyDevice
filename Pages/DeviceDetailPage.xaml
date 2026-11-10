@@ -130,6 +130,9 @@
                                   Foreground="{ThemeResource TextSecondaryBrush}"/>
                         <ToggleSwitch x:Name="TrackingToggle" OnContent="" OffContent=""
                                       Toggled="TrackingToggle_Toggled"/>
+                        <TextBlock x:Name="TextTrackedSince" FontSize="11" VerticalAlignment="Center"
+                                  Foreground="{ThemeResource TextTertiaryBrush}"
+                                  Visibility="Collapsed"/>
                     </StackPanel>
                 </StackPanel>
             </Border>

@@ -23,6 +23,7 @@ public class DeviceViewModel : INotifyPropertyChanged
     private bool _isTracking;
     private WeakReference<MainViewModel>? _parentViewModel;
 
+
     /// <summary>Stable physical device identifier</summary>
     public string DeviceId { get; set; } = "";
     /// <summary>Display name of the device</summary>
@@ -116,7 +117,6 @@ public class DeviceViewModel : INotifyPropertyChanged
         ? (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["PrimaryLightBrush"]
         : new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
 
-    private bool _isTrackingBacking;
     /// <summary>
     /// Indicates whether usage tracking is enabled for this device.
     /// The getter queries the tracking service so state stays fresh; the setter
@@ -126,14 +126,14 @@ public class DeviceViewModel : INotifyPropertyChanged
     {
         get
         {
-            if (string.IsNullOrEmpty(DeviceId)) return _isTrackingBacking;
+            if (string.IsNullOrEmpty(DeviceId)) return _isTracking;
             return UsageTrackingService.Instance.IsTracking(DeviceId);
         }
         set
         {
-            if (_isTrackingBacking != value)
+            if (_isTracking != value)
             {
-                _isTrackingBacking = value;
+                _isTracking = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(TrackingIconVisibility));
             }
@@ -664,6 +664,68 @@ public class MainViewModel : INotifyPropertyChanged
         if (await dialog.ShowAndConfirmAsync())
         {
             EnableDevice(device);
+        }
+    }
+
+    /// <summary>
+    /// Disable several devices with the two-stage confirmation. One auto-restore
+    /// countdown covers the whole batch, so a batch disable can never leave every
+    /// device of a type blocked with only the first one scheduled to recover.
+    /// </summary>
+    public async Task DisableDevicesWithConfirmAsync(IReadOnlyList<DeviceViewModel> devices, UIElement root)
+    {
+        if (devices.Count == 0) return;
+
+        if (devices.Count == 1)
+        {
+            await DisableDeviceWithConfirmAsync(devices[0], root);
+            return;
+        }
+
+        var loc = LocalizationService.Instance;
+        var batchName = string.Format(loc["BatchDeviceName"], devices.Count);
+
+        // Stage 1: one confirmation for the whole batch
+        var confirmDialog = new Controls.DisableConfirmDialog(batchName, DisableConfirmSeconds);
+        if (root?.XamlRoot != null)
+            confirmDialog.XamlRoot = root.XamlRoot;
+
+        if (!await confirmDialog.ShowWithCountdownAsync())
+        {
+            return; // User cancelled
+        }
+
+        var disabled = new List<DeviceViewModel>();
+        foreach (var device in devices)
+        {
+            if (ToggleDevice(device.DeviceId, false))
+            {
+                device.IsEnabled = false;
+                disabled.Add(device);
+            }
+        }
+
+        if (disabled.Count == 0)
+        {
+            NotificationService.Instance.ShowToast(loc["ActionFailed"], batchName);
+            return;
+        }
+
+        NotificationService.Instance.ShowToast(
+            loc["DeviceDisabled"],
+            string.Format(loc["DevicesDisabledCount"], disabled.Count));
+
+        // Stage 2: auto-restore the whole batch unless the user keeps them disabled
+        var restoreDialog = new Controls.AutoRestoreDialog(batchName, AutoRestoreSeconds);
+        if (root?.XamlRoot != null)
+            restoreDialog.XamlRoot = root.XamlRoot;
+
+        if (await restoreDialog.ShowAndCountdownAsync())
+        {
+            foreach (var device in disabled)
+            {
+                EnableDevice(device);
+            }
         }
     }
 

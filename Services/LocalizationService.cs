@@ -272,6 +272,10 @@ public class LocalizationService : INotifyPropertyChanged
         ["EmergencyUnlock"] = "Emergency unlock",
         ["EmergencyUnlockMessage"] = "All devices have been re-enabled (both Shift keys were held)",
         ["ExportHint"] = "Export the selected device's usage data as a CSV file",
+        ["BatchDeviceName"] = "{0} devices",
+        ["DevicesDisabledCount"] = "{0} device(s) disabled",
+        ["AlreadyRunningTitle"] = "RubyDevice is already running",
+        ["AlreadyRunningMessage"] = "Only one instance can run at a time because input blocking is active.",
 
         // Settings descriptions
         ["AppearanceDesc"] = "Choose the interface language and color theme",
@@ -512,6 +516,10 @@ public class LocalizationService : INotifyPropertyChanged
         ["EmergencyUnlock"] = "紧急解锁",
         ["EmergencyUnlockMessage"] = "已检测到同时按住两个 Shift 键，所有设备已恢复为启用状态",
         ["ExportHint"] = "将所选设备的使用数据导出为 CSV 文件",
+        ["BatchDeviceName"] = "{0} 台设备",
+        ["DevicesDisabledCount"] = "{0} 台设备已禁用",
+        ["AlreadyRunningTitle"] = "RubyDevice 已在运行",
+        ["AlreadyRunningMessage"] = "由于输入拦截正在生效，同时只能运行一个实例。",
 
         // Settings descriptions
         ["AppearanceDesc"] = "选择界面语言与配色主题",

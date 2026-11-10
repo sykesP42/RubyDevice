@@ -256,8 +256,9 @@ public sealed partial class DevicesPage : Page
     }
 
     /// <summary>
-    /// Disables every enabled device of the given type. The first device goes through the
-    /// confirmation and auto-restore flow; the rest are toggled directly once confirmed.
+    /// Disables every enabled device of the given type. The whole batch shares
+    /// one confirmation and one auto-restore countdown, so disabling the device
+    /// type currently in use always recovers automatically.
     /// </summary>
     private async void BtnDisableAll_Click(object sender, RoutedEventArgs e)
     {
@@ -267,14 +268,6 @@ public sealed partial class DevicesPage : Page
         var batch = _viewModel.AllDevices.Where(d => d.Type == type && d.IsEnabled).ToList();
         if (batch.Count == 0) return;
 
-        var first = batch.First();
-        await _viewModel.DisableDeviceWithConfirmAsync(first, this);
-        if (first.IsEnabled) return;
-
-        for (int i = 1; i < batch.Count; i++)
-        {
-            if (_viewModel.ToggleDevice(batch[i].DeviceId, false))
-                batch[i].IsEnabled = false;
-        }
+        await _viewModel.DisableDevicesWithConfirmAsync(batch, this);
     }
 }
