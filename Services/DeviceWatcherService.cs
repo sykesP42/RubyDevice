@@ -51,7 +51,10 @@ public class DeviceWatcherService : IDisposable
 
         try
         {
-            var query = new WqlEventQuery("SELECT * FROM Win32_DeviceChangeEvent");
+            // Only arrival (2) and removal (3) events matter for the device list;
+            // configuration changes (1) and docking (4) would just trigger
+            // pointless refreshes.
+            var query = new WqlEventQuery("SELECT * FROM Win32_DeviceChangeEvent WHERE EventType = 2 OR EventType = 3");
             _watcher = new ManagementEventWatcher(query);
             _watcher.EventArrived += OnDeviceEvent;
             _watcher.Start();
