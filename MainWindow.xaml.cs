@@ -44,6 +44,7 @@ public sealed partial class MainWindow : Window
         var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(_hwnd);
         var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
         appWindow?.Resize(new Windows.Graphics.SizeInt32(1100, 700));
+        appWindow?.SetIcon(System.IO.Path.Combine(AppContext.BaseDirectory, "app.ico"));
 
         // Init device manager
         _deviceManager = _viewModel.GetDeviceManager();
