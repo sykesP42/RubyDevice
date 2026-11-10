@@ -72,7 +72,7 @@
                                       Foreground="{ThemeResource TextPrimaryBrush}"/>
                             <Border Grid.Column="1" Height="20" CornerRadius="4" Background="{ThemeResource DividerBrush}">
                                 <Border x:Name="BarKeyboard" Height="20" CornerRadius="4"
-                                       Background="{ThemeResource PrimaryBrush}" HorizontalAlignment="Left"/>
+                                       Background="{ThemeResource KeyboardBrush}" HorizontalAlignment="Left"/>
                             </Border>
                             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
                                 <TextBlock x:Name="CountKeyboard" FontSize="12" FontWeight="Medium"
@@ -171,6 +171,41 @@
                             <StackPanel Spacing="4">
                                 <TextBlock x:Name="TextActivityRate" FontSize="11" Foreground="{ThemeResource TextTertiaryBrush}"/>
                                 <TextBlock x:Name="ValueActivityRate" FontSize="18" FontWeight="Bold"
+                                          Foreground="{ThemeResource SuccessBrush}"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- Last 7 Days -->
+                    <TextBlock x:Name="TextSevenDayTitle" FontSize="12" FontWeight="SemiBold"
+                              Foreground="{ThemeResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Background="{ThemeResource DividerBrush}" CornerRadius="6" Padding="12">
+                            <StackPanel Spacing="4">
+                                <TextBlock x:Name="TextSevenDayActive" FontSize="11" Foreground="{ThemeResource TextTertiaryBrush}"/>
+                                <TextBlock x:Name="ValueSevenDayActive" FontSize="18" FontWeight="Bold"
+                                          Foreground="{ThemeResource PrimaryBrush}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="1" Background="{ThemeResource DividerBrush}" CornerRadius="6" Padding="12">
+                            <StackPanel Spacing="4">
+                                <TextBlock x:Name="TextSevenDayEnabled" FontSize="11" Foreground="{ThemeResource TextTertiaryBrush}"/>
+                                <TextBlock x:Name="ValueSevenDayEnabled" FontSize="18" FontWeight="Bold"
+                                          Foreground="{ThemeResource TextSecondaryBrush}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="2" Background="{ThemeResource DividerBrush}" CornerRadius="6" Padding="12">
+                            <StackPanel Spacing="4">
+                                <TextBlock x:Name="TextDailyAverage" FontSize="11" Foreground="{ThemeResource TextTertiaryBrush}"/>
+                                <TextBlock x:Name="ValueDailyAverage" FontSize="18" FontWeight="Bold"
                                           Foreground="{ThemeResource SuccessBrush}"/>
                             </StackPanel>
                         </Border>

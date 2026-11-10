@@ -153,7 +153,7 @@ public class LocalizationService : INotifyPropertyChanged
 
         // About section
         ["Version"] = "Version",
-        ["AppVersion"] = "1.0.0",
+        ["AppVersion"] = "1.1.0",
 
         // About
         ["HeaderAbout"] = "About",
@@ -274,6 +274,7 @@ public class LocalizationService : INotifyPropertyChanged
         ["ExportHint"] = "Export the selected device's usage data as a CSV file",
         ["BatchDeviceName"] = "{0} devices",
         ["DevicesDisabledCount"] = "{0} device(s) disabled",
+        ["DailyAverage"] = "Daily Avg",
         ["AlreadyRunningTitle"] = "RubyDevice is already running",
         ["AlreadyRunningMessage"] = "Only one instance can run at a time because input blocking is active.",
 
@@ -397,7 +398,7 @@ public class LocalizationService : INotifyPropertyChanged
 
         // About section
         ["Version"] = "版本",
-        ["AppVersion"] = "1.0.0",
+        ["AppVersion"] = "1.1.0",
 
         // About
         ["HeaderAbout"] = "关于",
@@ -518,6 +519,7 @@ public class LocalizationService : INotifyPropertyChanged
         ["ExportHint"] = "将所选设备的使用数据导出为 CSV 文件",
         ["BatchDeviceName"] = "{0} 台设备",
         ["DevicesDisabledCount"] = "{0} 台设备已禁用",
+        ["DailyAverage"] = "日均",
         ["AlreadyRunningTitle"] = "RubyDevice 已在运行",
         ["AlreadyRunningMessage"] = "由于输入拦截正在生效，同时只能运行一个实例。",
 

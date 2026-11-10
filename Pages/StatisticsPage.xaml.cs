@@ -54,6 +54,10 @@ public sealed partial class StatisticsPage : Page
         TextActiveTime.Text = _loc["ActiveTime"];
         TextEnabledTime.Text = _loc["EnabledTime"];
         TextActivityRate.Text = _loc["ActivityRate"];
+        TextSevenDayTitle.Text = _loc["Last7Days"];
+        TextSevenDayActive.Text = _loc["ActiveTime"];
+        TextSevenDayEnabled.Text = _loc["EnabledTime"];
+        TextDailyAverage.Text = _loc["DailyAverage"];
         TextRefresh.Text = _loc["Refresh"];
         TextDeviceList.Text = _loc["HeaderDevices"];
         TextTrackedCount.Text = _loc["TrackedDevices"] + ":";
@@ -64,6 +68,9 @@ public sealed partial class StatisticsPage : Page
         base.OnNavigatedTo(e);
         _viewModel = e.Parameter as MainViewModel;
         _isLoaded = true;
+        // The constructor's UpdateTexts call is skipped by the _isLoaded guard;
+        // labels must be filled here once the page is actually loaded.
+        UpdateTexts();
         Bindings?.Update();
         UpdateStats();
 
@@ -130,6 +137,12 @@ public sealed partial class StatisticsPage : Page
         // Activity rate (Active / Enabled)
         var rate = enabledSeconds > 0 ? (activeSeconds / enabledSeconds) * 100 : 0;
         ValueActivityRate.Text = $"{Math.Round(rate)}%";
+
+        // Last 7 days totals and per-day average
+        var (weekActive, weekEnabled) = UsageTrackingService.Instance.GetRangeTotals(7);
+        ValueSevenDayActive.Text = FormatTime(weekActive);
+        ValueSevenDayEnabled.Text = FormatTime(weekEnabled);
+        ValueDailyAverage.Text = FormatTime(weekActive / 7);
 
         // Last updated timestamp
         TextLastUpdated.Text = $"{_loc["LastUpdated"]}: {DateTime.Now:HH:mm:ss}";

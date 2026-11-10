@@ -435,6 +435,36 @@ public class UsageTrackingService : IDisposable
     }
 
     /// <summary>
+    /// Gets the combined active/enabled seconds across all tracked devices for
+    /// the last <paramref name="days"/> days (including today)
+    /// </summary>
+    public (double ActiveSeconds, double EnabledSeconds) GetRangeTotals(int days)
+    {
+        var cutoff = DateTime.Today.AddDays(-Math.Max(1, days));
+        double totalActive = 0;
+        double totalEnabled = 0;
+
+        lock (_lock)
+        {
+            foreach (var deviceId in GetAllTrackingDevicesInternal())
+            {
+                if (!_records.TryGetValue(deviceId, out var deviceRecords))
+                    continue;
+
+                foreach (var record in deviceRecords.Values)
+                {
+                    if (record.Date < cutoff)
+                        continue;
+                    totalActive += record.ActiveSeconds;
+                    totalEnabled += record.EnabledSeconds;
+                }
+            }
+        }
+
+        return (totalActive, totalEnabled);
+    }
+
+    /// <summary>
     /// Returns the all-time total of active seconds recorded for a device
     /// </summary>
     public double GetTotalActiveSeconds(string deviceId)
