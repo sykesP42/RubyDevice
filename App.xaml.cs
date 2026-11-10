@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.UI.Xaml;
 using RubyDevice.Models;
 using RubyDevice.Services;
@@ -11,6 +13,8 @@ namespace RubyDevice;
 /// </summary>
 public partial class App : Application
 {
+    private static Mutex? _singleInstanceMutex;
+
     /// <summary>
     /// The running application instance, or null during shutdown
     /// </summary>
@@ -32,10 +36,20 @@ public partial class App : Application
 
     /// <summary>
     /// Loads persisted settings, applies the saved language and theme, creates
-    /// and activates the main window
+    /// and activates the main window. Only one instance may run: two copies
+    /// would both install low-level hooks and fight over input blocking.
     /// </summary>
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        _singleInstanceMutex = new Mutex(initiallyOwned: true, @"Local\RubyDevice.SingleInstance", out var createdNew);
+        if (!createdNew)
+        {
+            var loc = LocalizationService.Instance;
+            MessageBoxW(IntPtr.Zero, loc["AlreadyRunningMessage"], loc["AlreadyRunningTitle"], 0x40 /* MB_ICONINFORMATION */);
+            Exit();
+            return;
+        }
+
         // Restore language and theme before the window is built so the first
         // frame already uses the user's preferences.
         var settings = AppSettings.Load();
@@ -49,6 +63,9 @@ public partial class App : Application
         MainWindow = new MainWindow();
         MainWindow.Activate();
     }
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int MessageBoxW(IntPtr hWnd, string text, string caption, uint type);
 
     /// <summary>
     /// Apply a theme by swapping the active resource dictionary and forcing
