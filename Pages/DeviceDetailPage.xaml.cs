@@ -92,6 +92,9 @@ public sealed partial class DeviceDetailPage : Page
             _device = device;
             _viewModel = vm;
             _isLoaded = true;
+            // The constructor's UpdateTexts call is skipped by the _isLoaded
+            // guard; labels must be filled here once the page is loaded.
+            UpdateTexts();
             UpdateUI();
             LoadUsageData();
         }

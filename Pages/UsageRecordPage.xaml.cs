@@ -76,6 +76,9 @@ public sealed partial class UsageRecordPage : Page
         base.OnNavigatedTo(e);
         _viewModel = e.Parameter as MainViewModel;
         _isLoaded = true;
+        // The constructor's UpdateTexts call is skipped by the _isLoaded guard;
+        // labels must be filled here once the page is actually loaded.
+        UpdateTexts();
 
         // Subscribe to canvas size changed to redraw chart
         ChartCanvas.SizeChanged += ChartCanvas_SizeChanged;
