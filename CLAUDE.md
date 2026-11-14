@@ -48,6 +48,7 @@ RubyDevice is a WinUI 3 desktop application for managing Windows input devices (
 - **NotificationService** - Raises `NotificationPosted`; MainWindow renders it as an in-app InfoBar. System toasts are not used because unpackaged apps lack the required AUMID shortcut
 - **DeviceWatcherService** - WMI `Win32_DeviceChangeEvent` with a 1s debounce (guarded by a lock; raised from a thread-pool thread)
 - **AutoStartHelper** - HKCU `Run` registry key for start-with-Windows
+- **TrayIconService** - Shell_NotifyIcon tray icon owned by a hidden message-only window (class `RubyDeviceTrayWnd`). Left click/`Open` raises `OpenRequested`, the menu's `Exit` raises `ExitRequested`. Create/use/dispose on the UI thread; the WndProc delegate is rooted in a field
 
 ### ViewModels (`ViewModels/`)
 - **MainViewModel** - Main application state, device list, navigation, and the **app-wide auto-restore countdown** (DispatcherTimer + deadline-based, lives here so it survives page navigation)
@@ -60,6 +61,10 @@ RubyDevice is a WinUI 3 desktop application for managing Windows input devices (
 
 ### Pages (`Pages/`)
 Navigation-based UI with Frame navigation from MainWindow. Each page receives `MainViewModel` as navigation parameter. MainWindow clears the Frame back stack on top-level navigation so device-detail navigation never leaks across sections.
+
+### Window shell
+- Close-to-tray: `AppWindow.Closing` is canceled and the window hidden when `AppSettings.CloseToTray` is on; the tray menu's `Exit` sets a bypass flag before calling `Close()`
+- Window geometry: normal bounds + maximized state are saved via `GetWindowPlacement` on close and restored via `AppWindow.Resize`/`Move` at launch; off-screen positions are rejected by a virtual-screen check. Both APIs live in the same DPI-scaled coordinate space, so save/restore is symmetric
 
 ## Key Implementation Details
 

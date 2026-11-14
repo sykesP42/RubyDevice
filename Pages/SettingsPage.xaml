@@ -125,6 +125,18 @@
                         <ToggleSwitch Grid.Column="1" x:Name="NotificationsToggle"
                                      Toggled="Notifications_Toggled"/>
                     </Grid>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="2">
+                            <TextBlock x:Name="TextCloseToTray" FontSize="14" Foreground="{ThemeResource TextPrimaryBrush}"/>
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" x:Name="CloseToTrayToggle"
+                                     Toggled="CloseToTray_Toggled"/>
+                    </Grid>
                 </StackPanel>
             </Border>
 

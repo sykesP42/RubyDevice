@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using RubyDevice.Core;
+using RubyDevice.Models;
 using RubyDevice.Pages;
 using RubyDevice.Services;
 using RubyDevice.ViewModels;
@@ -21,6 +22,9 @@ public sealed partial class MainWindow : Window
     private IntPtr _hwnd;
     private string? _currentPageTag;
     private readonly DispatcherTimer _notificationTimer;
+    private Microsoft.UI.Windowing.AppWindow? _appWindow;
+    private readonly TrayIconService _trayIcon = new();
+    private bool _exitRequestedFromTray;
 
     /// <summary>
     /// Builds the main window, registers raw input handling, and initializes the
@@ -42,9 +46,21 @@ public sealed partial class MainWindow : Window
         // Get window handle
         _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
         var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(_hwnd);
-        var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
-        appWindow?.Resize(new Windows.Graphics.SizeInt32(1100, 700));
+        _appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
+        var appWindow = _appWindow;
+        RestoreWindowBounds(appWindow);
         appWindow?.SetIcon(System.IO.Path.Combine(AppContext.BaseDirectory, "app.ico"));
+
+        // Close-to-tray support: cancel the close and hide instead
+        if (appWindow != null)
+        {
+            appWindow.Closing += OnAppWindowClosing;
+        }
+
+        // System tray icon
+        _trayIcon.Initialize(System.IO.Path.Combine(AppContext.BaseDirectory, "app.ico"), "RubyDevice");
+        _trayIcon.OpenRequested += OnTrayOpenRequested;
+        _trayIcon.ExitRequested += OnTrayExitRequested;
 
         // Init device manager
         _deviceManager = _viewModel.GetDeviceManager();
@@ -74,6 +90,110 @@ public sealed partial class MainWindow : Window
         Closed += OnClosed;
     }
 
+    /// <summary>
+    /// Applies the previously saved window size and position. Invalid or
+    /// off-screen values fall back to the default size centered by the OS.
+    /// </summary>
+    private void RestoreWindowBounds(Microsoft.UI.Windowing.AppWindow? appWindow)
+    {
+        if (appWindow == null) return;
+
+        var settings = AppSettings.Load();
+        if (settings.WindowWidth >= 200 && settings.WindowHeight >= 200)
+        {
+            appWindow.Resize(new Windows.Graphics.SizeInt32(settings.WindowWidth, settings.WindowHeight));
+
+            if (IsPointOnVirtualScreen(settings.WindowX, settings.WindowY))
+            {
+                appWindow.Move(new Windows.Graphics.PointInt32(settings.WindowX, settings.WindowY));
+            }
+
+            if (settings.WindowMaximized)
+            {
+                (appWindow.Presenter as Microsoft.UI.Windowing.OverlappedPresenter)?.Maximize();
+            }
+        }
+        else
+        {
+            appWindow.Resize(new Windows.Graphics.SizeInt32(1100, 700));
+        }
+    }
+
+    /// <summary>
+    /// Persists the window's normal (restored) bounds and maximized state so the
+    /// next launch reopens where the user left it.
+    /// </summary>
+    private void SaveWindowBounds()
+    {
+        if (_appWindow == null) return;
+
+        try
+        {
+            var placement = NativeMethods.GetWindowPlacement(_hwnd);
+            var rect = placement.rcNormalPosition;
+
+            var settings = AppSettings.Load();
+            settings.WindowWidth = rect.Right - rect.Left;
+            settings.WindowHeight = rect.Bottom - rect.Top;
+            settings.WindowX = rect.Left;
+            settings.WindowY = rect.Top;
+            settings.WindowMaximized = placement.showCmd == NativeMethods.SW_SHOWMAXIMIZED;
+            settings.Save();
+        }
+        catch
+        {
+            // Best effort; losing window bounds must never block shutdown
+        }
+    }
+
+    private static bool IsPointOnVirtualScreen(int x, int y)
+    {
+        if (x == int.MinValue || y == int.MinValue) return false;
+        int vx = NativeMethods.GetSystemMetrics(NativeMethods.SM_XVIRTUALSCREEN);
+        int vy = NativeMethods.GetSystemMetrics(NativeMethods.SM_YVIRTUALSCREEN);
+        int cx = NativeMethods.GetSystemMetrics(NativeMethods.SM_CXVIRTUALSCREEN);
+        int cy = NativeMethods.GetSystemMetrics(NativeMethods.SM_CYVIRTUALSCREEN);
+        // Allow a small margin so partially off-screen windows still restore
+        const int margin = 200;
+        return x >= vx - margin && y >= vy - margin && x <= vx + cx + margin && y <= vy + cy + margin;
+    }
+
+    /// <summary>
+    /// Intercepts the close button when "close to tray" is enabled and hides the
+    /// window instead; the app keeps running with its tray icon.
+    /// </summary>
+    private void OnAppWindowClosing(Microsoft.UI.Windowing.AppWindow sender,
+        Microsoft.UI.Windowing.AppWindowClosingEventArgs args)
+    {
+        if (_exitRequestedFromTray) return;
+
+        var settings = AppSettings.Load();
+        if (!settings.CloseToTray) return;
+
+        args.Cancel = true;
+        DispatcherQueue.TryEnqueue(() => _appWindow?.Hide());
+    }
+
+    private void OnTrayOpenRequested(object? sender, EventArgs e)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            _appWindow?.Show();
+            Activate();
+            NativeMethods.SetForegroundWindow(_hwnd);
+        });
+    }
+
+    private void OnTrayExitRequested(object? sender, EventArgs e)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            // Skip the close-to-tray cancellation for a real exit
+            _exitRequestedFromTray = true;
+            Close();
+        });
+    }
+
     private void OnRawInput(IntPtr lParam)
     {
         // Process raw input to track which device generated the input
@@ -86,6 +206,10 @@ public sealed partial class MainWindow : Window
     private void OnClosed(object sender, WindowEventArgs args)
     {
         NotificationService.Instance.NotificationPosted -= OnNotificationPosted;
+        _trayIcon.OpenRequested -= OnTrayOpenRequested;
+        _trayIcon.ExitRequested -= OnTrayExitRequested;
+        _trayIcon.Dispose();
+        SaveWindowBounds();
         _viewModel.SaveDeviceData();
         WindowSubclassHelper.UninstallSubclass(_hwnd);
         _deviceManager?.Dispose();

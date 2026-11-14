@@ -55,6 +55,7 @@ public sealed partial class SettingsPage : Page
         TextAutoStart.Text = _loc["AutoStart"];
         TextAutoRefresh.Text = _loc["AutoRefresh"];
         TextShowNotifications.Text = _loc["ShowNotifications"];
+        TextCloseToTray.Text = _loc["CloseToTray"];
 
         // Data Management
         TextDataTitle.Text = _loc["DataManagement"];
@@ -74,6 +75,7 @@ public sealed partial class SettingsPage : Page
         AutoStartToggle.IsOn = settings.AutoStart;
         AutoRefreshToggle.IsOn = settings.AutoRefresh;
         NotificationsToggle.IsOn = settings.ShowNotifications;
+        CloseToTrayToggle.IsOn = settings.CloseToTray;
     }
 
     private void SaveSettings(Action<AppSettings> apply)
@@ -134,6 +136,12 @@ public sealed partial class SettingsPage : Page
         if (!_initialized) return;
         NotificationService.Instance.EnableNotifications = NotificationsToggle.IsOn;
         SaveSettings(s => s.ShowNotifications = NotificationsToggle.IsOn);
+    }
+
+    private void CloseToTray_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (!_initialized) return;
+        SaveSettings(s => s.CloseToTray = CloseToTrayToggle.IsOn);
     }
 
     private async void BtnClearData_Click(object sender, RoutedEventArgs e)

@@ -277,6 +277,8 @@ public class LocalizationService : INotifyPropertyChanged
         ["DailyAverage"] = "Daily Avg",
         ["AlreadyRunningTitle"] = "RubyDevice is already running",
         ["AlreadyRunningMessage"] = "Only one instance can run at a time because input blocking is active.",
+        ["Open"] = "Open",
+        ["Exit"] = "Exit",
 
         // Settings descriptions
         ["AppearanceDesc"] = "Choose the interface language and color theme",
@@ -522,6 +524,8 @@ public class LocalizationService : INotifyPropertyChanged
         ["DailyAverage"] = "日均",
         ["AlreadyRunningTitle"] = "RubyDevice 已在运行",
         ["AlreadyRunningMessage"] = "由于输入拦截正在生效，同时只能运行一个实例。",
+        ["Open"] = "打开",
+        ["Exit"] = "退出",
 
         // Settings descriptions
         ["AppearanceDesc"] = "选择界面语言与配色主题",
