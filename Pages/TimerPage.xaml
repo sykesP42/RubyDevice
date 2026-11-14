@@ -82,18 +82,20 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- Right: Timer Display -->
-                    <Border Grid.Column="1" Width="120" Height="120" CornerRadius="16"
-                           Background="{ThemeResource PrimaryBrush}">
-                        <StackPanel VerticalAlignment="Center" Spacing="6">
-                            <FontIcon Glyph="&#xE916;" FontSize="32" Foreground="White"
-                                     HorizontalAlignment="Center"/>
-                            <TextBlock x:Name="TimerDisplay" Text="30:00" FontSize="28"
-                                      FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+                    <!-- Right: Timer Display with progress ring -->
+                    <Grid Grid.Column="1" Width="150" Height="150" VerticalAlignment="Center">
+                        <ProgressRing x:Name="TimerProgress" IsIndeterminate="False"
+                                     Value="30" Maximum="30"
+                                     Width="150" Height="150"
+                                     Foreground="{ThemeResource PrimaryBrush}"/>
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="4">
+                            <TextBlock x:Name="TimerDisplay" Text="30:00" FontSize="26"
+                                      FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"
+                                      HorizontalAlignment="Center"/>
                             <TextBlock x:Name="TimerUnitText" Text="minutes" FontSize="11"
-                                      Foreground="White" Opacity="0.8" HorizontalAlignment="Center"/>
+                                      Foreground="{ThemeResource TextTertiaryBrush}" HorizontalAlignment="Center"/>
                         </StackPanel>
-                    </Border>
+                    </Grid>
                 </Grid>
             </Border>
 
@@ -115,7 +117,8 @@
                                 <TextBlock Grid.Column="0" x:Name="DisabledTitle" FontSize="18" FontWeight="SemiBold"
                                           Foreground="{ThemeResource TextPrimaryBrush}"/>
                                 <Border Grid.Column="1" x:Name="DisabledCountBadge" Background="{ThemeResource DividerBrush}"
-                                       CornerRadius="8" Padding="6,2" MinWidth="20">
+                                       CornerRadius="9" Padding="8,2" MinWidth="20"
+                                       HorizontalAlignment="Left" Margin="8,0,0,0">
                                     <TextBlock x:Name="DisabledCount" FontSize="11"
                                               Foreground="{ThemeResource TextSecondaryBrush}"
                                               HorizontalAlignment="Center"/>

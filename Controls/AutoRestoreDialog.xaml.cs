@@ -8,11 +8,13 @@ namespace RubyDevice.Controls;
 
 /// <summary>
 /// Second-stage dialog shown after a device was disabled. Counts down and, unless
-/// the user keeps the device disabled, asks the caller to restore it.
+/// the user keeps the device disabled, asks the caller to restore it. The
+/// countdown doubles as a determinate progress ring.
 /// </summary>
 public sealed partial class AutoRestoreDialog : ContentDialog
 {
     private readonly DispatcherTimer _timer;
+    private readonly int _totalSeconds;
     private int _remainingSeconds;
     private bool _decided;
 
@@ -40,7 +42,11 @@ public sealed partial class AutoRestoreDialog : ContentDialog
         KeepDisabledText = loc["KeepDisabled"];
         RestoreText = loc["RestoreNow"];
 
+        _totalSeconds = countdownSeconds;
         _remainingSeconds = countdownSeconds;
+
+        CountdownRing.Maximum = _totalSeconds;
+        CountdownRing.Value = _totalSeconds;
 
         _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _timer.Tick += Timer_Tick;
@@ -85,5 +91,6 @@ public sealed partial class AutoRestoreDialog : ContentDialog
     private void UpdateCountdownText()
     {
         CountdownText.Text = $"{_remainingSeconds}s";
+        CountdownRing.Value = _remainingSeconds;
     }
 }

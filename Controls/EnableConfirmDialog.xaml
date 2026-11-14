@@ -6,19 +6,22 @@
     CloseButtonText="{x:Bind CancelText}"
     DefaultButton="Primary">
 
-    <StackPanel Spacing="16" Padding="8" MaxWidth="360">
+    <StackPanel Spacing="16" MinWidth="340">
         <!-- Header -->
         <StackPanel Orientation="Horizontal" Spacing="12">
-            <Border Background="{ThemeResource SuccessBrush}" CornerRadius="20" Padding="8">
-                <FontIcon Glyph="&#xEC92;" FontSize="20" Foreground="White"/>
+            <Border Background="{ThemeResource SuccessTintBrush}" CornerRadius="10" Padding="10">
+                <FontIcon Glyph="&#xEC92;" FontSize="20" Foreground="{ThemeResource SuccessBrush}"/>
             </Border>
-            <TextBlock Text="{x:Bind DialogTitle}" FontSize="18" FontWeight="Bold"
-                      Foreground="{ThemeResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+            <StackPanel VerticalAlignment="Center" Spacing="2">
+                <TextBlock Text="{x:Bind DialogTitle}" FontSize="17" FontWeight="SemiBold"
+                          Foreground="{ThemeResource TextPrimaryBrush}"/>
+                <TextBlock Text="{x:Bind DeviceName}" FontSize="13"
+                          Foreground="{ThemeResource TextSecondaryBrush}"
+                          TextTrimming="CharacterEllipsis" MaxLines="1"/>
+            </StackPanel>
         </StackPanel>
 
-        <!-- Device name + message -->
-        <TextBlock Text="{x:Bind DeviceName}" TextWrapping="Wrap" FontSize="14" FontWeight="SemiBold"
-                  Foreground="{ThemeResource TextPrimaryBrush}"/>
+        <!-- Message -->
         <TextBlock Text="{x:Bind Message}" TextWrapping="Wrap" FontSize="13"
                   Foreground="{ThemeResource TextSecondaryBrush}"/>
     </StackPanel>

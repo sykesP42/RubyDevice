@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Microsoft.UI.Xaml;
 
 namespace RubyDevice.Services;
 
@@ -62,6 +63,13 @@ public class ThemeService : INotifyPropertyChanged
         AppTheme.Sunset => "Themes/SunsetTheme.xaml",
         _ => "Themes/LightTheme.xaml"
     };
+
+    /// <summary>
+    /// The Fluent theme matching the active palette. Popups (dialogs, menus) do
+    /// not inherit the window's forced RequestedTheme, so they must be given
+    /// this explicitly or they follow the system theme.
+    /// </summary>
+    public ElementTheme FluentTheme => CurrentTheme == AppTheme.Dark ? ElementTheme.Dark : ElementTheme.Light;
 
     /// <summary>
     /// Raised when the active theme changes

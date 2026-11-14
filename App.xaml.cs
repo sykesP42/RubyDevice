@@ -46,7 +46,9 @@ public partial class App : Application
         {
             var loc = LocalizationService.Instance;
             MessageBoxW(IntPtr.Zero, loc["AlreadyRunningMessage"], loc["AlreadyRunningTitle"], 0x40 /* MB_ICONINFORMATION */);
-            Exit();
+            // Hard exit: a graceful Exit() races the already-running tracking
+            // timers and trips CLR shutdown asserts in debug builds.
+            Environment.Exit(0);
             return;
         }
 

@@ -62,6 +62,17 @@ RubyDevice is a WinUI 3 desktop application for managing Windows input devices (
 ### Pages (`Pages/`)
 Navigation-based UI with Frame navigation from MainWindow. Each page receives `MainViewModel` as navigation parameter. MainWindow clears the Frame back stack on top-level navigation so device-detail navigation never leaks across sections.
 
+### Design system
+- Each theme dictionary also defines tint brushes (`PrimaryTintBrush`,
+  `SuccessTintBrush`, `WarningTintBrush`, `DangerTintBrush`) used by status
+  pills and dialog icon tiles, plus `ListViewItemBackgroundSelected` /
+  `ListViewItemBackgroundPointerOver` for the Win11-style navigation pill
+- **Popups do not inherit the window's forced RequestedTheme** - every
+  ContentDialog must set `RequestedTheme = ThemeService.Instance.FluentTheme`
+  or it renders with the system theme and its text goes unreadable
+- Live input feedback: device rows show a breathing opacity dot
+  (DevicesPage `DeviceRow_Loaded` storyboard) while the device is active
+
 ### Window shell
 - Close-to-tray: `AppWindow.Closing` is canceled and the window hidden when `AppSettings.CloseToTray` is on; the tray menu's `Exit` sets a bypass flag before calling `Close()`
 - Window geometry: normal bounds + maximized state are saved via `GetWindowPlacement` on close and restored via `AppWindow.Resize`/`Move` at launch; off-screen positions are rejected by a virtual-screen check. Both APIs live in the same DPI-scaled coordinate space, so save/restore is symmetric

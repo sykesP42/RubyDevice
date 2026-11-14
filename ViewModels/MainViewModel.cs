@@ -75,6 +75,10 @@ public class DeviceViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(IconGlyph));
         OnPropertyChanged(nameof(IsEnabled));
         OnPropertyChanged(nameof(StatusText));
+        OnPropertyChanged(nameof(StatusDotBrush));
+        OnPropertyChanged(nameof(StatusPillBrush));
+        OnPropertyChanged(nameof(RowOpacity));
+        OnPropertyChanged(nameof(TypeIconBrush));
         OnPropertyChanged(nameof(LocationText));
         OnPropertyChanged(nameof(UsageTimeText));
         OnPropertyChanged(nameof(UserNote));
@@ -92,6 +96,7 @@ public class DeviceViewModel : INotifyPropertyChanged
     {
         OnPropertyChanged(nameof(IsActive));
         OnPropertyChanged(nameof(ActiveBrush));
+        OnPropertyChanged(nameof(IsActiveDotVisibility));
     }
 
     /// <summary>
@@ -154,8 +159,14 @@ public class DeviceViewModel : INotifyPropertyChanged
     /// </summary>
     public Visibility HasNote => !string.IsNullOrWhiteSpace(_userNote) ? Visibility.Visible : Visibility.Collapsed;
 
+    /// <summary>Visibility of the live-input pulse dot shown next to the device name</summary>
+    public Visibility IsActiveDotVisibility => IsActive ? Visibility.Visible : Visibility.Collapsed;
+
     /// <summary>Localized tooltip for the note indicator</summary>
     public string HasNoteText => LocalizationService.Instance["HasNote"];
+
+    /// <summary>Localized tooltip for the live-input pulse dot</summary>
+    public string ActivityHint => LocalizationService.Instance["ActivityHint"];
 
     /// <summary>Localized tooltip for the tracking indicator</summary>
     public string TrackingText => LocalizationService.Instance["TrackingEnabled"];
@@ -178,9 +189,34 @@ public class DeviceViewModel : INotifyPropertyChanged
                 _isEnabled = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(StatusText));
+                OnPropertyChanged(nameof(StatusDotBrush));
+                OnPropertyChanged(nameof(StatusPillBrush));
+                OnPropertyChanged(nameof(RowOpacity));
             }
         }
     }
+
+    /// <summary>
+    /// Whole-row opacity so disabled devices visibly recede without vanishing
+    /// </summary>
+    public double RowOpacity => _isEnabled ? 1.0 : 0.55;
+
+    /// <summary>Colored dot inside the status pill (green enabled, amber disabled)</summary>
+    public Microsoft.UI.Xaml.Media.Brush StatusDotBrush => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources[
+        _isEnabled ? "SuccessBrush" : "WarningBrush"];
+
+    /// <summary>Tinted pill background behind the status label</summary>
+    public Microsoft.UI.Xaml.Media.Brush StatusPillBrush => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources[
+        _isEnabled ? "SuccessTintBrush" : "WarningTintBrush"];
+
+    /// <summary>Type-colored glyph for the icon tile</summary>
+    public Microsoft.UI.Xaml.Media.Brush TypeIconBrush => Type switch
+    {
+        DeviceType.Keyboard => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["KeyboardBrush"],
+        DeviceType.Mouse => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["MouseBrush"],
+        DeviceType.Touchpad => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TouchpadBrush"],
+        _ => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["OtherDeviceBrush"]
+    };
 
     /// <summary>
     /// Localized device type name used in the device list
@@ -622,7 +658,10 @@ public class MainViewModel : INotifyPropertyChanged
     public async Task DisableDeviceWithConfirmAsync(DeviceViewModel device, UIElement root)
     {
         // Stage 1: confirmation with countdown
-        var confirmDialog = new Controls.DisableConfirmDialog(device.Name, DisableConfirmSeconds);
+        var confirmDialog = new Controls.DisableConfirmDialog(device.Name, DisableConfirmSeconds)
+        {
+            RequestedTheme = ThemeService.Instance.FluentTheme
+        };
         if (root?.XamlRoot != null)
             confirmDialog.XamlRoot = root.XamlRoot;
 
@@ -642,7 +681,10 @@ public class MainViewModel : INotifyPropertyChanged
         NotificationService.Instance.ShowDeviceDisabledNotification(device.Name, AutoRestoreSeconds);
 
         // Stage 2: auto-restore countdown
-        var restoreDialog = new Controls.AutoRestoreDialog(device.Name, AutoRestoreSeconds);
+        var restoreDialog = new Controls.AutoRestoreDialog(device.Name, AutoRestoreSeconds)
+        {
+            RequestedTheme = ThemeService.Instance.FluentTheme
+        };
         if (root?.XamlRoot != null)
             restoreDialog.XamlRoot = root.XamlRoot;
 
@@ -657,7 +699,10 @@ public class MainViewModel : INotifyPropertyChanged
     /// </summary>
     public async Task EnableDeviceWithConfirmAsync(DeviceViewModel device, UIElement root)
     {
-        var dialog = new Controls.EnableConfirmDialog(device.Name);
+        var dialog = new Controls.EnableConfirmDialog(device.Name)
+        {
+            RequestedTheme = ThemeService.Instance.FluentTheme
+        };
         if (root?.XamlRoot != null)
             dialog.XamlRoot = root.XamlRoot;
 
@@ -686,7 +731,10 @@ public class MainViewModel : INotifyPropertyChanged
         var batchName = string.Format(loc["BatchDeviceName"], devices.Count);
 
         // Stage 1: one confirmation for the whole batch
-        var confirmDialog = new Controls.DisableConfirmDialog(batchName, DisableConfirmSeconds);
+        var confirmDialog = new Controls.DisableConfirmDialog(batchName, DisableConfirmSeconds)
+        {
+            RequestedTheme = ThemeService.Instance.FluentTheme
+        };
         if (root?.XamlRoot != null)
             confirmDialog.XamlRoot = root.XamlRoot;
 
@@ -716,7 +764,10 @@ public class MainViewModel : INotifyPropertyChanged
             string.Format(loc["DevicesDisabledCount"], disabled.Count));
 
         // Stage 2: auto-restore the whole batch unless the user keeps them disabled
-        var restoreDialog = new Controls.AutoRestoreDialog(batchName, AutoRestoreSeconds);
+        var restoreDialog = new Controls.AutoRestoreDialog(batchName, AutoRestoreSeconds)
+        {
+            RequestedTheme = ThemeService.Instance.FluentTheme
+        };
         if (root?.XamlRoot != null)
             restoreDialog.XamlRoot = root.XamlRoot;
 

@@ -153,6 +153,7 @@ public sealed partial class SettingsPage : Page
             PrimaryButtonText = _loc["Clear"],
             CloseButtonText = _loc["Cancel"],
             DefaultButton = ContentDialogButton.Primary,
+            RequestedTheme = ThemeService.Instance.FluentTheme,
             XamlRoot = this.XamlRoot
         };
 

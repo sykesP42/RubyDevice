@@ -9,15 +9,17 @@ namespace RubyDevice.Controls;
 /// <summary>
 /// First-stage confirmation dialog for disabling a device. The user can confirm
 /// immediately via the primary button, cancel, or wait out the countdown which
-/// auto-confirms.
+/// auto-confirms. The countdown doubles as a determinate progress ring.
 /// </summary>
 public sealed partial class DisableConfirmDialog : ContentDialog
 {
     private readonly DispatcherTimer _timer;
+    private readonly int _totalSeconds;
     private int _remainingSeconds;
     private bool _autoConfirmed;
 
     public string DialogTitle { get; }
+    public string DeviceName { get; }
     public string Message { get; }
     public string CancelText { get; }
     public string ConfirmText { get; }
@@ -35,13 +37,18 @@ public sealed partial class DisableConfirmDialog : ContentDialog
 
         var loc = LocalizationService.Instance;
         DialogTitle = loc["DisableConfirmTitle"];
+        DeviceName = deviceName;
         Message = string.Format(loc["DisableConfirmMessage"], deviceName);
         CancelText = loc["Cancel"];
         ConfirmText = loc["Confirm"];
         CountdownLabel = loc["DisablingIn"];
         AutoRestoreHint = loc["AutoRestoreHint"];
 
+        _totalSeconds = countdownSeconds;
         _remainingSeconds = countdownSeconds;
+
+        CountdownRing.Maximum = _totalSeconds;
+        CountdownRing.Value = _totalSeconds;
 
         _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _timer.Tick += Timer_Tick;
@@ -77,5 +84,6 @@ public sealed partial class DisableConfirmDialog : ContentDialog
     private void UpdateCountdownText()
     {
         CountdownText.Text = $"{_remainingSeconds}s";
+        CountdownRing.Value = _remainingSeconds;
     }
 }

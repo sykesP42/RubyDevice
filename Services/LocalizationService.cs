@@ -278,6 +278,8 @@ public class LocalizationService : INotifyPropertyChanged
         ["AlreadyRunningTitle"] = "RubyDevice is already running",
         ["AlreadyRunningMessage"] = "Only one instance can run at a time because input blocking is active.",
         ["Open"] = "Open",
+        ["ActivityHint"] = "Receiving input",
+        ["Copied"] = "Copied to clipboard",
         ["Exit"] = "Exit",
 
         // Settings descriptions
@@ -525,6 +527,8 @@ public class LocalizationService : INotifyPropertyChanged
         ["AlreadyRunningTitle"] = "RubyDevice 已在运行",
         ["AlreadyRunningMessage"] = "由于输入拦截正在生效，同时只能运行一个实例。",
         ["Open"] = "打开",
+        ["ActivityHint"] = "正在接收输入",
+        ["Copied"] = "已复制到剪贴板",
         ["Exit"] = "退出",
 
         // Settings descriptions

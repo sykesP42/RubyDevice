@@ -100,10 +100,13 @@
                           Foreground="{ThemeResource TextSecondaryBrush}" Visibility="Collapsed"/>
 
                 <!-- Empty state -->
-                <TextBlock x:Name="TextNoDevices" FontSize="13"
-                          Foreground="{ThemeResource TextTertiaryBrush}"
-                          HorizontalAlignment="Center" Margin="0,40"
-                          Visibility="Collapsed"/>
+                <StackPanel x:Name="TextNoDevices" HorizontalAlignment="Center" Margin="0,56"
+                           Visibility="Collapsed" Spacing="10">
+                    <FontIcon Glyph="&#xE772;" FontSize="34" Foreground="{ThemeResource TextTertiaryBrush}"
+                             HorizontalAlignment="Center"/>
+                    <TextBlock FontSize="13" Foreground="{ThemeResource TextTertiaryBrush}"
+                              HorizontalAlignment="Center" x:Name="EmptyStateText"/>
+                </StackPanel>
 
                 <ItemsControl ItemsSource="{x:Bind ViewModel.DeviceGroups, Mode=OneWay}">
                     <ItemsControl.ItemTemplate>
@@ -112,6 +115,8 @@
                                 <!-- Group Header -->
                                 <Grid ColumnSpacing="8">
                                     <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
@@ -122,11 +127,16 @@
                                               VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="1" Text="{x:Bind Name}" FontWeight="SemiBold"
                                               Foreground="{ThemeResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                    <Button Grid.Column="2" Content="{x:Bind EnableAllText}"
+                                    <Border Grid.Column="2" Background="{ThemeResource DividerBrush}" CornerRadius="9"
+                                           Padding="8,1" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind CountText}" FontSize="11"
+                                                  Foreground="{ThemeResource TextSecondaryBrush}"/>
+                                    </Border>
+                                    <Button Grid.Column="4" Content="{x:Bind EnableAllText}"
                                            Click="BtnEnableAll_Click" Tag="{x:Bind Type}"
                                            Padding="8,4" FontSize="11" MinWidth="0"
                                            Visibility="{x:Bind HasDisabled}"/>
-                                    <Button Grid.Column="3" Content="{x:Bind DisableAllText}"
+                                    <Button Grid.Column="5" Content="{x:Bind DisableAllText}"
                                            Click="BtnDisableAll_Click" Tag="{x:Bind Type}"
                                            Padding="8,4" FontSize="11" MinWidth="0"
                                            Visibility="{x:Bind HasEnabled}"/>
@@ -139,22 +149,39 @@
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate x:DataType="vm:DeviceViewModel">
                                                 <Border PointerPressed="Device_Click" Tag="{x:Bind}"
-                                                       RightTapped="Device_RightTapped"
+                                                       RightTapped="Device_RightTapped" Loaded="DeviceRow_Loaded"
+                                                       Unloaded="DeviceRow_Unloaded"
                                                        Background="{x:Bind ActiveBrush, Mode=OneWay}"
-                                                       CornerRadius="4" Padding="0,8">
-                                                    <Grid ColumnSpacing="10">
+                                                       CornerRadius="8" Padding="12,10"
+                                                       Opacity="{x:Bind RowOpacity, Mode=OneWay}">
+                                                    <Grid ColumnSpacing="12">
                                                         <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="Auto"/>
                                                             <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
 
+                                                        <!-- Type icon tile -->
+                                                        <Border Grid.Column="0" Width="38" Height="38" CornerRadius="9"
+                                                               Background="{ThemeResource DividerBrush}"
+                                                               VerticalAlignment="Center">
+                                                            <TextBlock Text="{x:Bind IconGlyph, Mode=OneWay}" FontFamily="Segoe MDL2 Assets"
+                                                                      FontSize="16" Foreground="{x:Bind TypeIconBrush, Mode=OneWay}"
+                                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+
                                                         <!-- Device Info -->
-                                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                                                <TextBlock Text="{x:Bind Name, Mode=OneWay}" FontWeight="Medium"
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
+                                                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                                                <TextBlock Text="{x:Bind Name, Mode=OneWay}" FontWeight="SemiBold" FontSize="14"
                                                                           TextTrimming="CharacterEllipsis" MaxLines="1"/>
+                                                                <!-- Live input pulse dot -->
+                                                                <Ellipse x:Name="ActiveDot" Width="7" Height="7"
+                                                                        Fill="{ThemeResource SuccessBrush}"
+                                                                        VerticalAlignment="Center"
+                                                                        Visibility="{x:Bind IsActiveDotVisibility, Mode=OneWay}"
+                                                                        ToolTipService.ToolTip="{x:Bind ActivityHint}"/>
                                                                 <!-- Note indicator -->
                                                                 <TextBlock Text="&#xE768;" FontFamily="Segoe MDL2 Assets"
                                                                           FontSize="10" Foreground="{ThemeResource TextTertiaryBrush}"
@@ -169,20 +196,16 @@
                                                             </StackPanel>
                                                         </StackPanel>
 
-                                                        <!-- Tracking indicator -->
-                                                        <StackPanel Grid.Column="1" Orientation="Horizontal"
-                                                                    VerticalAlignment="Center" Spacing="4"
-                                                                    Visibility="{x:Bind TrackingIconVisibility, Mode=OneWay}">
-                                                            <TextBlock Text="&#xE9D9;" FontFamily="Segoe MDL2 Assets"
-                                                                      FontSize="12" Foreground="{ThemeResource PrimaryBrush}"
-                                                                      ToolTipService.ToolTip="{x:Bind TrackingText}"/>
-                                                        </StackPanel>
-
-                                                        <!-- Status -->
-                                                        <TextBlock Grid.Column="2" Text="{x:Bind StatusText, Mode=OneWay}"
-                                                                  VerticalAlignment="Center" Margin="4,0"
-                                                                  Foreground="{ThemeResource TextSecondaryBrush}"
-                                                                  FontSize="13"/>
+                                                        <!-- Status pill -->
+                                                        <Border Grid.Column="2" Background="{x:Bind StatusPillBrush, Mode=OneWay}"
+                                                               CornerRadius="10" Padding="9,3" VerticalAlignment="Center">
+                                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                                <Ellipse Width="6" Height="6" Fill="{x:Bind StatusDotBrush, Mode=OneWay}"
+                                                                        VerticalAlignment="Center"/>
+                                                                <TextBlock Text="{x:Bind StatusText, Mode=OneWay}" FontSize="11"
+                                                                          Foreground="{ThemeResource TextPrimaryBrush}"/>
+                                                            </StackPanel>
+                                                        </Border>
 
                                                         <!-- Toggle -->
                                                         <ToggleSwitch Grid.Column="3" IsOn="{x:Bind IsEnabled, Mode=TwoWay}"

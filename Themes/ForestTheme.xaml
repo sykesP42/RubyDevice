@@ -44,4 +44,11 @@
     <SolidColorBrush x:Key="ChartActiveBrush" Color="#0284C7"/>
     <SolidColorBrush x:Key="ChartEnabledBrush" Color="#16A34A"/>
 
+    <SolidColorBrush x:Key="PrimaryTintBrush" Color="#1A16A34A"/>
+    <SolidColorBrush x:Key="SuccessTintBrush" Color="#1A15803D"/>
+    <SolidColorBrush x:Key="WarningTintBrush" Color="#1AB45309"/>
+    <SolidColorBrush x:Key="DangerTintBrush" Color="#1ADC2626"/>
+    <!-- Win11-style navigation selection visuals -->
+    <SolidColorBrush x:Key="ListViewItemBackgroundPointerOver" Color="#0F14532D"/>
+    <SolidColorBrush x:Key="ListViewItemBackgroundSelected" Color="#1A16A34A"/>
 </ResourceDictionary>

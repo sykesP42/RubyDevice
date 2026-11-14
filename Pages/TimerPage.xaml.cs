@@ -113,6 +113,16 @@ public sealed partial class TimerPage : Page
         UpdateDisabledList();
     }
 
+    /// <summary>
+    /// Keeps the countdown progress ring in sync: full when idle, draining while
+    /// the auto-restore countdown runs.
+    /// </summary>
+    private void UpdateTimerProgress(int totalSeconds, int maximumSeconds)
+    {
+        TimerProgress.Maximum = Math.Max(1, maximumSeconds);
+        TimerProgress.Value = Math.Max(0, totalSeconds);
+    }
+
     private void LoadTimerSettings()
     {
         var settings = TimerConfig.Load();
@@ -146,6 +156,7 @@ public sealed partial class TimerPage : Page
                 Title = _loc["AutoRestoreTimer"],
                 Content = _loc["NoDevicesToRestore"],
                 CloseButtonText = _loc["OK"],
+                RequestedTheme = ThemeService.Instance.FluentTheme,
                 XamlRoot = this.XamlRoot
             };
             _ = dialog.ShowAsync();
@@ -159,7 +170,9 @@ public sealed partial class TimerPage : Page
         new TimerConfig { TimeoutMinutes = minutes }.Save();
 
         _totalMinutes = minutes;
-        UpdateTimerDisplay(_viewModel.AutoRestoreRemainingSeconds);
+        var remaining = _viewModel.AutoRestoreRemainingSeconds;
+        UpdateTimerDisplay(remaining);
+        UpdateTimerProgress(remaining, minutes * 60);
         UpdateTimerStateText();
     }
 
@@ -170,6 +183,7 @@ public sealed partial class TimerPage : Page
         if (_viewModel == null || !_viewModel.IsAutoRestoreRunning)
         {
             UpdateTimerDisplay(_totalMinutes * 60);
+            UpdateTimerProgress(_totalMinutes * 60, _totalMinutes * 60);
         }
     }
 
@@ -190,6 +204,7 @@ public sealed partial class TimerPage : Page
         }
 
         UpdateTimerDisplay(_totalMinutes * 60);
+        UpdateTimerProgress(_totalMinutes * 60, _totalMinutes * 60);
         UpdateTimerStateText();
         UpdateDisabledList();
     }
@@ -209,11 +224,14 @@ public sealed partial class TimerPage : Page
 
         if (running)
         {
-            UpdateTimerDisplay(_viewModel.AutoRestoreRemainingSeconds);
+            var remaining = _viewModel.AutoRestoreRemainingSeconds;
+            UpdateTimerDisplay(remaining);
+            UpdateTimerProgress(remaining, _viewModel.AutoRestoreTotalSeconds);
         }
         else
         {
             UpdateTimerDisplay(_totalMinutes * 60);
+            UpdateTimerProgress(_totalMinutes * 60, _totalMinutes * 60);
         }
         UpdateTimerStateText();
     }
@@ -258,6 +276,7 @@ public sealed partial class TimerPage : Page
             TimeoutBox.Value = mins;
             _totalMinutes = mins;
             UpdateTimerDisplay(mins * 60);
+            UpdateTimerProgress(mins * 60, mins * 60);
             ApplyPresetVisuals();
         }
     }
@@ -293,6 +312,7 @@ public sealed partial class TimerPage : Page
 
         _totalMinutes = (int)args.NewValue;
         UpdateTimerDisplay(_totalMinutes * 60);
+        UpdateTimerProgress(_totalMinutes * 60, _totalMinutes * 60);
         ApplyPresetVisuals();
     }
 

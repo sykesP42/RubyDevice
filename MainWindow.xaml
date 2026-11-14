@@ -5,25 +5,26 @@
 
     <Grid x:Name="RootGrid" Background="{ThemeResource WindowBackgroundBrush}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="32"/>
+            <RowDefinition Height="44"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Title Bar: drag region only; the system caption buttons render on the
              right side of this area -->
-        <Grid x:Name="TitleBar" Grid.Row="0" Background="{ThemeResource HeaderBackgroundBrush}"
-              BorderBrush="{ThemeResource BorderBrush}" BorderThickness="0,0,0,1">
+        <Grid x:Name="TitleBar" Grid.Row="0" Background="{ThemeResource HeaderBackgroundBrush}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="140"/>
             </Grid.ColumnDefinitions>
 
-            <!-- App Title -->
-            <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="12,0,0,0">
-                <TextBlock Text="&#xE96E;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                          VerticalAlignment="Center" Foreground="{ThemeResource PrimaryBrush}"/>
-                <TextBlock Text="RubyDevice" FontSize="12" FontWeight="SemiBold" Margin="8,0,0,0"
+            <!-- App icon tile + name -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="14,0,0,0" Spacing="9">
+                <Border Width="24" Height="24" CornerRadius="7" Background="{ThemeResource PrimaryBrush}">
+                    <TextBlock Text="&#xE765;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                              Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="RubyDevice" FontSize="12" FontWeight="SemiBold"
                           VerticalAlignment="Center" Foreground="{ThemeResource TextPrimaryBrush}"/>
             </StackPanel>
         </Grid>
@@ -38,6 +39,7 @@
             <!-- Sidebar -->
             <Grid Grid.Column="0" Background="{ThemeResource SidebarBackgroundBrush}"
                  BorderBrush="{ThemeResource BorderBrush}" BorderThickness="0,0,1,0">
+
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
@@ -46,10 +48,20 @@
                 <!-- Navigation -->
                 <ListView Grid.Row="0" x:Name="NavList" SelectionMode="Single"
                          SelectionChanged="NavList_SelectionChanged" Background="Transparent"
-                         Padding="8" Margin="0">
+                         Padding="10,8" Margin="0">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="MinHeight" Value="42"/>
+                            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                            <Setter Property="Padding" Value="10,0"/>
+                            <Setter Property="Margin" Value="4,2"/>
+                            <Setter Property="CornerRadius" Value="8"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        </Style>
+                    </ListView.ItemContainerStyle>
                     <ListViewItem x:Name="NavItemDevices" Tag="Devices" Margin="0,2">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <FontIcon x:Name="IconDevices" Glyph="&#xE765;" FontSize="16"
+                            <FontIcon x:Name="IconDevices" Glyph="&#xE765;" FontSize="17"
                                      Foreground="{ThemeResource TextSecondaryBrush}"/>
                             <TextBlock x:Name="TextDevices" VerticalAlignment="Center"
                                       Foreground="{ThemeResource TextPrimaryBrush}"/>
@@ -57,7 +69,7 @@
                     </ListViewItem>
                     <ListViewItem x:Name="NavItemUsageRecord" Tag="UsageRecord" Margin="0,2">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <FontIcon x:Name="IconUsageRecord" Glyph="&#xE787;" FontSize="16"
+                            <FontIcon x:Name="IconUsageRecord" Glyph="&#xE787;" FontSize="17"
                                      Foreground="{ThemeResource TextSecondaryBrush}"/>
                             <TextBlock x:Name="TextUsageRecord" VerticalAlignment="Center"
                                       Foreground="{ThemeResource TextPrimaryBrush}"/>
@@ -65,7 +77,7 @@
                     </ListViewItem>
                     <ListViewItem x:Name="NavItemStatistics" Tag="Statistics" Margin="0,2">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <FontIcon x:Name="IconStatistics" Glyph="&#xE9D9;" FontSize="16"
+                            <FontIcon x:Name="IconStatistics" Glyph="&#xE9D9;" FontSize="17"
                                      Foreground="{ThemeResource TextSecondaryBrush}"/>
                             <TextBlock x:Name="TextStatistics" VerticalAlignment="Center"
                                       Foreground="{ThemeResource TextPrimaryBrush}"/>
@@ -73,7 +85,7 @@
                     </ListViewItem>
                     <ListViewItem x:Name="NavItemTimer" Tag="Timer" Margin="0,2">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <FontIcon x:Name="IconTimer" Glyph="&#xE916;" FontSize="16"
+                            <FontIcon x:Name="IconTimer" Glyph="&#xE916;" FontSize="17"
                                      Foreground="{ThemeResource TextSecondaryBrush}"/>
                             <TextBlock x:Name="TextTimer" VerticalAlignment="Center"
                                       Foreground="{ThemeResource TextPrimaryBrush}"/>
@@ -81,7 +93,7 @@
                     </ListViewItem>
                     <ListViewItem x:Name="NavItemSettings" Tag="Settings" Margin="0,2">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <FontIcon x:Name="IconSettings" Glyph="&#xE713;" FontSize="16"
+                            <FontIcon x:Name="IconSettings" Glyph="&#xE713;" FontSize="17"
                                      Foreground="{ThemeResource TextSecondaryBrush}"/>
                             <TextBlock x:Name="TextSettings" VerticalAlignment="Center"
                                       Foreground="{ThemeResource TextPrimaryBrush}"/>
@@ -89,7 +101,7 @@
                     </ListViewItem>
                     <ListViewItem x:Name="NavItemAbout" Tag="About" Margin="0,2">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <FontIcon x:Name="IconAbout" Glyph="&#xE946;" FontSize="16"
+                            <FontIcon x:Name="IconAbout" Glyph="&#xE946;" FontSize="17"
                                      Foreground="{ThemeResource TextSecondaryBrush}"/>
                             <TextBlock x:Name="TextAbout" VerticalAlignment="Center"
                                       Foreground="{ThemeResource TextPrimaryBrush}"/>
@@ -98,8 +110,11 @@
                 </ListView>
 
                 <!-- Footer -->
-                <Border Grid.Row="1" Padding="16,12" BorderBrush="{ThemeResource BorderBrush}" BorderThickness="0,1,0,0">
-                    <TextBlock Text="v1.1.0" FontSize="11" Foreground="{ThemeResource TextTertiaryBrush}"/>
+                <Border Grid.Row="1" Padding="14,10" BorderBrush="{ThemeResource BorderBrush}" BorderThickness="0,1,0,0">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Ellipse Width="6" Height="6" Fill="{ThemeResource SuccessBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="v1.1.0" FontSize="11" Foreground="{ThemeResource TextTertiaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
                 </Border>
             </Grid>
 
@@ -111,12 +126,12 @@
                 </Grid.RowDefinitions>
 
                 <!-- Header -->
-                <Border Grid.Row="0" Padding="20,16" BorderBrush="{ThemeResource BorderBrush}" BorderThickness="0,0,0,1">
+                <Border Grid.Row="0" Padding="24,18,24,14">
                     <StackPanel>
-                        <TextBlock x:Name="HeaderTitle" FontSize="20" FontWeight="Bold"
+                        <TextBlock x:Name="HeaderTitle" FontSize="22" FontWeight="SemiBold"
                                   Foreground="{ThemeResource TextPrimaryBrush}"/>
-                        <TextBlock x:Name="HeaderSubtitle" FontSize="12" Margin="0,2,0,0"
-                                  Foreground="{ThemeResource TextSecondaryBrush}"/>
+                        <TextBlock x:Name="HeaderSubtitle" FontSize="12" Margin="0,3,0,0"
+                                  Foreground="{ThemeResource TextTertiaryBrush}"/>
                     </StackPanel>
                 </Border>
 
@@ -125,7 +140,8 @@
 
                 <!-- In-app notification banner -->
                 <InfoBar x:Name="NotificationBar" Grid.Row="1" IsOpen="False"
-                        VerticalAlignment="Top" Margin="16,8,16,0"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="24,6,24,0"
+                        CornerRadius="8"
                         CloseButtonClick="NotificationBar_CloseClick"/>
             </Grid>
         </Grid>

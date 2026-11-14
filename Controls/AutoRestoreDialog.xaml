@@ -6,29 +6,33 @@
     CloseButtonText="{x:Bind RestoreText}"
     DefaultButton="Close">
 
-    <StackPanel Spacing="16" Padding="8" MaxWidth="360">
-        <!-- Status Header -->
+    <StackPanel Spacing="16" MinWidth="340">
+        <!-- Status header -->
         <StackPanel Orientation="Horizontal" Spacing="12">
-            <Border Background="{ThemeResource DangerBrush}" CornerRadius="20" Padding="8">
-                <FontIcon Glyph="&#xE73E;" FontSize="18" Foreground="White"/>
+            <Border Background="{ThemeResource WarningTintBrush}" CornerRadius="10" Padding="10">
+                <FontIcon Glyph="&#xE73E;" FontSize="20" Foreground="{ThemeResource WarningBrush}"/>
             </Border>
-            <TextBlock Text="{x:Bind DialogTitle}" FontSize="18" FontWeight="Bold"
-                      Foreground="{ThemeResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+            <StackPanel VerticalAlignment="Center" Spacing="2">
+                <TextBlock Text="{x:Bind DialogTitle}" FontSize="17" FontWeight="SemiBold"
+                          Foreground="{ThemeResource TextPrimaryBrush}"/>
+                <TextBlock Text="{x:Bind DeviceName}" FontSize="13"
+                          Foreground="{ThemeResource TextSecondaryBrush}"
+                          TextWrapping="Wrap" MaxLines="2"/>
+            </StackPanel>
         </StackPanel>
 
-        <!-- Device Info -->
-        <TextBlock Text="{x:Bind DeviceName}" TextWrapping="Wrap" FontSize="14"
-                  Foreground="{ThemeResource TextSecondaryBrush}"/>
-
-        <!-- Countdown Section -->
-        <Border Background="{ThemeResource DividerBrush}" CornerRadius="8" Padding="12">
-            <StackPanel Spacing="6" HorizontalAlignment="Center">
-                <TextBlock Text="{x:Bind CountdownLabel}" FontSize="11"
-                          Foreground="{ThemeResource SuccessBrush}" HorizontalAlignment="Center"/>
-                <TextBlock x:Name="CountdownText" FontSize="32" FontWeight="Bold"
-                          Foreground="{ThemeResource SuccessBrush}" HorizontalAlignment="Center"/>
-                <ProgressRing IsActive="True" Width="16" Height="16" Foreground="{ThemeResource SuccessBrush}"
-                             HorizontalAlignment="Center"/>
+        <!-- Countdown -->
+        <Border Background="{ThemeResource SuccessTintBrush}" CornerRadius="10" Padding="16,12">
+            <StackPanel Orientation="Horizontal" Spacing="14" HorizontalAlignment="Center">
+                <ProgressRing x:Name="CountdownRing" IsIndeterminate="False"
+                             Width="46" Height="46"
+                             Foreground="{ThemeResource SuccessBrush}"/>
+                <StackPanel Spacing="1" VerticalAlignment="Center">
+                    <TextBlock Text="{x:Bind CountdownLabel}" FontSize="11"
+                              Foreground="{ThemeResource TextTertiaryBrush}"/>
+                    <TextBlock x:Name="CountdownText" FontSize="26" FontWeight="Bold"
+                              Foreground="{ThemeResource SuccessBrush}"/>
+                </StackPanel>
             </StackPanel>
         </Border>
 

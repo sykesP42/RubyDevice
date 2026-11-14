@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
 using Windows.ApplicationModel.DataTransfer;
 using RubyDevice.Core;
@@ -45,7 +47,67 @@ public sealed partial class DevicesPage : Page
         SortByType.Text = _loc["SortByType"];
         SortByStatus.Text = _loc["SortByStatus"];
         SearchBox.PlaceholderText = _loc["SearchPlaceholder"];
-        TextNoDevices.Text = _loc["NoDevicesFound"];
+        EmptyStateText.Text = _loc["NoDevicesFound"];
+    }
+
+    // Pulsing "live input" dot animations, one per rendered device row. Rows are
+    // created per group rebuild, so stories are tracked by row element.
+    private sealed class PulseState
+    {
+        public Storyboard Story = null!;
+    }
+
+    private readonly Dictionary<Border, PulseState> _pulseStates = new();
+
+    /// <summary>
+    /// Starts a breathing opacity animation on the row's live-input dot. The dot
+    /// is only visible while the device is active, and the animation keeps
+    /// running underneath so the pulse is already in motion when input arrives.
+    /// </summary>
+    private void DeviceRow_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Border border) return;
+
+        var dot = FindDescendantByName(border, "ActiveDot") as Microsoft.UI.Xaml.Shapes.Ellipse;
+        if (dot == null) return;
+
+        var story = new Storyboard();
+        var anim = new DoubleAnimation
+        {
+            From = 1.0,
+            To = 0.25,
+            AutoReverse = true,
+            RepeatBehavior = RepeatBehavior.Forever,
+            Duration = new Microsoft.UI.Xaml.Duration(TimeSpan.FromMilliseconds(850))
+        };
+        Storyboard.SetTarget(anim, dot);
+        Storyboard.SetTargetProperty(anim, "Opacity");
+        story.Children.Add(anim);
+        story.Begin();
+
+        _pulseStates[border] = new PulseState { Story = story };
+    }
+
+    private void DeviceRow_Unloaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Border border) return;
+        if (_pulseStates.Remove(border, out var state))
+        {
+            state.Story.Stop();
+        }
+    }
+
+    private static DependencyObject? FindDescendantByName(DependencyObject root, string name)
+    {
+        int count = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChildrenCount(root);
+        for (int i = 0; i < count; i++)
+        {
+            var child = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChild(root, i);
+            if (child is Microsoft.UI.Xaml.FrameworkElement fe && fe.Name == name) return child;
+            var found = FindDescendantByName(child, name);
+            if (found != null) return found;
+        }
+        return null;
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -200,6 +262,7 @@ public sealed partial class DevicesPage : Page
             var pkg = new DataPackage();
             pkg.SetText(device.DeviceId);
             Clipboard.SetContent(pkg);
+            NotificationService.Instance.ShowToast(_loc["Copied"], device.DeviceId);
         };
 
         var toggleItem = new MenuFlyoutItem
