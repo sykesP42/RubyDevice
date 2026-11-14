@@ -2,16 +2,32 @@
     PRI generation (MrtCore.PriGen, pulled in transitively by WindowsAppSDK)
     needs the Appx packaging tasks that ship with Visual Studio's MSBuild; plain
     `dotnet build` cannot resolve them on its own. Probe the usual per-edition
-    install paths so any machine with VS 2022 or the Build Tools can build.
+    install paths across VS 2022 (v17.0) and VS 2026 (v18.0) so any machine with
+    Visual Studio or the Build Tools can build. CI overrides this with a
+    vswhere-located path passed via -p:AppxMSBuildToolsPath.
 -->
 <Project>
   <PropertyGroup>
-    <_VsAppxPathRoot Condition="'$(_VsAppxPathRoot)' == ''">C:\Program Files\Microsoft Visual Studio\2022\</_VsAppxPathRoot>
-    <_VsAppxSuffix Condition="'$(_VsAppxSuffix)' == ''">\MSBuild\Microsoft\VisualStudio\v17.0\AppxPackage\</_VsAppxSuffix>
-    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_VsAppxPathRoot)Community$(_VsAppxSuffix)')">$(_VsAppxPathRoot)Community$(_VsAppxSuffix)</AppxMSBuildToolsPath>
-    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_VsAppxPathRoot)Professional$(_VsAppxSuffix)')">$(_VsAppxPathRoot)Professional$(_VsAppxSuffix)</AppxMSBuildToolsPath>
-    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_VsAppxPathRoot)Enterprise$(_VsAppxSuffix)')">$(_VsAppxPathRoot)Enterprise$(_VsAppxSuffix)</AppxMSBuildToolsPath>
-    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_VsAppxPathRoot)BuildTools$(_VsAppxSuffix)')">$(_VsAppxPathRoot)BuildTools$(_VsAppxSuffix)</AppxMSBuildToolsPath>
-    <PriProjTaskAssembly Condition="'$(AppxMSBuildToolsPath)' != ''">$(AppxMSBuildToolsPath)Microsoft.Build.Packaging.Pri.Tasks.dll</PriProjTaskAssembly>
+    <_VsRootsBase>C:\Program Files\Microsoft Visual Studio\</_VsRootsBase>
+  </PropertyGroup>
+
+  <!-- VS 2022 roots: "2022" directory, MSBuild version v17.0 -->
+  <PropertyGroup Condition="'$(AppxMSBuildToolsPath)' == ''">
+    <AppxMSBuildToolsPath Condition="Exists('$(_VsRootsBase)2022\Community\MSBuild\Microsoft\VisualStudio\v17.0\AppxPackage\Microsoft.Build.Packaging.Pri.Tasks.dll')">$(_VsRootsBase)2022\Community\MSBuild\Microsoft\VisualStudio\v17.0\AppxPackage\</AppxMSBuildToolsPath>
+    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_VsRootsBase)2022\Professional\MSBuild\Microsoft\VisualStudio\v17.0\AppxPackage\Microsoft.Build.Packaging.Pri.Tasks.dll')">$(_VsRootsBase)2022\Professional\MSBuild\Microsoft\VisualStudio\v17.0\AppxPackage\</AppxMSBuildToolsPath>
+    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_VsRootsBase)2022\Enterprise\MSBuild\Microsoft\VisualStudio\v17.0\AppxPackage\Microsoft.Build.Packaging.Pri.Tasks.dll')">$(_VsRootsBase)2022\Enterprise\MSBuild\Microsoft\VisualStudio\v17.0\AppxPackage\</AppxMSBuildToolsPath>
+    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_VsRootsBase)2022\BuildTools\MSBuild\Microsoft\VisualStudio\v17.0\AppxPackage\Microsoft.Build.Packaging.Pri.Tasks.dll')">$(_VsRootsBase)2022\BuildTools\MSBuild\Microsoft\VisualStudio\v17.0\AppxPackage\</AppxMSBuildToolsPath>
+  </PropertyGroup>
+
+  <!-- VS 2026 roots: "18" directory, MSBuild version v18.0 -->
+  <PropertyGroup Condition="'$(AppxMSBuildToolsPath)' == ''">
+    <AppxMSBuildToolsPath Condition="Exists('$(_VsRootsBase)18\Community\MSBuild\Microsoft\VisualStudio\v18.0\AppxPackage\Microsoft.Build.Packaging.Pri.Tasks.dll')">$(_VsRootsBase)18\Community\MSBuild\Microsoft\VisualStudio\v18.0\AppxPackage\</AppxMSBuildToolsPath>
+    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_VsRootsBase)18\Professional\MSBuild\Microsoft\VisualStudio\v18.0\AppxPackage\Microsoft.Build.Packaging.Pri.Tasks.dll')">$(_VsRootsBase)18\Professional\MSBuild\Microsoft\VisualStudio\v18.0\AppxPackage\</AppxMSBuildToolsPath>
+    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_VsRootsBase)18\Enterprise\MSBuild\Microsoft\VisualStudio\v18.0\AppxPackage\Microsoft.Build.Packaging.Pri.Tasks.dll')">$(_VsRootsBase)18\Enterprise\MSBuild\Microsoft\VisualStudio\v18.0\AppxPackage\</AppxMSBuildToolsPath>
+    <AppxMSBuildToolsPath Condition="'$(AppxMSBuildToolsPath)' == '' and Exists('$(_VsRootsBase)18\BuildTools\MSBuild\Microsoft\VisualStudio\v18.0\AppxPackage\Microsoft.Build.Packaging.Pri.Tasks.dll')">$(_VsRootsBase)18\BuildTools\MSBuild\Microsoft\VisualStudio\v18.0\AppxPackage\</AppxMSBuildToolsPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PriProjTaskAssembly Condition="'$(AppxMSBuildToolsPath)' != '' and '$(PriProjTaskAssembly)' == ''">$(AppxMSBuildToolsPath)Microsoft.Build.Packaging.Pri.Tasks.dll</PriProjTaskAssembly>
   </PropertyGroup>
 </Project>

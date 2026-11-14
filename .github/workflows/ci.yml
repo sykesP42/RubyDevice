@@ -18,8 +18,36 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
+      - name: Locate Appx packaging tasks
+        id: appx
+        shell: pwsh
+        run: |
+          # PRI generation needs the Appx packaging tasks shipped with Visual
+          # Studio's MSBuild. Locate them with vswhere across any edition and
+          # MSBuild version, then pass the directory to the build explicitly.
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          $candidates = @()
+          if (Test-Path $vswhere) {
+            $roots = & $vswhere -products * -property installationPath
+            foreach ($root in $roots) {
+              foreach ($v in 'v18.0', 'v17.0', 'v16.0') {
+                $p = Join-Path $root "MSBuild\Microsoft\VisualStudio\$v\AppxPackage"
+                if (Test-Path (Join-Path $p 'Microsoft.Build.Packaging.Pri.Tasks.dll')) {
+                  $candidates += $p
+                }
+              }
+            }
+          }
+          if ($candidates.Count -eq 0) {
+            Write-Host "::error::No Visual Studio installation with the Appx packaging tasks (Microsoft.Build.Packaging.Pri.Tasks.dll) was found."
+            exit 1
+          }
+          $dir = "$($candidates[0])\"
+          Write-Host "Using Appx packaging tasks from: $dir"
+          Add-Content $env:GITHUB_OUTPUT "appxpath=$dir"
+
       - name: Build
-        run: dotnet build RubyDevice.sln -c Debug -p:Platform=x64
+        run: dotnet build RubyDevice.sln -c Debug -p:Platform=x64 "-p:AppxMSBuildToolsPath=${{ steps.appx.outputs.appxpath }}"
 
       - name: Test
-        run: dotnet test RubyDevice.sln -c Debug -p:Platform=x64 --no-build
+        run: dotnet test RubyDevice.sln -c Debug -p:Platform=x64 "-p:AppxMSBuildToolsPath=${{ steps.appx.outputs.appxpath }}" --no-build
