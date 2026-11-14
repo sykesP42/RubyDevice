@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.Threading;
 using RubyDevice.Models;
+using RubyDevice.Services;
 using Xunit;
 
 namespace RubyDevice.Tests;
@@ -55,5 +56,26 @@ public class UsageModelTests
         {
             Thread.CurrentThread.CurrentCulture = originalCulture;
         }
+    }
+}
+
+/// <summary>
+/// Tests for the real UsageTrackingService.GetWeekStartDate (Monday-based,
+/// ISO 8601) used by the weekly aggregation.
+/// </summary>
+public class WeekStartTests
+{
+    [Theory]
+    [InlineData("2026-01-26", "2026-01-26")] // Monday stays put
+    [InlineData("2026-01-28", "2026-01-26")] // Wednesday -> Monday
+    [InlineData("2026-01-31", "2026-01-26")] // Saturday -> Monday
+    [InlineData("2026-02-01", "2026-01-26")] // Sunday -> previous Monday
+    [InlineData("2026-02-02", "2026-02-02")] // next Monday starts a new week
+    public void GetWeekStartDate_ReturnsMondayOfTheWeek(string input, string expected)
+    {
+        var date = DateTime.Parse(input);
+        var start = UsageTrackingService.GetWeekStartDate(date);
+        Assert.Equal(DateTime.Parse(expected), start);
+        Assert.Equal(DayOfWeek.Monday, start.DayOfWeek);
     }
 }

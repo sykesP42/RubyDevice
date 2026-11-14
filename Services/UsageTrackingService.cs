@@ -747,7 +747,7 @@ public class UsageTrackingService : IDisposable
     /// <summary>
     /// Get the Monday date for the week containing the given date
     /// </summary>
-    private static DateTime GetWeekStartDate(DateTime date)
+    public static DateTime GetWeekStartDate(DateTime date)
     {
         // Monday-based week (ISO 8601)
         var dayOfWeek = date.DayOfWeek;
