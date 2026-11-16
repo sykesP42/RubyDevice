@@ -30,4 +30,14 @@
   <PropertyGroup>
     <PriProjTaskAssembly Condition="'$(AppxMSBuildToolsPath)' != '' and '$(PriProjTaskAssembly)' == ''">$(AppxMSBuildToolsPath)Microsoft.Build.Packaging.Pri.Tasks.dll</PriProjTaskAssembly>
   </PropertyGroup>
+
+  <!--
+    WindowsAppSDK ships version-specific win10-* runtime identifiers, which
+    .NET 9 flags as NETSDK1206. The package offers no non-versioned
+    alternative yet, so the warning is suppressed project-wide to keep
+    TreatWarningsAsErrors meaningful for real issues.
+  -->
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);NETSDK1206</NoWarn>
+  </PropertyGroup>
 </Project>

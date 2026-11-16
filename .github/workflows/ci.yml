@@ -47,7 +47,24 @@ jobs:
           Add-Content $env:GITHUB_OUTPUT "appxpath=$dir"
 
       - name: Build
-        run: dotnet build RubyDevice.sln -c Debug -p:Platform=x64 "-p:AppxMSBuildToolsPath=${{ steps.appx.outputs.appxpath }}"
+        run: dotnet build RubyDevice.sln -c Debug -p:Platform=x64 "-p:AppxMSBuildToolsPath=${{ steps.appx.outputs.appxpath }}" -p:TreatWarningsAsErrors=true
+
+      - name: Verify formatting
+        run: dotnet format RubyDevice.sln --verify-no-changes --no-restore
+        env:
+          AppxMSBuildToolsPath: ${{ steps.appx.outputs.appxpath }}
 
       - name: Test
         run: dotnet test RubyDevice.sln -c Debug -p:Platform=x64 "-p:AppxMSBuildToolsPath=${{ steps.appx.outputs.appxpath }}" --no-build
+
+      - name: Audit vulnerable packages
+        shell: pwsh
+        run: |
+          # dotnet list --vulnerable exits 0 even when vulnerable packages are
+          # reported, so scan the output ourselves.
+          $out = dotnet list RubyDevice.sln package --vulnerable --include-transitive 2>&1 | Out-String
+          Write-Host $out
+          if ($out -match "has the following vulnerable") {
+            Write-Host "::error::Vulnerable NuGet packages detected - run 'dotnet list RubyDevice.sln package --vulnerable --include-transitive' locally."
+            exit 1
+          }
