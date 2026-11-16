@@ -1,0 +1,21 @@
+root = true
+
+# Defaults
+[*]
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Source files - CRLF to match .gitattributes
+[*.{cs,xaml,xml,csproj,props,targets,json,manifest,yml}]
+end_of_line = crlf
+indent_style = space
+indent_size = 4
+
+[*.{csproj,props,targets,json,yml}]
+indent_size = 2
+
+# Markdown keeps LF (matches .gitattributes)
+[*.md]
+end_of_line = lf
+indent_size = 2

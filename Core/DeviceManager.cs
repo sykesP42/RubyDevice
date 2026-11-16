@@ -170,11 +170,21 @@ public class DeviceManager : IDisposable
 
     private static readonly Dictionary<string, string> KnownVendors = new()
     {
-        ["046D"] = "Logitech", ["045E"] = "Microsoft", ["06CB"] = "Synaptics",
-        ["04F3"] = "Elan", ["17EF"] = "Lenovo", ["1028"] = "Dell", ["0B05"] = "ASUS",
-        ["1532"] = "Razer", ["1038"] = "SteelSeries", ["1B1C"] = "Corsair",
-        ["046A"] = "Cherry", ["093A"] = "Pixart", ["258A"] = "Rapoo",
-        ["1EA7"] = "Redragon", ["04CA"] = "Lite-On"
+        ["046D"] = "Logitech",
+        ["045E"] = "Microsoft",
+        ["06CB"] = "Synaptics",
+        ["04F3"] = "Elan",
+        ["17EF"] = "Lenovo",
+        ["1028"] = "Dell",
+        ["0B05"] = "ASUS",
+        ["1532"] = "Razer",
+        ["1038"] = "SteelSeries",
+        ["1B1C"] = "Corsair",
+        ["046A"] = "Cherry",
+        ["093A"] = "Pixart",
+        ["258A"] = "Rapoo",
+        ["1EA7"] = "Redragon",
+        ["04CA"] = "Lite-On"
     };
 
     /// <summary>
