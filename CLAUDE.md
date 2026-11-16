@@ -1,6 +1,10 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file is the architecture reference for this repository.
+
+**Engineering rules live in [`AGENTS.md`](AGENTS.md) — read it first.** This file explains how the
+code is structured and why; AGENTS.md lists the hard rules (MUST NEVER) and the acceptance checks
+that every change must pass.
 
 ## Build and Run
 

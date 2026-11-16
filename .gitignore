@@ -123,3 +123,14 @@ tools/
 # Test results
 [Rr]eports/
 [Tt]est[Rr]esults/
+
+# Secrets and environment files - never commit
+.env
+.env.*
+*.key
+*.pem
+credentials*.json
+secrets.*
+
+# ZCode client local data
+.zcode/
